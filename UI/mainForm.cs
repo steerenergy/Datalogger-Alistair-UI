@@ -43,6 +43,7 @@ namespace SteerLoggerUser
         }
 
         // Reads program config
+        // Test commit
         // Objective 1
         private void ReadProgConfig()
         {
