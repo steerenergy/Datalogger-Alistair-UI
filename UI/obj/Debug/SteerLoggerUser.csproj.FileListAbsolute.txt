@@ -18,7 +18,6 @@ C:\Users\alist\source\repos\SteerLoggerUser\bin\Debug\progConf.ini
 C:\Users\alist\source\repos\SteerLoggerUser\bin\Debug\SteerLoggerUser.exe.config
 C:\Users\alist\source\repos\SteerLoggerUser\bin\Debug\SteerLoggerUser.exe
 C:\Users\alist\source\repos\SteerLoggerUser\bin\Debug\SteerLoggerUser.pdb
-C:\Users\alist\source\repos\SteerLoggerUser\obj\Debug\SteerLoggerUser.csproj.AssemblyReference.cache
 C:\Users\alist\source\repos\SteerLoggerUser\obj\Debug\SteerLoggerUser.csproj.ResolveComReference.cache
 C:\Users\alist\source\repos\SteerLoggerUser\obj\Debug\SteerLoggerUser.DatabaseSearchForm.resources
 C:\Users\alist\source\repos\SteerLoggerUser\obj\Debug\SteerLoggerUser.DownloadForm.resources
@@ -30,3 +29,8 @@ C:\Users\alist\source\repos\SteerLoggerUser\obj\Debug\SteerLoggerUser.csproj.Gen
 C:\Users\alist\source\repos\SteerLoggerUser\obj\Debug\SteerLoggerUser.csproj.CoreCompileInputs.cache
 C:\Users\alist\source\repos\SteerLoggerUser\obj\Debug\SteerLoggerUser.exe
 C:\Users\alist\source\repos\SteerLoggerUser\obj\Debug\SteerLoggerUser.pdb
+C:\Users\alist\source\repos\SteerLoggerUser\bin\Debug\pythonScripts\compression.py
+C:\Users\alist\source\repos\SteerLoggerUser\bin\Debug\pythonScripts\graph.py
+C:\Users\alist\source\repos\SteerLoggerUser\bin\Debug\pythonScripts\linear_function.py
+C:\Users\alist\source\repos\SteerLoggerUser\bin\Debug\pythonScripts\moving_average.py
+C:\Users\alist\source\repos\SteerLoggerUser\bin\Debug\steer.ico
