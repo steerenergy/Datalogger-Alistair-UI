@@ -25,16 +25,18 @@ namespace SteerLoggerUser
         // Initialises the form
         public mainForm()
         {
-            // Reads the program config file
-            // Objective 1
-            ReadProgConfig();
-            // Starts the connect form, which searches for loggers and allows user to connect to one
-            // Objective 2 and 3
-            ConnectForm connectForm = new ConnectForm(progConfig.loggers.Values.ToArray());
-            connectForm.ShowDialog();
-            // Set logger and name of user
-            logger = connectForm.logger;
-            user = connectForm.user;
+            MessageBox.Show("Logger UI started. \nSearching for active loggers on your local network. (This will take about 30 seconds)");
+            //// Reads the program config file
+            //// Objective 1
+            //ReadProgConfig();
+            //// Starts the connect form, which searches for loggers and allows user to connect to one
+            //// Objective 2 and 3
+            //ConnectForm connectForm = new ConnectForm(progConfig.loggers.Values.ToArray());
+            //connectForm.ShowDialog();
+            //// Set logger and name of user
+            //logger = connectForm.logger;
+            //user = connectForm.user;
+
             // Add custom function that is run when the form is closed to close TCP connection
             this.FormClosed += new FormClosedEventHandler(MainFormClosed);
             InitializeComponent();
@@ -45,7 +47,7 @@ namespace SteerLoggerUser
         private void ReadProgConfig()
         {
             // Opens config using StreamReader
-            using (StreamReader reader = new StreamReader(@"progConf.ini"))
+            using (StreamReader reader = new StreamReader(Application.StartupPath + "\\progConf.ini"))
             {
                 string line = "";
                 char[] trimChars = new char[] { '\n', ' ' };
@@ -104,6 +106,17 @@ namespace SteerLoggerUser
         // Loads the mainForm
         private void mainForm_Load(object sender, EventArgs e)
         {
+            // Reads the program config file
+            // Objective 1
+            ReadProgConfig();
+            // Starts the connect form, which searches for loggers and allows user to connect to one
+            // Objective 2 and 3
+            ConnectForm connectForm = new ConnectForm(progConfig.loggers.Values.ToArray());
+            connectForm.ShowDialog();
+            // Set logger and name of user
+            logger = connectForm.logger;
+            user = connectForm.user;
+
             if (logger == "")
             {
                 lblConnection.Text = "You are not connected to a logger.";
@@ -1348,7 +1361,7 @@ namespace SteerLoggerUser
         // Objective 14.2
         private void cmdDwnldZip_Click(object sender, EventArgs e)
         {
-            string dirPath = @"..\..\zipDir";
+            string dirPath = @".\zipDir";
             // If the temporary directory exists, delete it
             if (Directory.Exists(dirPath))
             {
@@ -1425,7 +1438,7 @@ namespace SteerLoggerUser
             }
 
             // Save data to temporary csv in pythonScript directory
-            SaveProcCsv(DAP.logProc, @"..\..\pythonScripts\temp.csv");
+            SaveProcCsv(DAP.logProc, Application.StartupPath + "\\pythonScripts\\temp.csv");
 
             string script = "";
             if (ofdPythonScript.ShowDialog() == DialogResult.OK)
@@ -1433,7 +1446,9 @@ namespace SteerLoggerUser
                 // Set script to user selected python script
                 script = ofdPythonScript.FileName;
                 // Construct the argument to pass to the command shell
-                string cmdArguments = "/c \"chdir ..\\..\\pythonScripts\\ & conda activate base & python " + script + "\"";
+                //string cmdArguments = "/c \"chdir ..\\..\\pythonScripts\\ & conda activate base & python " + script + "\"";
+                string cmdArguments = "/c \"chdir " + Application.StartupPath + "\\pythonScripts\\ & call C:\\Users\\alist\\anaconda3\\Scripts\\activate.bat C:\\Users\\alist\\anaconda3 & python " + script + "\"";
+
 
                 ProcessStartInfo startCmd = new ProcessStartInfo();
                 // Setup Process arguements
@@ -1452,7 +1467,7 @@ namespace SteerLoggerUser
             
             // Read processed data output by python script
             // Objectve 15.2
-            LogProc tempLogProc = ReadProcCsv("..\\..\\pythonScripts\\proc.csv");
+            LogProc tempLogProc = ReadProcCsv(Application.StartupPath + "\\pythonScripts\\proc.csv");
             // Allow user to merge processed data with current data or overwrite data in the display
             // Objective 15.3
             DialogResult dialogResult = MessageBox.Show("Combine processed data with data in the grid?", "Combine Data?", MessageBoxButtons.YesNo);
@@ -1508,7 +1523,7 @@ namespace SteerLoggerUser
             }
 
             // Save data to temporary csv in python script directory
-            SaveProcCsv(DAP.logProc, @"..\..\pythonScripts\temp.csv");
+            SaveProcCsv(DAP.logProc, Application.StartupPath + "\\pythonScripts\\temp.csv");
 
             string script = "";
             if (ofdPythonScript.ShowDialog() == DialogResult.OK)
@@ -1516,7 +1531,7 @@ namespace SteerLoggerUser
                 // Set script to user selected python script
                 script = ofdPythonScript.FileName;
                 // Construct the argument to pass to the command shell
-                string cmdArguments = "/c \"chdir ..\\..\\pythonScripts\\ & conda activate base & python " + script + "\"";
+                string cmdArguments = "/c \"chdir "+ Application.StartupPath + "\\pythonScripts\\ & call C:\\Users\\alist\\anaconda3\\Scripts\\activate.bat C:\\Users\\alist\\anaconda3 & python " + script + "\"";
 
                 ProcessStartInfo startCmd = new ProcessStartInfo();
                 // Set process arguments
