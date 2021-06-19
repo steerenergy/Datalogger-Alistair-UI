@@ -1,0 +1,10 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/UI/obj/Release/SteerLoggerUser.csproj.ResolveComReference.cache
+/UI/obj/Release/.NETFramework,Version=v4.6.1.AssemblyAttributes.cs
+/.vs/ProjectSettings.json
+/.vs/Datalogger-Alistair/v16/.suo
+/.vs/slnx.sqlite
+/.vs/VSWorkspaceState.json
