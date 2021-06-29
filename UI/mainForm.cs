@@ -515,8 +515,12 @@ namespace SteerLoggerUser
                 return;
             }
             // If the data there is being processed, ask if user wants to save before clearing
-            DialogResult dialogResult = MessageBox.Show("Do you want to save data before clearing?", "Clear Data", MessageBoxButtons.YesNo);
-            if (dialogResult == DialogResult.No)
+            DialogResult dialogResult = MessageBox.Show("Do you want to save data before clearing?", "Clear Data", MessageBoxButtons.YesNoCancel);
+            if (dialogResult == DialogResult.Yes)
+            {
+                cmdDwnldCsv.PerformClick();
+            }
+            else if (dialogResult == DialogResult.No)
             {
                 dgvDataProc.Rows.Clear();
                 dgvDataProc.Columns.Clear();
@@ -1084,13 +1088,13 @@ namespace SteerLoggerUser
                     // If not selected to merge, enqueue imported log
                     DAP.logsToProc.Enqueue(logMeta);
                     // Dequeue next log and display it
-                    if (DAP.logsToProc.Count > 0)
-                    {
-                        DAP.logsProcessing.Clear();
-                        DAP.logsProcessing.Add(DAP.logsToProc.Dequeue());
-                        DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].logData);
-                        PopulateDataViewProc(DAP.logProc);
-                    }
+                    //if (DAP.logsToProc.Count > 0)
+                    //{
+                    //    DAP.logsProcessing.Clear();
+                    //    DAP.logsProcessing.Add(DAP.logsToProc.Dequeue());
+                    //    DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].logData);
+                    //    PopulateDataViewProc(DAP.logProc);
+                    //}
                 }
             }
             else
@@ -1161,13 +1165,13 @@ namespace SteerLoggerUser
                     // Receive log with merge argument set to false
                     ReceiveLog(false);
                     // Dequeue next log and display it to user
-                    if (DAP.logsToProc.Count > 0)
-                    {
-                        DAP.logsProcessing.Clear();
-                        DAP.logsProcessing.Add(DAP.logsToProc.Dequeue());
-                        DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].logData);
-                        PopulateDataViewProc(DAP.logProc);
-                    }
+                    //if (DAP.logsToProc.Count > 0)
+                    //{
+                    //    DAP.logsProcessing.Clear();
+                    //    DAP.logsProcessing.Add(DAP.logsToProc.Dequeue());
+                    //    DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].logData);
+                    //    PopulateDataViewProc(DAP.logProc);
+                    //}
                 }
             }
             // If no log to merge with, receive and add to queue
