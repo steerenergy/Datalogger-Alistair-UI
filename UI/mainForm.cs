@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
 using System.IO.Compression;
+using System.Runtime;
 
 namespace SteerLoggerUser
 {
@@ -26,16 +27,6 @@ namespace SteerLoggerUser
         public mainForm()
         {
             MessageBox.Show("Logger UI started. \nSearching for active loggers on your local network. (This will take about 30 seconds)");
-            //// Reads the program config file
-            //// Objective 1
-            //ReadProgConfig();
-            //// Starts the connect form, which searches for loggers and allows user to connect to one
-            //// Objective 2 and 3
-            //ConnectForm connectForm = new ConnectForm(progConfig.loggers.Values.ToArray());
-            //connectForm.ShowDialog();
-            //// Set logger and name of user
-            //logger = connectForm.logger;
-            //user = connectForm.user;
 
             // Add custom function that is run when the form is closed to close TCP connection
             this.FormClosed += new FormClosedEventHandler(MainFormClosed);
@@ -114,6 +105,14 @@ namespace SteerLoggerUser
             // Objective 2 and 3
             ConnectForm connectForm = new ConnectForm(progConfig.loggers.Values.ToArray());
             connectForm.ShowDialog();
+
+            // If logger is null, close application as user has closed the connect form
+            if (connectForm.logger == null)
+            {
+                this.Close();
+                return;
+            }
+
             // Set logger and name of user
             logger = connectForm.logger;
             user = connectForm.user;
@@ -1009,7 +1008,7 @@ namespace SteerLoggerUser
             try
             {
                 // If user is connected to logger, close TCP stream and client
-                if (logger != "")
+                if (logger != "" && logger != null)
                 {
                     TCPSend("Quit");
                     stream.Close();
@@ -1362,7 +1361,7 @@ namespace SteerLoggerUser
         // Objective 14.2
         private void cmdDwnldZip_Click(object sender, EventArgs e)
         {
-            string dirPath = @".\zipDir";
+            string dirPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger\zipDir";
             // If the temporary directory exists, delete it
             if (Directory.Exists(dirPath))
             {
@@ -1438,8 +1437,15 @@ namespace SteerLoggerUser
                 return;
             }
 
-            // Save data to temporary csv in pythonScript directory
-            SaveProcCsv(DAP.logProc, Application.StartupPath + "\\pythonScripts\\temp.csv");
+            // If SteerLogger directory doesn't exist in appData, crete it
+            string dirPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger";
+            if (!Directory.Exists(dirPath))
+            {
+                Directory.CreateDirectory(dirPath);
+            }
+
+            // Save data to temporary csv in appData directory
+            SaveProcCsv(DAP.logProc, dirPath + @"\temp.csv");
 
             string script = "";
             if (ofdPythonScript.ShowDialog() == DialogResult.OK)
@@ -1447,8 +1453,7 @@ namespace SteerLoggerUser
                 // Set script to user selected python script
                 script = ofdPythonScript.FileName;
                 // Construct the argument to pass to the command shell
-                //string cmdArguments = "/c \"chdir ..\\..\\pythonScripts\\ & conda activate base & python " + script + "\"";
-                string cmdArguments = "/c \"chdir " + Application.StartupPath + "\\pythonScripts\\ & call C:\\Users\\alist\\anaconda3\\Scripts\\activate.bat C:\\Users\\alist\\anaconda3 & python " + script + "\"";
+                string cmdArguments = "/c \"chdir " + dirPath + "\\ && call C:\\Users\\alist\\anaconda3\\Scripts\\activate.bat && python " + script + " " + dirPath + "\"";
 
 
                 ProcessStartInfo startCmd = new ProcessStartInfo();
@@ -1468,7 +1473,7 @@ namespace SteerLoggerUser
             
             // Read processed data output by python script
             // Objectve 15.2
-            LogProc tempLogProc = ReadProcCsv(Application.StartupPath + "\\pythonScripts\\proc.csv");
+            LogProc tempLogProc = ReadProcCsv(dirPath + @"\proc.csv");
             // Allow user to merge processed data with current data or overwrite data in the display
             // Objective 15.3
             DialogResult dialogResult = MessageBox.Show("Combine processed data with data in the grid?", "Combine Data?", MessageBoxButtons.YesNo);
@@ -1523,8 +1528,15 @@ namespace SteerLoggerUser
                 return;
             }
 
+            // If SteerLogger directory doesn't exist in appData, crete it
+            string dirPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger";
+            if (!Directory.Exists(dirPath))
+            {
+                Directory.CreateDirectory(dirPath);
+            }
+
             // Save data to temporary csv in python script directory
-            SaveProcCsv(DAP.logProc, Application.StartupPath + "\\pythonScripts\\temp.csv");
+            SaveProcCsv(DAP.logProc, dirPath + @"\temp.csv");
 
             string script = "";
             if (ofdPythonScript.ShowDialog() == DialogResult.OK)
@@ -1532,7 +1544,7 @@ namespace SteerLoggerUser
                 // Set script to user selected python script
                 script = ofdPythonScript.FileName;
                 // Construct the argument to pass to the command shell
-                string cmdArguments = "/c \"chdir "+ Application.StartupPath + "\\pythonScripts\\ & call C:\\Users\\alist\\anaconda3\\Scripts\\activate.bat C:\\Users\\alist\\anaconda3 & python " + script + "\"";
+                string cmdArguments = "/c \"chdir " + dirPath + "\\ && call C:\\Users\\alist\\anaconda3\\Scripts\\activate.bat && python " + script + " " + dirPath + "\"";
 
                 ProcessStartInfo startCmd = new ProcessStartInfo();
                 // Set process arguments
