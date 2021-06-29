@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
 using System.IO.Compression;
+using System.Runtime;
 
 namespace SteerLoggerUser
 {
@@ -1362,7 +1363,7 @@ namespace SteerLoggerUser
         // Objective 14.2
         private void cmdDwnldZip_Click(object sender, EventArgs e)
         {
-            string dirPath = @".\zipDir";
+            string dirPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger\zipDir";
             // If the temporary directory exists, delete it
             if (Directory.Exists(dirPath))
             {
