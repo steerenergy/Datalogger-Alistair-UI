@@ -18,21 +18,28 @@ namespace SteerLoggerUser
         // Objectives 8.2 and 13.1
         private void cmdSearch_Click(object sender, EventArgs e)
         {
-            cancelled = false;
-            // Send command to logger
-            main.TCPSend("Search_Log");
-            
-            // Get variables from Form controls
-            string name = txtName.Text;
-            string date = dtpDate.Value.ToString("yyyyMMdd");
-            if (cmbIgnoreDate.Checked == true)
+            try
             {
-                date = "";
+                cancelled = false;
+                // Send command to logger
+                main.TCPSend("Search_Log");
+
+                // Get variables from Form controls
+                string name = txtName.Text;
+                string date = dtpDate.Value.ToString("yyyyMMdd");
+                if (cmbIgnoreDate.Checked == true)
+                {
+                    date = "";
+                }
+                string loggedBy = txtLoggedBy.Text;
+                string values = name + ',' + date + ',' + loggedBy;
+                // Send values to logger
+                main.TCPSend(values);
             }
-            string loggedBy = txtLoggedBy.Text;
-            string values = name + ',' + date  + ',' + loggedBy;
-            // Send values to logger
-            main.TCPSend(values);
+            catch
+            {
+                cancelled = true;
+            }
             this.Close();
         }
     }
