@@ -27,16 +27,6 @@ namespace SteerLoggerUser
         public mainForm()
         {
             MessageBox.Show("Logger UI started. \nSearching for active loggers on your local network. (This will take about 30 seconds)");
-            //// Reads the program config file
-            //// Objective 1
-            //ReadProgConfig();
-            //// Starts the connect form, which searches for loggers and allows user to connect to one
-            //// Objective 2 and 3
-            //ConnectForm connectForm = new ConnectForm(progConfig.loggers.Values.ToArray());
-            //connectForm.ShowDialog();
-            //// Set logger and name of user
-            //logger = connectForm.logger;
-            //user = connectForm.user;
 
             // Add custom function that is run when the form is closed to close TCP connection
             this.FormClosed += new FormClosedEventHandler(MainFormClosed);
@@ -115,6 +105,14 @@ namespace SteerLoggerUser
             // Objective 2 and 3
             ConnectForm connectForm = new ConnectForm(progConfig.loggers.Values.ToArray());
             connectForm.ShowDialog();
+
+            // If logger is null, close application as user has closed the connect form
+            if (connectForm.logger == null)
+            {
+                this.Close();
+                return;
+            }
+
             // Set logger and name of user
             logger = connectForm.logger;
             user = connectForm.user;
@@ -1010,7 +1008,7 @@ namespace SteerLoggerUser
             try
             {
                 // If user is connected to logger, close TCP stream and client
-                if (logger != "")
+                if (logger != "" && logger != null)
                 {
                     TCPSend("Quit");
                     stream.Close();
