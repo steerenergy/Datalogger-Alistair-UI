@@ -2,6 +2,7 @@
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
 
+/UI/obj/Release/.NETFramework,Version=v4.6.1.AssemblyAttributes.cs
 /UI/obj/Release/SteerLoggerUser.csproj.ResolveComReference.cache
 /UI/obj/Release/.NETFramework,Version=v4.6.1.AssemblyAttributes.cs
 /.vs/ProjectSettings.json
