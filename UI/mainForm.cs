@@ -188,6 +188,9 @@ namespace SteerLoggerUser
                 // Loads InputSetup grid with default values as cannot retrieve recent config
                 LoadDefaultConfig();
             }
+
+            pnlDataProc.Hide();
+            pnlCtrlConf.Show();
         }
 
         // Used to get the logs the user hasn't downloaded
