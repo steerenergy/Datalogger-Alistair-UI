@@ -188,6 +188,25 @@ namespace SteerLoggerUser
                 // Loads InputSetup grid with default values as cannot retrieve recent config
                 LoadDefaultConfig();
             }
+
+            if (DAP.processing == false)
+            {
+                pnlDataProc.Hide();
+                pnlCtrlConf.Show();
+
+                // Automatically adjust height of rows to fit nicely
+                int height = dgvInputSetup.Height - dgvInputSetup.ColumnHeadersHeight - 1;
+                foreach (DataGridViewRow row in dgvInputSetup.Rows)
+                {
+                    row.Height = height / (dgvInputSetup.Rows.Count);
+                }
+            }
+            else
+            {
+                pnlCtrlConf.Hide();
+                pnlDataProc.Show();
+            }
+            
         }
 
         // Used to get the logs the user hasn't downloaded
@@ -496,6 +515,13 @@ namespace SteerLoggerUser
         {
             pnlDataProc.Hide();
             pnlCtrlConf.Show();
+
+            // Automatically adjust height of rows to fit nicely
+            int height = dgvInputSetup.Height - dgvInputSetup.ColumnHeadersHeight - 1;
+            foreach (DataGridViewRow row in dgvInputSetup.Rows)
+            {
+                row.Height = height / (dgvInputSetup.Rows.Count);
+            }
         }
 
         // Switch from ControlConfig panel to DataProc panel
@@ -515,8 +541,12 @@ namespace SteerLoggerUser
                 return;
             }
             // If the data there is being processed, ask if user wants to save before clearing
-            DialogResult dialogResult = MessageBox.Show("Do you want to save data before clearing?", "Clear Data", MessageBoxButtons.YesNo);
-            if (dialogResult == DialogResult.No)
+            DialogResult dialogResult = MessageBox.Show("Do you want to save data before clearing?", "Clear Data", MessageBoxButtons.YesNoCancel);
+            if (dialogResult == DialogResult.Yes)
+            {
+                cmdDwnldCsv.PerformClick();
+            }
+            else if (dialogResult == DialogResult.No)
             {
                 dgvDataProc.Rows.Clear();
                 dgvDataProc.Columns.Clear();
@@ -1084,13 +1114,13 @@ namespace SteerLoggerUser
                     // If not selected to merge, enqueue imported log
                     DAP.logsToProc.Enqueue(logMeta);
                     // Dequeue next log and display it
-                    if (DAP.logsToProc.Count > 0)
-                    {
-                        DAP.logsProcessing.Clear();
-                        DAP.logsProcessing.Add(DAP.logsToProc.Dequeue());
-                        DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].logData);
-                        PopulateDataViewProc(DAP.logProc);
-                    }
+                    //if (DAP.logsToProc.Count > 0)
+                    //{
+                    //    DAP.logsProcessing.Clear();
+                    //    DAP.logsProcessing.Add(DAP.logsToProc.Dequeue());
+                    //    DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].logData);
+                    //    PopulateDataViewProc(DAP.logProc);
+                    //}
                 }
             }
             else
@@ -1161,13 +1191,13 @@ namespace SteerLoggerUser
                     // Receive log with merge argument set to false
                     ReceiveLog(false);
                     // Dequeue next log and display it to user
-                    if (DAP.logsToProc.Count > 0)
-                    {
-                        DAP.logsProcessing.Clear();
-                        DAP.logsProcessing.Add(DAP.logsToProc.Dequeue());
-                        DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].logData);
-                        PopulateDataViewProc(DAP.logProc);
-                    }
+                    //if (DAP.logsToProc.Count > 0)
+                    //{
+                    //    DAP.logsProcessing.Clear();
+                    //    DAP.logsProcessing.Add(DAP.logsToProc.Dequeue());
+                    //    DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].logData);
+                    //    PopulateDataViewProc(DAP.logProc);
+                    //}
                 }
             }
             // If no log to merge with, receive and add to queue
@@ -1564,6 +1594,26 @@ namespace SteerLoggerUser
             {
                 return;
             }
+        }
+
+        private void dgvInputSetup_SizeChanged(object sender, EventArgs e)
+        {            
+            // Automatically adjust height of rows to fit nicely
+            int height = dgvInputSetup.Height - dgvInputSetup.ColumnHeadersHeight - 1;
+            foreach (DataGridViewRow row in dgvInputSetup.Rows)
+            {
+                row.Height = height / (dgvInputSetup.Rows.Count);
+            }
+        }
+
+        private void cmdSettings_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("WIP: Will likely allow progConfig.ini to be changed from here.");
+        }
+
+        private void cmdAbt_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("Epic new logger!!","About",MessageBoxButtons.OK,MessageBoxIcon.Information);
         }
     }
 }
