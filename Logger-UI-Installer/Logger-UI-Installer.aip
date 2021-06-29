@@ -3,14 +3,14 @@
   <COMPONENT cid="caphyon.advinst.msicomp.MsiPropsComponent">
     <ROW Property="AI_BITMAP_DISPLAY_MODE" Value="0"/>
     <ROW Property="AI_CURRENT_YEAR" Value="2021" ValueLocId="-"/>
-    <ROW Property="AI_PROPPATH_DIR_PERBUILD_SteerLoggerUser.exe" Value="..\SteerLoggerUser\bin\Debug"/>
-    <ROW Property="AI_PROPPATH_DIR_PERBUILD_SteerLoggerUser.exe.config" Value="..\SteerLoggerUser\bin\Debug"/>
-    <ROW Property="AI_PROPPATH_DIR_PERBUILD_compression.py" Value="..\SteerLoggerUser\bin\Debug\pythonScripts"/>
-    <ROW Property="AI_PROPPATH_DIR_PERBUILD_graph.py" Value="..\SteerLoggerUser\bin\Debug\pythonScripts"/>
-    <ROW Property="AI_PROPPATH_DIR_PERBUILD_linear_function.py" Value="..\SteerLoggerUser\bin\Debug\pythonScripts"/>
-    <ROW Property="AI_PROPPATH_DIR_PERBUILD_moving_average.py" Value="..\SteerLoggerUser\bin\Debug\pythonScripts"/>
-    <ROW Property="AI_PROPPATH_DIR_PERBUILD_progConf.ini" Value="..\SteerLoggerUser\bin\Debug"/>
-    <ROW Property="AI_PROPPATH_DIR_PERBUILD_steer.ico" Value="..\SteerLoggerUser\bin\Debug"/>
+    <ROW Property="AI_PROPPATH_DIR_PERBUILD_SteerLoggerUser.exe" Value="..\UI\bin\Debug"/>
+    <ROW Property="AI_PROPPATH_DIR_PERBUILD_SteerLoggerUser.exe.config" Value="..\UI\bin\Debug"/>
+    <ROW Property="AI_PROPPATH_DIR_PERBUILD_compression.py" Value="..\UI\bin\Debug\pythonScripts"/>
+    <ROW Property="AI_PROPPATH_DIR_PERBUILD_graph.py" Value="..\UI\bin\Debug\pythonScripts"/>
+    <ROW Property="AI_PROPPATH_DIR_PERBUILD_linear_function.py" Value="..\UI\bin\Debug\pythonScripts"/>
+    <ROW Property="AI_PROPPATH_DIR_PERBUILD_moving_average.py" Value="..\UI\bin\Debug\pythonScripts"/>
+    <ROW Property="AI_PROPPATH_DIR_PERBUILD_progConf.ini" Value="..\UI\bin\Debug"/>
+    <ROW Property="AI_PROPPATH_DIR_PERBUILD_steer.ico" Value="..\UI\bin\Debug"/>
     <ROW Property="AI_PROPPATH_FILENAME_PERBUILD_SteerLoggerUser.exe" Value="SteerLoggerUser.exe"/>
     <ROW Property="AI_PROPPATH_FILENAME_PERBUILD_SteerLoggerUser.exe.config" Value="SteerLoggerUser.exe.config"/>
     <ROW Property="AI_PROPPATH_FILENAME_PERBUILD_compression.py" Value="compression.py"/>
@@ -22,7 +22,7 @@
     <ROW Property="ALLUSERS" Value="1"/>
     <ROW Property="ARPCOMMENTS" Value="Run this installer to install the UI for the new datalogger program." ValueLocId="*"/>
     <ROW Property="ARPCONTACT" Value="alistairlryan@outlook.com"/>
-    <ROW Property="ARPPRODUCTICON" Value="steer.exe" Type="8"/>
+    <ROW Property="ARPPRODUCTICON" Value="steer_1.exe" Type="8"/>
     <ROW Property="Manufacturer" Value="Steer Energy"/>
     <ROW Property="ProductCode" Value="1033:{6D3E8315-937D-4C2D-A965-7EBD53E41BFD} " Type="16"/>
     <ROW Property="ProductLanguage" Value="1033"/>
@@ -156,7 +156,7 @@
     <ROW Feature_="MainFeature" Component_="SteerLoggerUser_ContentOutput_pythonScripts"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiIconsComponent">
-    <ROW Name="steer.exe" SourcePath="..\SteerLoggerUser\steer.ico" Index="0"/>
+    <ROW Name="steer_1.exe" SourcePath="..\UI\steer.ico" Index="0"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiInstExSeqComponent">
     <ROW Action="AI_DOWNGRADE" Condition="AI_NEWERPRODUCTFOUND AND (UILevel &lt;&gt; 5)" Sequence="210"/>
