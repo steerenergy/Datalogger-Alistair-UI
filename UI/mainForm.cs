@@ -1439,8 +1439,15 @@ namespace SteerLoggerUser
                 return;
             }
 
-            // Save data to temporary csv in pythonScript directory
-            SaveProcCsv(DAP.logProc, Application.StartupPath + "\\pythonScripts\\temp.csv");
+            // If SteerLogger directory doesn't exist in appData, crete it
+            string dirPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger";
+            if (!Directory.Exists(dirPath))
+            {
+                Directory.CreateDirectory(dirPath);
+            }
+
+            // Save data to temporary csv in appData directory
+            SaveProcCsv(DAP.logProc, dirPath + @"\temp.csv");
 
             string script = "";
             if (ofdPythonScript.ShowDialog() == DialogResult.OK)
@@ -1448,8 +1455,7 @@ namespace SteerLoggerUser
                 // Set script to user selected python script
                 script = ofdPythonScript.FileName;
                 // Construct the argument to pass to the command shell
-                //string cmdArguments = "/c \"chdir ..\\..\\pythonScripts\\ & conda activate base & python " + script + "\"";
-                string cmdArguments = "/c \"chdir " + Application.StartupPath + "\\pythonScripts\\ & call C:\\Users\\alist\\anaconda3\\Scripts\\activate.bat C:\\Users\\alist\\anaconda3 & python " + script + "\"";
+                string cmdArguments = "/c \"chdir " + dirPath + "\\ && call C:\\Users\\alist\\anaconda3\\Scripts\\activate.bat && python " + script + " " + dirPath + "\"";
 
 
                 ProcessStartInfo startCmd = new ProcessStartInfo();
@@ -1469,7 +1475,7 @@ namespace SteerLoggerUser
             
             // Read processed data output by python script
             // Objectve 15.2
-            LogProc tempLogProc = ReadProcCsv(Application.StartupPath + "\\pythonScripts\\proc.csv");
+            LogProc tempLogProc = ReadProcCsv(dirPath + @"\proc.csv");
             // Allow user to merge processed data with current data or overwrite data in the display
             // Objective 15.3
             DialogResult dialogResult = MessageBox.Show("Combine processed data with data in the grid?", "Combine Data?", MessageBoxButtons.YesNo);
@@ -1524,8 +1530,15 @@ namespace SteerLoggerUser
                 return;
             }
 
+            // If SteerLogger directory doesn't exist in appData, crete it
+            string dirPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger";
+            if (!Directory.Exists(dirPath))
+            {
+                Directory.CreateDirectory(dirPath);
+            }
+
             // Save data to temporary csv in python script directory
-            SaveProcCsv(DAP.logProc, Application.StartupPath + "\\pythonScripts\\temp.csv");
+            SaveProcCsv(DAP.logProc, dirPath + @"\temp.csv");
 
             string script = "";
             if (ofdPythonScript.ShowDialog() == DialogResult.OK)
@@ -1533,7 +1546,7 @@ namespace SteerLoggerUser
                 // Set script to user selected python script
                 script = ofdPythonScript.FileName;
                 // Construct the argument to pass to the command shell
-                string cmdArguments = "/c \"chdir "+ Application.StartupPath + "\\pythonScripts\\ & call C:\\Users\\alist\\anaconda3\\Scripts\\activate.bat C:\\Users\\alist\\anaconda3 & python " + script + "\"";
+                string cmdArguments = "/c \"chdir " + dirPath + "\\ && call C:\\Users\\alist\\anaconda3\\Scripts\\activate.bat && python " + script + " " + dirPath + "\"";
 
                 ProcessStartInfo startCmd = new ProcessStartInfo();
                 // Set process arguments
