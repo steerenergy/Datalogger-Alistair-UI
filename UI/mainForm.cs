@@ -189,8 +189,24 @@ namespace SteerLoggerUser
                 LoadDefaultConfig();
             }
 
-            pnlDataProc.Hide();
-            pnlCtrlConf.Show();
+            if (DAP.processing == false)
+            {
+                pnlDataProc.Hide();
+                pnlCtrlConf.Show();
+
+                // Automatically adjust height of rows to fit nicely
+                int height = dgvInputSetup.Height - dgvInputSetup.ColumnHeadersHeight - 1;
+                foreach (DataGridViewRow row in dgvInputSetup.Rows)
+                {
+                    row.Height = height / (dgvInputSetup.Rows.Count);
+                }
+            }
+            else
+            {
+                pnlCtrlConf.Hide();
+                pnlDataProc.Show();
+            }
+            
         }
 
         // Used to get the logs the user hasn't downloaded
@@ -499,6 +515,13 @@ namespace SteerLoggerUser
         {
             pnlDataProc.Hide();
             pnlCtrlConf.Show();
+
+            // Automatically adjust height of rows to fit nicely
+            int height = dgvInputSetup.Height - dgvInputSetup.ColumnHeadersHeight - 1;
+            foreach (DataGridViewRow row in dgvInputSetup.Rows)
+            {
+                row.Height = height / (dgvInputSetup.Rows.Count);
+            }
         }
 
         // Switch from ControlConfig panel to DataProc panel
@@ -1571,6 +1594,26 @@ namespace SteerLoggerUser
             {
                 return;
             }
+        }
+
+        private void dgvInputSetup_SizeChanged(object sender, EventArgs e)
+        {            
+            // Automatically adjust height of rows to fit nicely
+            int height = dgvInputSetup.Height - dgvInputSetup.ColumnHeadersHeight - 1;
+            foreach (DataGridViewRow row in dgvInputSetup.Rows)
+            {
+                row.Height = height / (dgvInputSetup.Rows.Count);
+            }
+        }
+
+        private void cmdSettings_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("WIP: Will likely allow progConfig.ini to be changed from here.");
+        }
+
+        private void cmdAbt_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("Epic new logger!!","About",MessageBoxButtons.OK,MessageBoxIcon.Information);
         }
     }
 }
