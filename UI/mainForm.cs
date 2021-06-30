@@ -1482,8 +1482,10 @@ namespace SteerLoggerUser
             {
                 // Set script to user selected python script
                 script = ofdPythonScript.FileName;
+                // Get path to activate.bat
+                string condaPath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + @"\anaconda3\Scripts\activate.bat";
                 // Construct the argument to pass to the command shell
-                string cmdArguments = "/c \"chdir " + dirPath + "\\ && call C:\\Users\\alist\\anaconda3\\Scripts\\activate.bat && python " + script + " " + dirPath + "\"";
+                string cmdArguments = "/c \"chdir " + dirPath + "\\ && call " + condaPath + " && python " + script + " " + dirPath + "\"";
 
 
                 ProcessStartInfo startCmd = new ProcessStartInfo();
@@ -1573,8 +1575,10 @@ namespace SteerLoggerUser
             {
                 // Set script to user selected python script
                 script = ofdPythonScript.FileName;
+                // Get the path to activate .bat
+                string condaPath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + @"\anaconda3\Scripts\activate.bat";
                 // Construct the argument to pass to the command shell
-                string cmdArguments = "/c \"chdir " + dirPath + "\\ && call C:\\Users\\alist\\anaconda3\\Scripts\\activate.bat && python " + script + " " + dirPath + "\"";
+                string cmdArguments = "/c \"chdir " + dirPath + "\\ && call " + condaPath +  " && python " + script + " " + dirPath + "\"";
 
                 ProcessStartInfo startCmd = new ProcessStartInfo();
                 // Set process arguments
