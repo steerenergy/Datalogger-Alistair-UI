@@ -1502,22 +1502,34 @@ namespace SteerLoggerUser
                 }
             }
             else { return; }
-            
+
             // Read processed data output by python script
             // Objectve 15.2
-            LogProc tempLogProc = ReadProcCsv(dirPath + @"\proc.csv");
-            // Allow user to merge processed data with current data or overwrite data in the display
-            // Objective 15.3
-            DialogResult dialogResult = MessageBox.Show("Combine processed data with data in the grid?", "Combine Data?", MessageBoxButtons.YesNo);
-            if (dialogResult == DialogResult.Yes)
+            try
             {
-                DAP.MergeLogs(tempLogProc);
+                LogProc tempLogProc = ReadProcCsv(dirPath + @"\proc.csv");
+                // Allow user to merge processed data with current data or overwrite data in the display
+                // Objective 15.3
+                DialogResult dialogResult = MessageBox.Show("Combine processed data with data in the grid?", "Combine Data?", MessageBoxButtons.YesNo);
+                if (dialogResult == DialogResult.Yes)
+                {
+                    DAP.MergeLogs(tempLogProc);
+                }
+                else
+                {
+                    DAP.logProc = tempLogProc;
+                }
+                PopulateDataViewProc(DAP.logProc);
+                File.Delete(dirPath + @"\temp.csv");
+                File.Delete(dirPath + @"\proc.csv");
             }
-            else
+            // Fires if proc.csv cannot be found, usually means script failed
+            catch (FileNotFoundException) 
             {
-                DAP.logProc = tempLogProc;
+                MessageBox.Show("Processing failed. Make sure your Python script outputs a proc.csv file.\n" +
+                                "Also make sure that activate.bat is stored at C:\\Users\\<Your_User>\\anaconda3\\Scripts\\activate.bat", "Processing Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                File.Delete(dirPath + @"\temp.csv");
             }
-            PopulateDataViewProc(DAP.logProc);
         }
 
         // Reads processed data output from python script

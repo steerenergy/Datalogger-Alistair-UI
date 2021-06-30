@@ -33,7 +33,7 @@ while i <= (current_data['Date/Time'].count() - comp_ratio):
         for j in range(0,comp_ratio):
             mean += current_data[column][i + j]
         mean = mean / comp_ratio
-        temp_row.append(mean)
+        temp_row.append(f"{mean:.14f}")
     # Append compressed row to proc_data DataFrame
     temp_row = pd.Series(temp_row, index=current_data.columns,name=str(i))
     proc_data = proc_data.append(temp_row)
