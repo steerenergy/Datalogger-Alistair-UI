@@ -51,7 +51,7 @@ for i in range(0,len(current_data.index)):
     # Objective 20
     for column in proc_columns[2:]:
         value = (Decimal(current_data[column][i]) * m) + c
-        temp_row.append(value)
+        temp_row.append(f"{value:.14f}")
     # Append new row to processed data
     temp_row = pd.Series(temp_row, index=proc_columns,name=str(i))
     proc_data = proc_data.append(temp_row)

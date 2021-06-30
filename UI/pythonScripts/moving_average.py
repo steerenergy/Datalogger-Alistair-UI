@@ -37,7 +37,7 @@ for i in range(0,len(current_data.index)):
         for j in range(0,avg_num):
             mean += current_data[column][i + j]
         mean = mean / avg_num
-        temp_row.append(mean)
+        temp_row.append(f"{mean:.14f}")
     # Add new row to processed data
     temp_row = pd.Series(temp_row, index=current_data.columns,name=str(i))
     proc_data = proc_data.append(temp_row)
