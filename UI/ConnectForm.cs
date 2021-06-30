@@ -33,7 +33,7 @@ namespace SteerLoggerUser
                     cmbLogger.Items.Add(logger);
                     NetworkStream stream = client.GetStream();
                     // Quit connection so other loggers can be connected to
-                    string command = "Quit";
+                    string command = "Quit\n";
                     Byte[] data = System.Text.Encoding.UTF8.GetBytes(command);
                     stream.Write(data, 0, data.Length);
 

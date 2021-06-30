@@ -463,22 +463,21 @@ namespace SteerLoggerUser
                 MessageBox.Show("You need to be connected to a logger to do that!");
                 throw new SocketException();
             }
-            string response = "";
+            //string response = "";
             try
             {
-                /* 
-                // Send data until logger confirms it was received
-                while (response != "Received")
-                {
-                    // Encode data using UTF-8
-                    Byte[] data = Encoding.UTF8.GetBytes(command);
-                    stream.Write(data, 0, data.Length);
-                    data = new Byte[2048];
-                    Int32 bytes = stream.Read(data, 0, data.Length);
-                    response = Encoding.UTF8.GetString(data, 0, bytes);
-                }
-                */
-                Byte[] data = Encoding.UTF8.GetBytes(command);
+                ////Send data until logger confirms it was received
+                //while (response != "Received")
+                //{
+                //    Encode data using UTF-8
+                //    Byte[] data = Encoding.UTF8.GetBytes(command);
+                //    stream.Write(data, 0, data.Length);
+                //    data = new Byte[2048];
+                //    Int32 bytes = stream.Read(data, 0, data.Length);
+                //    response = Encoding.UTF8.GetString(data, 0, bytes);
+                //}
+
+                Byte[] data = Encoding.UTF8.GetBytes(command + "\n");
                 stream.Write(data, 0, data.Length);
             }
             // If there is an error, IOException is thrown
@@ -495,7 +494,7 @@ namespace SteerLoggerUser
         public string TCPReceive()
         {
             try
-            {   /*
+            {
                 // Receive data and decode using UTF-8 
                 Byte[] data = new Byte[2048];
                 Int32 bytes = stream.Read(data, 0, data.Length);
@@ -503,11 +502,11 @@ namespace SteerLoggerUser
                 data = Encoding.UTF8.GetBytes("Received");
                 stream.Write(data, 0, data.Length);
                 return response;
-                */
-                Byte[] data = new Byte[2048];
-                Int32 bytes = stream.Read(data, 0, data.Length);
-                string response = Encoding.UTF8.GetString(data, 0, bytes);
-                return response;
+
+                //Byte[] data = new Byte[2048];
+                //Int32 bytes = stream.Read(data, 0, data.Length);
+                //string response = Encoding.UTF8.GetString(data, 0, bytes);
+                //return response;
             }
             // If there is an error, IOException is thrown
             // Close connection and then throw SocketException which is caught by code calling TCPReceive
