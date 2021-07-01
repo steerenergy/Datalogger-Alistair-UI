@@ -438,7 +438,7 @@ namespace SteerLoggerUser
         private void LoadDefaultConfig()
         {
             nudInterval.Value = 1.0M;
-            int number = 0;
+            int number = 1;
             for (int i = 0; i <= 3; i++)
             {
                 for (int j = 0; j <= 3; j++)
