@@ -36,6 +36,8 @@ namespace SteerLoggerUser
                     string command = "Quit\n";
                     Byte[] data = System.Text.Encoding.UTF8.GetBytes(command);
                     stream.Write(data, 0, data.Length);
+                    stream.Close();
+                    client.Close();
 
                 }
                 // Catch exception if logger cannot be accessed

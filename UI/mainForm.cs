@@ -6,10 +6,12 @@ using System.Text;
 using System.Linq;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using System.Threading;
 using System.Windows.Forms;
 using System.IO;
 using System.IO.Compression;
 using System.Runtime;
+using System.Collections.Concurrent;
 
 namespace SteerLoggerUser
 {
@@ -22,6 +24,8 @@ namespace SteerLoggerUser
         public TcpClient client;
         public NetworkStream stream;
         DownloadAndProcess DAP = new DownloadAndProcess();
+        public ConcurrentQueue<string> tcpQueue = new ConcurrentQueue<string>();
+        private Thread listener;
 
         // Initialises the form
         public mainForm()
@@ -150,6 +154,9 @@ namespace SteerLoggerUser
                     Int32 port = 13000;
                     client = new TcpClient(logger, port);
                     stream = client.GetStream();
+
+                    listener = new Thread(TCPListen);
+                    listener.Start();
                     // Get the most recently used config settings from the logger
                     // Objective 5
                     GetRecentConfig();
@@ -490,32 +497,91 @@ namespace SteerLoggerUser
             }
         }
 
-        // Used to receive data from the logger sent using TCP
-        public string TCPReceive()
+
+        public void TCPListen()
         {
             try
             {
-                // Receive data and decode using UTF-8 
-                Byte[] data = new Byte[2048];
-                Int32 bytes = stream.Read(data, 0, data.Length);
-                string response = Encoding.UTF8.GetString(data, 0, bytes);
-                data = Encoding.UTF8.GetBytes("Received");
-                stream.Write(data, 0, data.Length);
-                return response;
-
-                //Byte[] data = new Byte[2048];
-                //Int32 bytes = stream.Read(data, 0, data.Length);
-                //string response = Encoding.UTF8.GetString(data, 0, bytes);
-                //return response;
+                string buffer = "";
+                while (true)
+                {
+                    List<string> data = new List<string>();
+                    Byte[] byteData = new Byte[2048];
+                    Int32 bytes = stream.Read(byteData, 0, byteData.Length);
+                    string response = Encoding.UTF8.GetString(byteData, 0, bytes);
+                    foreach (string line in response.Split('\n'))
+                    {
+                        data.Add(line);
+                    }
+                    if (buffer != "")
+                    {
+                        data[0] = buffer + data[0];
+                        buffer = "";
+                    }
+                    for (int i = 0; i < data.Count - 1; i++)
+                    {
+                        string line = data[i].TrimEnd('\n');
+                        if (line == null)
+                        {
+                            throw new Exception();
+                        }
+                        tcpQueue.Enqueue(line);                    
+                    }
+                    if (data.Last() != "")
+                    {
+                        buffer = data.Last();
+                    } 
+                }
             }
-            // If there is an error, IOException is thrown
-            // Close connection and then throw SocketException which is caught by code calling TCPReceive
             catch (IOException)
             {
+                MessageBox.Show("An error occured in the connection, please reconnect.");
                 stream.Close();
                 client.Close();
-                throw new SocketException();
+                logger = "";
+                this.Invoke(new Action(() => { lblConnection.Text = "You're not connected to a logger."; }));
             }
+            catch (SocketException)
+            {
+                MessageBox.Show("An error occured in the connection, please reconnect.");
+                stream.Close();
+                client.Close();
+                logger = "";
+                this.Invoke(new Action(() => { lblConnection.Text = "You're not connected to a logger."; }));
+            }
+            return;
+        }
+
+        // Used to receive data from the logger sent using TCP
+        public string TCPReceive()
+        {
+            //try
+            //{
+            // Receive data and decode using UTF-8 
+            //Byte[] data = new Byte[2048];
+            //Int32 bytes = stream.Read(data, 0, data.Length);
+            //string response = Encoding.UTF8.GetString(data, 0, bytes);
+            //data = Encoding.UTF8.GetBytes("Received");
+            //stream.Write(data, 0, data.Length);
+            //return response;
+
+            //Byte[] data = new Byte[2048];
+            //Int32 bytes = stream.Read(data, 0, data.Length);
+            //string response = Encoding.UTF8.GetString(data, 0, bytes);
+            //return response;
+            //}
+            // If there is an error, IOException is thrown
+            // Close connection and then throw SocketException which is caught by code calling TCPReceive
+            //catch (IOException)
+            //{
+            //    stream.Close();
+            //    client.Close();
+            //    throw new SocketException();
+            //}
+            string response;
+            while (tcpQueue.TryDequeue(out response) == false){}
+            return response;
+
         }
 
         // Switch from DataProc panel to ControlConfig panel
@@ -1028,6 +1094,8 @@ namespace SteerLoggerUser
                     Int32 port = 13000;
                     client = new TcpClient(logger, port);
                     stream = client.GetStream();
+                    listener = new Thread(TCPListen);
+                    listener.Start();
                 }
                 catch (SocketException)
                 {
@@ -1048,6 +1116,7 @@ namespace SteerLoggerUser
                 // If user is connected to logger, close TCP stream and client
                 if (logger != "" && logger != null)
                 {
+                    listener.Abort();
                     TCPSend("Quit");
                     stream.Close();
                     client.Close();
