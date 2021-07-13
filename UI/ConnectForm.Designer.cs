@@ -34,20 +34,21 @@
             this.txtUser = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
+            this.cmdScan = new System.Windows.Forms.Button();
+            this.pbScan = new System.Windows.Forms.ProgressBar();
             this.SuspendLayout();
             // 
             // cmbLogger
             // 
-            this.cmbLogger.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbLogger.FormattingEnabled = true;
-            this.cmbLogger.Location = new System.Drawing.Point(92, 12);
+            this.cmbLogger.Location = new System.Drawing.Point(92, 41);
             this.cmbLogger.Name = "cmbLogger";
             this.cmbLogger.Size = new System.Drawing.Size(109, 21);
             this.cmbLogger.TabIndex = 0;
             // 
             // cmdSelect
             // 
-            this.cmdSelect.Location = new System.Drawing.Point(12, 170);
+            this.cmdSelect.Location = new System.Drawing.Point(12, 141);
             this.cmdSelect.Name = "cmdSelect";
             this.cmdSelect.Size = new System.Drawing.Size(189, 23);
             this.cmdSelect.TabIndex = 1;
@@ -57,7 +58,7 @@
             // 
             // txtUser
             // 
-            this.txtUser.Location = new System.Drawing.Point(92, 39);
+            this.txtUser.Location = new System.Drawing.Point(92, 115);
             this.txtUser.Name = "txtUser";
             this.txtUser.Size = new System.Drawing.Size(109, 20);
             this.txtUser.TabIndex = 2;
@@ -65,7 +66,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(12, 15);
+            this.label1.Location = new System.Drawing.Point(12, 44);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(76, 13);
             this.label1.TabIndex = 3;
@@ -74,24 +75,43 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(12, 42);
+            this.label2.Location = new System.Drawing.Point(12, 118);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(58, 13);
             this.label2.TabIndex = 4;
             this.label2.Text = "Username:";
             // 
-            // Form1
+            // cmdScan
+            // 
+            this.cmdScan.Location = new System.Drawing.Point(12, 12);
+            this.cmdScan.Name = "cmdScan";
+            this.cmdScan.Size = new System.Drawing.Size(189, 23);
+            this.cmdScan.TabIndex = 5;
+            this.cmdScan.Text = "Scan for Loggers";
+            this.cmdScan.UseVisualStyleBackColor = true;
+            this.cmdScan.Click += new System.EventHandler(this.cmdScan_Click);
+            // 
+            // pbScan
+            // 
+            this.pbScan.Location = new System.Drawing.Point(12, 170);
+            this.pbScan.Name = "pbScan";
+            this.pbScan.Size = new System.Drawing.Size(189, 23);
+            this.pbScan.TabIndex = 6;
+            // 
+            // ConnectForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(213, 205);
+            this.Controls.Add(this.pbScan);
+            this.Controls.Add(this.cmdScan);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.txtUser);
             this.Controls.Add(this.cmdSelect);
             this.Controls.Add(this.cmbLogger);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Name = "Form1";
+            this.Name = "ConnectForm";
             this.Text = "Logger Login";
             this.Load += new System.EventHandler(this.Form1_Load);
             this.ResumeLayout(false);
@@ -106,6 +126,8 @@
         private System.Windows.Forms.TextBox txtUser;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Button cmdScan;
+        private System.Windows.Forms.ProgressBar pbScan;
     }
 }
 

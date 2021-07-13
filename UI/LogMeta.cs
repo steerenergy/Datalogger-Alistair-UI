@@ -16,5 +16,6 @@ namespace SteerLoggerUser
         public string downloadedBy;
         public ConfigFile config;
         public LogData logData;
+        public int size;
     }
 }

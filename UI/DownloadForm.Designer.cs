@@ -32,14 +32,23 @@ namespace SteerLoggerUser
             this.panel = new System.Windows.Forms.Panel();
             this.cmdDownload = new System.Windows.Forms.Button();
             this.lblDownload = new System.Windows.Forms.Label();
+            this.dgvDownload = new System.Windows.Forms.DataGridView();
+            this.Download = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+            this.Id = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.LogName = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Date = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.LogSize = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.panel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dgvDownload)).BeginInit();
             this.SuspendLayout();
             // 
             // panel
             // 
             this.panel.AutoSize = true;
+            this.panel.Controls.Add(this.dgvDownload);
             this.panel.Location = new System.Drawing.Point(13, 27);
             this.panel.Name = "panel";
-            this.panel.Size = new System.Drawing.Size(258, 312);
+            this.panel.Size = new System.Drawing.Size(261, 315);
             this.panel.TabIndex = 0;
             // 
             // cmdDownload
@@ -61,6 +70,63 @@ namespace SteerLoggerUser
             this.lblDownload.TabIndex = 2;
             this.lblDownload.Text = "Select ... to Download:";
             // 
+            // dgvDownload
+            // 
+            this.dgvDownload.AllowUserToAddRows = false;
+            this.dgvDownload.AllowUserToDeleteRows = false;
+            this.dgvDownload.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.dgvDownload.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dgvDownload.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.Download,
+            this.Id,
+            this.LogName,
+            this.Date,
+            this.LogSize});
+            this.dgvDownload.Location = new System.Drawing.Point(0, 0);
+            this.dgvDownload.Name = "dgvDownload";
+            this.dgvDownload.RowHeadersVisible = false;
+            this.dgvDownload.Size = new System.Drawing.Size(258, 312);
+            this.dgvDownload.TabIndex = 0;
+            // 
+            // Download
+            // 
+            this.Download.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.ColumnHeader;
+            this.Download.HeaderText = "Download";
+            this.Download.Name = "Download";
+            this.Download.Width = 61;
+            // 
+            // Id
+            // 
+            this.Id.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.DisplayedCells;
+            this.Id.HeaderText = "ID";
+            this.Id.Name = "Id";
+            this.Id.ReadOnly = true;
+            this.Id.Width = 43;
+            // 
+            // LogName
+            // 
+            this.LogName.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.DisplayedCells;
+            this.LogName.HeaderText = "Name";
+            this.LogName.Name = "LogName";
+            this.LogName.ReadOnly = true;
+            this.LogName.Width = 60;
+            // 
+            // Date
+            // 
+            this.Date.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.DisplayedCells;
+            this.Date.HeaderText = "Date";
+            this.Date.Name = "Date";
+            this.Date.ReadOnly = true;
+            this.Date.Width = 55;
+            // 
+            // LogSize
+            // 
+            this.LogSize.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.DisplayedCells;
+            this.LogSize.HeaderText = "Size";
+            this.LogSize.Name = "LogSize";
+            this.LogSize.ReadOnly = true;
+            this.LogSize.Width = 52;
+            // 
             // DownloadForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -74,6 +140,8 @@ namespace SteerLoggerUser
             this.Padding = new System.Windows.Forms.Padding(10);
             this.Text = "DownloadForm";
             this.Load += new System.EventHandler(this.DownloadForm_Load);
+            this.panel.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.dgvDownload)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -84,5 +152,11 @@ namespace SteerLoggerUser
         private System.Windows.Forms.Panel panel;
         private System.Windows.Forms.Button cmdDownload;
         private System.Windows.Forms.Label lblDownload;
+        private System.Windows.Forms.DataGridView dgvDownload;
+        private System.Windows.Forms.DataGridViewCheckBoxColumn Download;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Id;
+        private System.Windows.Forms.DataGridViewTextBoxColumn LogName;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Date;
+        private System.Windows.Forms.DataGridViewTextBoxColumn LogSize;
     }
 }

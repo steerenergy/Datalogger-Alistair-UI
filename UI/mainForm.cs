@@ -26,6 +26,8 @@ namespace SteerLoggerUser
         DownloadAndProcess DAP = new DownloadAndProcess();
         public ConcurrentQueue<string> tcpQueue = new ConcurrentQueue<string>();
         private Thread listener;
+        public int pbValue;
+        public ConcurrentQueue<string> dataQueue = new ConcurrentQueue<string>();
 
         // Initialises the form
         public mainForm()
@@ -245,27 +247,39 @@ namespace SteerLoggerUser
                 newLog.id = Convert.ToInt32(data[0]);
                 newLog.name = data[1];
                 newLog.date = data[2];
+                newLog.size = Convert.ToInt32(data[3]);
                 logsAvailable.Add(newLog);
                 response = TCPReceive();
             }
             // Show DownloadForm which allows user to select which logs to download
             DownloadForm download = new DownloadForm(this, logsAvailable, "Logs", false);
             download.ShowDialog();
+            ReceiveProgessFrom progressForm;
+            progressForm = new ReceiveProgessFrom(this, pbValue);
+            pbValue = 0;
+            progressForm.Show();
+            // progressForm.Show();
             // Receive the selected logs using TCP
             // Objective 4.1
-            ReceiveLog(false);
+            ReceiveLog(false, progressForm);
         }
 
         // Receive a full log from the logger
         // Objectives 4.1 and 13.3
-        private void ReceiveLog(bool merge)
+        private void ReceiveLog(bool merge, ReceiveProgessFrom progressForm)
         {
+            //dataQueue.Enqueue("Converting data on Pi...");
+            progressForm.UpdateTextBox("Converting data on Pi...");
+            progressForm.UpdateProgressBar();
             string received = TCPReceive();
+
             // Continue receiving logs until all have been sent
             while (received != "All_Sent")
             {
                 // Create a tempoary LogMeta to store log while its being received
                 LogMeta tempLog = new LogMeta();
+                //dataQueue.Enqueue("Receiving meta data...");
+                progressForm.UpdateTextBox("Receiving meta data...");
                 // Receive meta data of log and set LogMeta variables 
                 while (received != "EoMeta")
                 {
@@ -279,6 +293,8 @@ namespace SteerLoggerUser
                     received = TCPReceive();
                 }
                 received = TCPReceive();
+                //dataQueue.Enqueue("Receiving config data...");
+                progressForm.UpdateTextBox("Receiving config data...");
                 // Receive config settings of log and write to ConfigFile object
                 tempLog.config = new ConfigFile();
                 while (received != "EoConfig")
@@ -299,6 +315,8 @@ namespace SteerLoggerUser
                     tempLog.config.pinList.Add(tempPin);
                     received = TCPReceive();
                 }
+                //dataQueue.Enqueue("Receiving log data...");
+                progressForm.UpdateTextBox("Receiving log data...");
                 received = TCPReceive();
                 // Set up rawheaders and convheaders for LogData object
                 tempLog.logData = new LogData();
@@ -320,6 +338,8 @@ namespace SteerLoggerUser
                 tempLog.logData.rawheaders.AddRange(rawHeaders);
                 tempLog.logData.convheaders.AddRange(convHeaders);
                 tempLog.logData.InitRawConv(pinNum);
+                pbValue += 1;
+                progressForm.UpdateProgressBar();
                 // Receive log data and write to LogData object
                 while (received != "EoLog")
                 {
@@ -340,8 +360,11 @@ namespace SteerLoggerUser
                         convData.Add(decimal.Parse(rowData[i]));
                     }
                     tempLog.logData.AddConvData(convData);
+                    pbValue += 1;
+                    progressForm.UpdateProgressBar();
                     received = TCPReceive();
                 }
+                progressForm.UpdateProgressBar();
                 // If merge is true, merge the log downloaded with the current logProc
                 if (merge)
                 {
@@ -783,6 +806,7 @@ namespace SteerLoggerUser
                 newLog.id = Convert.ToInt32(data[0]);
                 newLog.name = data[1];
                 newLog.date = data[2];
+                newLog.size = Convert.ToInt32(data[3]);
                 logsAvailable.Add(newLog);
                 response = TCPReceive();
             }
@@ -1243,6 +1267,7 @@ namespace SteerLoggerUser
                 newLog.id = Convert.ToInt32(data[0]);
                 newLog.name = data[1];
                 newLog.date = data[2];
+                newLog.size = (data[3] == "None") ? 0 : Convert.ToInt32(data[3]);
                 logsAvailable.Add(newLog);
                 response = TCPReceive();
             }
@@ -1250,6 +1275,10 @@ namespace SteerLoggerUser
             // Objective 13.2
             DownloadForm download = new DownloadForm(this, logsAvailable, "Logs", false);
             download.ShowDialog();
+            ReceiveProgessFrom progressForm;
+            progressForm = new ReceiveProgessFrom(this, pbValue);
+            progressForm.Show();
+            pbValue = 0;
 
             // If there is already a log being processed, ask user if they want to merge logs
             if (DAP.processing == true)
@@ -1260,13 +1289,13 @@ namespace SteerLoggerUser
                 if (dialogResult == DialogResult.Yes)
                 {
                     // If they want to merge, receive the log with merge argument set to true
-                    ReceiveLog(true);
+                    ReceiveLog(true, progressForm);
                     PopulateDataViewProc(DAP.logProc);
                 }
                 else
                 {
                     // Receive log with merge argument set to false
-                    ReceiveLog(false);
+                    ReceiveLog(false, progressForm);
                     // Dequeue next log and display it to user
                     //if (DAP.logsToProc.Count > 0)
                     //{
@@ -1280,7 +1309,7 @@ namespace SteerLoggerUser
             // If no log to merge with, receive and add to queue
             else
             {
-                ReceiveLog(false);
+                ReceiveLog(false, progressForm);
                 // Dequeue next log and display
                 if (DAP.logsToProc.Count > 0)
                 {

@@ -76,3 +76,4 @@ C:\Users\aryan\Documents\GitHub\Datalogger-Alistair-UI\UI\obj\Debug\SteerLoggerU
 C:\Users\aryan\Documents\GitHub\Datalogger-Alistair-UI\UI\obj\Debug\SteerLoggerUser.csproj.CoreCompileInputs.cache
 C:\Users\aryan\Documents\GitHub\Datalogger-Alistair-UI\UI\obj\Debug\SteerLoggerUser.exe
 C:\Users\aryan\Documents\GitHub\Datalogger-Alistair-UI\UI\obj\Debug\SteerLoggerUser.pdb
+C:\Users\aryan\Documents\GitHub\Datalogger-Alistair-UI\UI\obj\Debug\SteerLoggerUser.ReceiveProgessFrom.resources

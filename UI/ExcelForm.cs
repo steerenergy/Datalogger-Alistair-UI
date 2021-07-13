@@ -55,6 +55,7 @@ namespace SteerLoggerUser
                 // Enumerate through data and add each row to the spreadsheet
                 for (int i = 0; i < logProc.timestamp.Count; i++)
                 {
+
                     excelSheet.Cells[i + 2, 1] = logProc.timestamp[i].ToString("yyyy/MM/dd HH:mm:ss.fff");
                     excelSheet.Cells[i + 2, 2] = logProc.time[i];
                     for (int j = 0; j < logProc.procData.Count; j++)
