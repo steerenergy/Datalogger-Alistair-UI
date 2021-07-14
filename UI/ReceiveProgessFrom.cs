@@ -21,12 +21,13 @@ namespace SteerLoggerUser
         public ReceiveProgessFrom(mainForm mainForm, int max)
         {
             this.main = mainForm;
-            this.maxNum = max;
+            this.maxNum = 100;
             InitializeComponent();
         }
 
         private void ReceiveProgessFrom_Load(object sender, EventArgs e)
         {
+            timer.Enabled = true;
             pbDownload.Maximum = maxNum;
             start = DateTime.Now;
         }
@@ -54,6 +55,27 @@ namespace SteerLoggerUser
         {
             txtOuput.Text += line + Environment.NewLine;
             this.Update();
+        }
+
+        private void timer_Tick(object sender, EventArgs e)
+        {
+            if (main.dataQueue.TryDequeue(out string line))
+            {
+                txtOuput.Text += line + Environment.NewLine;
+            }
+            int value = main.pbValue;
+            pbDownload.Value = value;
+            if (value == maxNum)
+            {
+                this.Close();
+            }
+            if ((value - prev) != 0)
+            {
+                double timeSecs = 0.1 / (value - prev) * (maxNum - main.pbValue);
+                TimeSpan estimate = TimeSpan.FromSeconds(timeSecs);
+                lblTime.Text = estimate.ToString("d'd 'h'h 'm'm 's's'");
+            }
+            prev = value;
         }
     }
 }

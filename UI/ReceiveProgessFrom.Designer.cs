@@ -29,9 +29,11 @@ namespace SteerLoggerUser
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.pbDownload = new System.Windows.Forms.ProgressBar();
             this.txtOuput = new System.Windows.Forms.TextBox();
             this.lblTime = new System.Windows.Forms.Label();
+            this.timer = new System.Windows.Forms.Timer(this.components);
             this.SuspendLayout();
             // 
             // pbDownload
@@ -59,6 +61,10 @@ namespace SteerLoggerUser
             this.lblTime.TabIndex = 2;
             this.lblTime.Text = "0d 0h 0m 0s";
             // 
+            // timer
+            // 
+            this.timer.Tick += new System.EventHandler(this.timer_Tick);
+            // 
             // ReceiveProgessFrom
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -80,5 +86,6 @@ namespace SteerLoggerUser
         private System.Windows.Forms.ProgressBar pbDownload;
         private System.Windows.Forms.TextBox txtOuput;
         private System.Windows.Forms.Label lblTime;
+        private System.Windows.Forms.Timer timer;
     }
 }

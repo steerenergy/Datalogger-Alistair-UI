@@ -15,6 +15,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Runtime;
 using System.Collections.Concurrent;
+using System.ComponentModel;
 
 namespace SteerLoggerUser
 {
@@ -35,7 +36,6 @@ namespace SteerLoggerUser
         // Initialises the form
         public mainForm()
         {
-            MessageBox.Show("Logger UI started. \nSearching for active loggers on your local network. (This will take about 30 seconds)");
 
             // Add custom function that is run when the form is closed to close TCP connection
             this.FormClosed += new FormClosedEventHandler(MainFormClosed);
@@ -88,11 +88,11 @@ namespace SteerLoggerUser
                             else if (headerNum == 1)
                             {
                                 string[] decimalData = data[1].Trim(new char[] { '(', ')' }).Split(',');
-                                progConfig.inputTypes.Add(data[0], decimalData.Select(i => Convert.ToDecimal(i)).ToArray());
+                                progConfig.inputTypes.Add(data[0], decimalData.Select(i => Convert.ToDouble(i)).ToArray());
                             }
                             else if (headerNum == 2)
                             {
-                                progConfig.gains.Add(Convert.ToInt32(data[0]), Convert.ToDecimal(data[1]));
+                                progConfig.gains.Add(Convert.ToInt32(data[0]), Convert.ToDouble(data[1]));
                             }
                             else if (headerNum == 3)
                             {
@@ -265,14 +265,21 @@ namespace SteerLoggerUser
             // Receive the selected logs using TCP
             // Objective 4.1
             //ReceiveLog(false, progressForm);
-            ReceiveLog(false);
+            //ReceiveLog(false);
+            BackgroundWorker worker = new BackgroundWorker();
+            worker.WorkerReportsProgress = true;
+            worker.DoWork += new DoWorkEventHandler(ReceiveLog);
+            worker.ProgressChanged += new ProgressChangedEventHandler(ProgressChanged);
+            worker.RunWorkerAsync();
+
         }
 
         // Receive a full log from the logger
         // Objectives 4.1 and 13.3
-        private void ReceiveLog(bool merge)
+        private void ReceiveLog(object sender, DoWorkEventArgs e)
         {
-            //dataQueue.Enqueue("Converting data on Pi...");
+            BackgroundWorker worker = sender as BackgroundWorker;
+            dataQueue.Enqueue("Converting data on Pi...");
             //progressForm.UpdateTextBox("Converting data on Pi...");
             //progressForm.UpdateProgressBar();
             string received = TCPReceive();
@@ -282,7 +289,7 @@ namespace SteerLoggerUser
             {
                 // Create a tempoary LogMeta to store log while its being received
                 LogMeta tempLog = new LogMeta();
-                //dataQueue.Enqueue("Receiving meta data...");
+                dataQueue.Enqueue("Receiving meta data...");
                 //progressForm.UpdateTextBox("Receiving meta data...");
                 // Receive meta data of log and set LogMeta variables 
                 while (received != "EoMeta")
@@ -296,8 +303,9 @@ namespace SteerLoggerUser
                     tempLog.downloadedBy = metaData[5];
                     received = TCPReceive();
                 }
+                worker.ReportProgress(10);
                 received = TCPReceive();
-                //dataQueue.Enqueue("Receiving config data...");
+                dataQueue.Enqueue("Receiving config data...");
                 //progressForm.UpdateTextBox("Receiving config data...");
                 // Receive config settings of log and write to ConfigFile object
                 tempLog.config = new ConfigFile();
@@ -311,15 +319,16 @@ namespace SteerLoggerUser
                     tempPin.fName = pinData[3];
                     tempPin.inputType = pinData[4];
                     tempPin.gain = int.Parse(pinData[5]);
-                    tempPin.scaleMin = decimal.Parse(pinData[6]);
-                    tempPin.scaleMax = decimal.Parse(pinData[7]);
+                    tempPin.scaleMin = double.Parse(pinData[6]);
+                    tempPin.scaleMax = double.Parse(pinData[7]);
                     tempPin.units = pinData[8];
-                    tempPin.m = decimal.Parse(pinData[9]);
-                    tempPin.c = decimal.Parse(pinData[10]);
+                    tempPin.m = double.Parse(pinData[9]);
+                    tempPin.c = double.Parse(pinData[10]);
                     tempLog.config.pinList.Add(tempPin);
                     received = TCPReceive();
                 }
-                //dataQueue.Enqueue("Receiving log data...");
+                worker.ReportProgress(20);
+                dataQueue.Enqueue("Receiving log data...");
                 // progressForm.UpdateTextBox("Receiving log data...");
                 received = TCPReceive();
                 // Set up rawheaders and convheaders for LogData object
@@ -351,6 +360,7 @@ namespace SteerLoggerUser
                         pins.Add(pin);
                     }
                 }
+                worker.ReportProgress(30);
                 // pbValue += 1;
                 // //progressForm.UpdateProgressBar();
                 // // Receive log data and write to LogData object
@@ -407,20 +417,34 @@ namespace SteerLoggerUser
                 string user = "pi";
                 string password = "raspberry";
 
-                SftpClient client = new SftpClient(host, 22, user, password);
+                SftpClient sftpclient = new SftpClient(host, 22, user, password);
                 // Need to catch error when computer refuses connection
-                client.Connect();
+                try
+                {
+                    sftpclient.Connect();
+                }
+                catch (SocketException)
+                {
+                    MessageBox.Show("Failed to download, check that Pi has FTP/SSH enabled.");
+                    TCPSend("Quit");
+                    stream.Close();
+                    client.Close();
+                    logger = "";
+                    lblConnection.Text = "You're not connected to a logger.";
+                    return;
+                }
+
 
                 string path = @"/home/pi/Github/Datalogger-Alistair-Pi/" + received;
                 string temp = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger\" + Path.GetFileName(received);
 
-
+                dataQueue.Enqueue("Downloading raw data...");
                 using (FileStream stream = new FileStream(temp, FileMode.Create))
                 {
-                    client.DownloadFile(path, stream);
+                    sftpclient.DownloadFile(path, stream);
                 }
-                client.Dispose();
-
+                sftpclient.Dispose();
+                
                 // Read from the file selected
                 using (StreamReader reader = new StreamReader(temp))
                 {
@@ -431,37 +455,68 @@ namespace SteerLoggerUser
                         // Read each line and store the data in the logData object
                         string[] line = reader.ReadLine().Split(',');
                         tempLog.logData.timestamp.Add(Convert.ToDateTime(line[0]));
-                        tempLog.logData.time.Add(Convert.ToDecimal(line[1]));
-                        List<decimal> rawData = new List<decimal>();
-                        List<decimal> convData = new List<decimal>();
+                        tempLog.logData.time.Add(Convert.ToDouble(line[1]));
+                        List<double> rawData = new List<double>();
+                        List<double> convData = new List<double>();
                         for (int i = 2; i < line.Length; i++)
                         {
-                            rawData.Add(decimal.Parse(line[i]));
+                            rawData.Add(double.Parse(line[i]));
                         }
                         tempLog.logData.AddRawData(rawData);
                         for (int i = 0; i < pins.Count; i++)
                         {
-                            decimal convertedValue = rawData[i] * pins[i].m + pins[i].c;
+                            double convertedValue = rawData[i] * pins[i].m + pins[i].c;
                             convData.Add(convertedValue);
                         }
                         tempLog.logData.AddConvData(convData);
                     }
                 }
-                // If merge is true, merge the log downloaded with the current logProc
-                if (merge)
+                worker.ReportProgress(80);
+                dataQueue.Enqueue("Finalising download...");
+                // If there is already a log being processed, ask user if they want to merge logs
+                if (DAP.processing == true)
                 {
-                    DAP.logsProcessing.Add(tempLog);
-                    LogProc tempProc = new LogProc();
-                    tempProc.CreateProcFromConv(tempLog.logData);
-                    DAP.MergeLogs(tempProc);
+                    DialogResult dialogResult = MessageBox.Show("Would you like to merge the imported log with the current log?\n" +
+                                                "Otherwise the imported log will be added to the queue.",
+                                                "Merge Logs?", MessageBoxButtons.YesNo);
+                    if (dialogResult == DialogResult.Yes)
+                    {
+                        // If they want to merge, receive the log with merge argument set to true
+                        DAP.logsProcessing.Add(tempLog);
+                        LogProc tempProc = new LogProc();
+                        tempProc.CreateProcFromConv(tempLog.logData);
+                        DAP.MergeLogs(tempProc);
+                        this.Invoke(new Action(() => { PopulateDataViewProc(DAP.logProc); }));
+                    }
+                    else
+                    {
+                        // Receive log with merge argument set to false
+                        DAP.logsToProc.Enqueue(tempLog);
+                    }
                 }
-                // If merge is not true, add log to logsToProc queue
+                // If no log to merge with, receive and add to queue
                 else
                 {
                     DAP.logsToProc.Enqueue(tempLog);
+                    // Dequeue next log and display
+                    if (DAP.logsToProc.Count > 0)
+                    {
+                        DAP.logsProcessing.Clear();
+                        DAP.logsProcessing.Add(DAP.logsToProc.Dequeue());
+                        DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].logData);
+                        this.Invoke(new Action(() => { PopulateDataViewProc(DAP.logProc); }));
+                        DAP.processing = true;
+                    }
                 }
                 received = TCPReceive();
+                worker.ReportProgress(100);
             }
+        }
+
+
+        private void ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            pbValue = e.ProgressPercentage;
         }
 
 
@@ -520,7 +575,7 @@ namespace SteerLoggerUser
                 List<string> newRow = new List<string>();
                 newRow.Add(logToShow.timestamp[i].ToString("yyyy/MM/dd HH:mm:ss.fff"));
                 newRow.Add(logToShow.time[i].ToString());
-                foreach (List<decimal> column in logToShow.procData)
+                foreach (List<double> column in logToShow.procData)
                 {
                     newRow.Add(column[i].ToString());
                 }
@@ -1027,9 +1082,9 @@ namespace SteerLoggerUser
                 newPin.fName = row.Cells[3].Value.ToString();
                 newPin.inputType = row.Cells[4].Value.ToString();
                 newPin.gain = Convert.ToInt32(row.Cells[5].Value);
-                decimal scaleMin;
+                double scaleMin;
                 // Make sure that scaleMin is a decimal value, not a string
-                if (decimal.TryParse(row.Cells[6].Value.ToString(), out scaleMin))
+                if (double.TryParse(row.Cells[6].Value.ToString(), out scaleMin))
                 {
                     newPin.scaleMin = scaleMin;
                 }
@@ -1038,9 +1093,9 @@ namespace SteerLoggerUser
                     MessageBox.Show("Please check that all Scale Min values are deciamls.");
                     return;
                 }
-                decimal scaleMax;
+                double scaleMax;
                 // Make sure that scaleMax is a decimal value, not a string
-                if (decimal.TryParse(row.Cells[7].Value.ToString(), out scaleMax))
+                if (double.TryParse(row.Cells[7].Value.ToString(), out scaleMax))
                 {
                     newPin.scaleMax = scaleMax;
                 }
@@ -1075,14 +1130,14 @@ namespace SteerLoggerUser
         private Pin CalculateMandC(Pin pin)
         {
             // Retrieve corresponding voltage pair from Pin inputType
-            decimal inputLow = progConfig.inputTypes[pin.inputType][0];
-            decimal inputHigh = progConfig.inputTypes[pin.inputType][1];
+            double inputLow = progConfig.inputTypes[pin.inputType][0];
+            double inputHigh = progConfig.inputTypes[pin.inputType][1];
             // Calculate gradient using change in y / change in x
-            decimal m = (pin.scaleMax - pin.scaleMin) / (inputHigh - inputLow);
+            double m = (pin.scaleMax - pin.scaleMin) / (inputHigh - inputLow);
             // Calculate c from gradient
             pin.c = pin.scaleMax - m * inputHigh;
             // Multiply m by gain scale factor to get 'x' in volts
-            pin.m = m * progConfig.gains[pin.gain] / 32767.0M;
+            pin.m = m * progConfig.gains[pin.gain] / 32767.0;
             return pin;
         }
 
@@ -1184,7 +1239,7 @@ namespace SteerLoggerUser
             }
             catch (SocketException)
             {
-                MessageBox.Show("An error occured in the connection, please reconnect.");
+                MessageBox.Show("An error occured in the connection, or you are not connected. Please reconnect.");
             }
         }
 
@@ -1200,7 +1255,7 @@ namespace SteerLoggerUser
             }
             catch (SocketException)
             {
-                MessageBox.Show("An error occured in the connection, please reconnect.");
+                MessageBox.Show("An error occured in the connection, or you are not connected. Please reconnect.");
             }
         }
 
@@ -1214,12 +1269,18 @@ namespace SteerLoggerUser
         // Allows user to reconnect to logger or connect to a different one
         private void cmdConnect_Click(object sender, EventArgs e)
         {
+            if (listener.IsAlive)
+            {
+                listener.Abort();
+            }
             // Close current TCP connection
             if (stream != null)
             {
                 stream.Close();
                 client.Close();
             }
+            logger = "";
+            lblConnection.Text = "You're not connected to a logger.";
             // Create new connectForm to search for available loggers
             ConnectForm connectForm = new ConnectForm(progConfig.loggers.Values.ToArray());
             connectForm.user = user;
@@ -1227,7 +1288,7 @@ namespace SteerLoggerUser
             logger = connectForm.logger;
             user = connectForm.user;
             // Try to connect to logger selected by user
-            if (logger != null)
+            if (logger != null && logger != "")
             {
                 try
                 {
@@ -1245,6 +1306,11 @@ namespace SteerLoggerUser
                 }
                 // Update display to show user is connected
                 lblConnection.Text = "You are connected to: " + logger;
+            }
+            else
+            {
+                logger = "";
+                lblConnection.Text = "You're not connected to a logger.";
             }
         }
 
@@ -1294,11 +1360,11 @@ namespace SteerLoggerUser
                         // Read each line and store the data in the logData object
                         string[] line = reader.ReadLine().Split(',');
                         logMeta.logData.timestamp.Add(Convert.ToDateTime(line[0]));
-                        logMeta.logData.time.Add(Convert.ToDecimal(line[1]));
-                        List<decimal> convData = new List<decimal>();
+                        logMeta.logData.time.Add(Convert.ToDouble(line[1]));
+                        List<double> convData = new List<double>();
                         for (int i = 2; i < line.Length; i++)
                         {
-                            convData.Add(decimal.Parse(line[i]));
+                            convData.Add(double.Parse(line[i]));
                         }
                         logMeta.logData.AddConvData(convData);
                     }
@@ -1391,51 +1457,16 @@ namespace SteerLoggerUser
             // Objective 13.2
             DownloadForm download = new DownloadForm(this, logsAvailable, "Logs", false);
             download.ShowDialog();
-            //ReceiveProgessFrom progressForm;
-            //progressForm = new ReceiveProgessFrom(this, pbValue);
-            //progressForm.Show();
+            ReceiveProgessFrom progressForm;
+            progressForm = new ReceiveProgessFrom(this, pbValue);
+            progressForm.Show();
             pbValue = 0;
 
-            // If there is already a log being processed, ask user if they want to merge logs
-            if (DAP.processing == true)
-            {
-                DialogResult dialogResult = MessageBox.Show("Would you like to merge the imported log with the current log?\n" +
-                                            "Otherwise the imported log will be added to the queue.",
-                                            "Merge Logs?", MessageBoxButtons.YesNo);
-                if (dialogResult == DialogResult.Yes)
-                {
-                    // If they want to merge, receive the log with merge argument set to true
-                    ReceiveLog(true);
-                    PopulateDataViewProc(DAP.logProc);
-                }
-                else
-                {
-                    // Receive log with merge argument set to false
-                    ReceiveLog(false);
-                    // Dequeue next log and display it to user
-                    //if (DAP.logsToProc.Count > 0)
-                    //{
-                    //    DAP.logsProcessing.Clear();
-                    //    DAP.logsProcessing.Add(DAP.logsToProc.Dequeue());
-                    //    DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].logData);
-                    //    PopulateDataViewProc(DAP.logProc);
-                    //}
-                }
-            }
-            // If no log to merge with, receive and add to queue
-            else
-            {
-                ReceiveLog(false);
-                // Dequeue next log and display
-                if (DAP.logsToProc.Count > 0)
-                {
-                    DAP.logsProcessing.Clear();
-                    DAP.logsProcessing.Add(DAP.logsToProc.Dequeue());
-                    DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].logData);
-                    PopulateDataViewProc(DAP.logProc);
-                    DAP.processing = true;
-                }
-            }
+            BackgroundWorker worker = new BackgroundWorker();
+            worker.WorkerReportsProgress = true;
+            worker.DoWork += new DoWorkEventHandler(ReceiveLog);
+            worker.ProgressChanged += new ProgressChangedEventHandler(ProgressChanged);
+            worker.RunWorkerAsync();
         }
 
         // Dowload log CSV files
@@ -1543,7 +1574,7 @@ namespace SteerLoggerUser
                     string line = "";
                     line += log.timestamp[i].ToString("yyyy/MM/dd HH:mm:ss.fff") + ",";
                     line += log.time[i] + ",";
-                    foreach (List<decimal> column in log.rawData)
+                    foreach (List<double> column in log.rawData)
                     {
                         line += column[i] + ",";
                     }
@@ -1571,7 +1602,7 @@ namespace SteerLoggerUser
                     string line = "";
                     line += log.timestamp[i].ToString("yyyy/MM/dd HH:mm:ss.fff") + ",";
                     line += log.time[i] + ",";
-                    foreach (List<decimal> column in log.convData)
+                    foreach (List<double> column in log.convData)
                     {
                         line += column[i] + ",";
                     }
@@ -1599,7 +1630,7 @@ namespace SteerLoggerUser
                     string line = "";
                     line += logProc.timestamp[i].ToString("yyyy/MM/dd HH:mm:ss.fff") + ",";
                     line += logProc.time[i] + ",";
-                    foreach (List<decimal> column in logProc.procData)
+                    foreach (List<double> column in logProc.procData)
                     {
                         line += column[i] + ",";
                     }
@@ -1771,11 +1802,11 @@ namespace SteerLoggerUser
                 {
                     string[] line = reader.ReadLine().Split(',');
                     tempLogProc.timestamp.Add(Convert.ToDateTime(line[0]));
-                    tempLogProc.time.Add(Convert.ToDecimal(line[1]));
-                    List<decimal> procData = new List<decimal>();
+                    tempLogProc.time.Add(Convert.ToDouble(line[1]));
+                    List<double> procData = new List<double>();
                     for (int i = 2; i < line.Length; i++)
                     {
-                        tempLogProc.procData[i - 2].Add(decimal.Parse(line[i]));
+                        tempLogProc.procData[i - 2].Add(double.Parse(line[i]));
                     }
                     tempLogProc.AddProcData(procData);
                 }

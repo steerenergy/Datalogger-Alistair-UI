@@ -93,6 +93,7 @@
             // 
             // pbScan
             // 
+            this.pbScan.Enabled = false;
             this.pbScan.Location = new System.Drawing.Point(12, 170);
             this.pbScan.Name = "pbScan";
             this.pbScan.Size = new System.Drawing.Size(189, 23);

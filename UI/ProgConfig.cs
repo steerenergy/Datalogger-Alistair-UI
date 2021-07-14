@@ -9,15 +9,15 @@ namespace SteerLoggerUser
     public class ProgConfig
     {
         public Dictionary<int, string> units;
-        public Dictionary<string, decimal[]> inputTypes;
-        public Dictionary<int, decimal> gains;
+        public Dictionary<string, double[]> inputTypes;
+        public Dictionary<int, double> gains;
         public Dictionary<int, string> loggers;
 
         public ProgConfig()
         {
             units = new Dictionary<int, string>();
-            inputTypes = new Dictionary<string, decimal[]>();
-            gains = new Dictionary<int, decimal>();
+            inputTypes = new Dictionary<string, double[]>();
+            gains = new Dictionary<int, double>();
             loggers = new Dictionary<int, string>();
         }
     }

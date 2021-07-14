@@ -1,5 +1,7 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Net.Sockets;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace SteerLoggerUser
@@ -20,7 +22,7 @@ namespace SteerLoggerUser
         private void Form1_Load(object sender, EventArgs e)
         {
             int loggernum = loggers.Length;
-            pbScan.Maximum = loggernum + 1;
+            //pbScan.Maximum = loggernum + 1;
             pbScan.Value = 0;
         }
 
@@ -65,7 +67,23 @@ namespace SteerLoggerUser
 
         private void cmdScan_Click(object sender, EventArgs e)
         {
-            pbScan.Value = 1;
+            pbScan.Value = 0;
+            pbScan.MarqueeAnimationSpeed = 100;
+            pbScan.Style = ProgressBarStyle.Marquee;
+            cmdScan.Enabled = false;
+            cmdSelect.Enabled = false;
+            cmbLogger.Enabled = false;
+
+            BackgroundWorker worker = new BackgroundWorker();
+            worker.DoWork += Scan;
+            worker.RunWorkerCompleted += ScanComplete;
+            worker.RunWorkerAsync();
+
+        }
+
+
+        private void Scan(object sender, DoWorkEventArgs e)
+        {
             Int32 port = 13000;
             // Enumerate through known logger names (stored in the program config)
             // Objective 2
@@ -77,7 +95,8 @@ namespace SteerLoggerUser
                     // Objective 3
                     TcpClient client = new TcpClient(logger, port);
                     // If a logger can be connected to, add its name to the drop down menu
-                    cmbLogger.Items.Add(logger);
+                    this.Invoke(new Action(() => { cmbLogger.Items.Add(logger); }));
+                    //cmbLogger.Items.Add(logger);
                     NetworkStream stream = client.GetStream();
                     // Quit connection so other loggers can be connected to
                     string command = "Quit\n";
@@ -92,8 +111,11 @@ namespace SteerLoggerUser
                 {
                     //Logger not online
                 }
-                pbScan.Value += 1;
             }
+        }
+
+        private void ScanComplete(object sender, RunWorkerCompletedEventArgs e)
+        {
             // If no loggers can be found, alert user
             if (cmbLogger.Items.Count == 0)
             {
@@ -101,15 +123,20 @@ namespace SteerLoggerUser
             }
             else
             {
-                cmbLogger.SelectedIndex = 0;
+                this.Invoke(new Action(() => { cmbLogger.SelectedIndex = 0; }));
             }
 
             if (user != null)
             {
-                txtUser.Text = user;
+                this.Invoke(new Action(() => { txtUser.Text = user; }));
             }
-            pbScan.Enabled = false;
-            MessageBox.Show("Scan complete.");
+            this.Invoke(new Action(() => { pbScan.Enabled = false; }));
+            pbScan.MarqueeAnimationSpeed = 0;
+            pbScan.Style = ProgressBarStyle.Blocks;
+            pbScan.Value = pbScan.Minimum;
+            cmdScan.Enabled = true;
+            cmdSelect.Enabled = true;
+            cmbLogger.Enabled = true;
         }
     }
 }
