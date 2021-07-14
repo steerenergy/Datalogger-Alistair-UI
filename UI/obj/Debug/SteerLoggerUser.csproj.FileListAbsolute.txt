@@ -77,3 +77,6 @@ C:\Users\aryan\Documents\GitHub\Datalogger-Alistair-UI\UI\obj\Debug\SteerLoggerU
 C:\Users\aryan\Documents\GitHub\Datalogger-Alistair-UI\UI\obj\Debug\SteerLoggerUser.exe
 C:\Users\aryan\Documents\GitHub\Datalogger-Alistair-UI\UI\obj\Debug\SteerLoggerUser.pdb
 C:\Users\aryan\Documents\GitHub\Datalogger-Alistair-UI\UI\obj\Debug\SteerLoggerUser.ReceiveProgessFrom.resources
+C:\Users\aryan\Documents\GitHub\Datalogger-Alistair-UI\UI\bin\Debug\Renci.SshNet.dll
+C:\Users\aryan\Documents\GitHub\Datalogger-Alistair-UI\UI\bin\Debug\Renci.SshNet.xml
+C:\Users\aryan\Documents\GitHub\Datalogger-Alistair-UI\UI\obj\Debug\SteerLoggerUser.csproj.CopyComplete
