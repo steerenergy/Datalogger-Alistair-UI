@@ -18,6 +18,7 @@ namespace SteerLoggerUser
         private bool one;
         // Used to tell mainForm if user exits without selecting anything
         private bool cancelled = true;
+        private int max = 0;
 
         public DownloadForm(mainForm mainForm, List<LogMeta> logsAvailable, string downloadItem, bool onlyOne)
         {
@@ -36,26 +37,41 @@ namespace SteerLoggerUser
             lblDownload.Text = "Select " + item + " to Download";
             cmdDownload.Text = "Download " + item;
 
-            Point pos = new Point(10, 5);
-            // Enumerate through logs available
+            //Point pos = new Point(10, 5);
+            //// Enumerate through logs available
+            //foreach (LogMeta log in logs)
+            //{
+            //    // Add new checkbox to form for log
+            //    CheckBox tempCheckBox = new CheckBox();
+            //    tempCheckBox.Location = pos;
+            //    tempCheckBox.Text = "";
+            //    tempCheckBox.Name = "ckb" + log.id;
+            //    // Add new label to form for log
+            //    Label tempLabel = new Label();
+            //    tempLabel.AutoSize = true;
+            //    tempLabel.Location = new Point(pos.X + 30, pos.Y + 5);
+            //    tempLabel.Text = log.id + " " + log.name + " " + log.date;
+            //    tempLabel.Name = "lbl" + log.name;
+            //    panel.Controls.Add(tempLabel);
+            //    panel.Controls.Add(tempCheckBox);
+            //    // Increment position of checkboexs and labels being added
+            //    pos.Y += 25;
+            //}
+
             foreach (LogMeta log in logs)
             {
-                // Add new checkbox to form for log
-                CheckBox tempCheckBox = new CheckBox();
-                tempCheckBox.Location = pos;
-                tempCheckBox.Text = "";
-                tempCheckBox.Name = "ckb" + log.id;
-                // Add new label to form for log
-                Label tempLabel = new Label();
-                tempLabel.AutoSize = true;
-                tempLabel.Location = new Point(pos.X + 30, pos.Y + 5);
-                tempLabel.Text = log.id + " " + log.name + " " + log.date;
-                tempLabel.Name = "lbl" + log.name;
-                panel.Controls.Add(tempLabel);
-                panel.Controls.Add(tempCheckBox);
-                // Increment position of checkboexs and labels being added
-                pos.Y += 25;
+                // Create new dgvRow object
+                object[] rowData = new object[]
+                {
+                    false,
+                    log.id,
+                    log.name,
+                    log.date,
+                    log.size
+                };
+                dgvDownload.Rows.Add(rowData);
             }
+
 
             cmdDownload.Width = panel.Width;
         }
@@ -66,13 +82,22 @@ namespace SteerLoggerUser
             cancelled = false;
             string logNames = "";
             int num = 0;
-            foreach (CheckBox checkBox in panel.Controls.OfType<CheckBox>())
+            //foreach (CheckBox checkBox in panel.Controls.OfType<CheckBox>())
+            //{
+            //    //If the log's checkbox is selected, add its ID to logNames
+            //    if (checkBox.Checked == true)
+            //    {
+            //        logNames += checkBox.Name.Substring(3) + ",";
+            //        num += 1;
+            //    }
+            //}
+            foreach (DataGridViewRow row in dgvDownload.Rows)
             {
-                // If the log's checkbox is selected, add its ID to logNames
-                if (checkBox.Checked == true)
+                if (Convert.ToBoolean(row.Cells[0].Value) == true)
                 {
-                    logNames += checkBox.Name.Substring(3) + ",";
+                    logNames += row.Cells[1].Value + ",";
                     num += 1;
+                    max += Convert.ToInt32(row.Cells[4].Value);
                 }
             }
             // If no logs selected, let logger know
@@ -104,6 +129,7 @@ namespace SteerLoggerUser
                 main.TCPSend(item);
                 main.TCPSend("No_Logs_Requested");
             }
+            main.pbValue = max;
         }
     }
 }

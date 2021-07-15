@@ -14,10 +14,10 @@ namespace SteerLoggerUser
         public string fName;
         public string inputType;
         public int gain;
-        public decimal scaleMin;
-        public decimal scaleMax;
+        public double scaleMin;
+        public double scaleMax;
         public string units;
-        public decimal m;
-        public decimal c;
+        public double m;
+        public double c;
     }
 }

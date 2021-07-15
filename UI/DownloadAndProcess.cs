@@ -89,23 +89,23 @@ namespace SteerLoggerUser
                 // Objective 17.3
                 if (equal)
                 {
-                    decimal timeDifference = 0;
+                    double timeDifference = 0;
                     if (tempProcessLog.timestamp.Count != 0)
                     {
                         // Calute time between start timestamp and largest timestamp
-                        timeDifference = Convert.ToDecimal((largest - tempProcessLog.timestamp[0]).TotalSeconds);
+                        timeDifference = Convert.ToDouble((largest - tempProcessLog.timestamp[0]).TotalSeconds);
                     }
                     // Add timestamp and time to merged log
                     tempProcessLog.timestamp.Add(largest);
                     tempProcessLog.time.Add(timeDifference);
 
                     // Add data for that row from log 1 and log 2
-                    List<decimal> rowdata = new List<decimal>();
-                    foreach (List<decimal> column in logProc.procData)
+                    List<double> rowdata = new List<double>();
+                    foreach (List<double> column in logProc.procData)
                     {
                         rowdata.Add(column[counters[0]]);
                     }
-                    foreach (List<decimal> column in logToMerge.procData)
+                    foreach (List<double> column in logToMerge.procData)
                     {
                         rowdata.Add(column[counters[1]]);
                     }
