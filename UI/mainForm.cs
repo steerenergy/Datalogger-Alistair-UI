@@ -371,7 +371,7 @@ namespace SteerLoggerUser
                     {
                         pinNum += 1;
                         rawHeaders.Add(pin.name);
-                        convHeaders.Add(pin.fName + "|" + pin.name + "|" + pin.units);
+                        convHeaders.Add(pin.fName + "|" + pin.units);
                     }
                 }
                 tempLog.logData.rawheaders.AddRange(rawHeaders);
@@ -471,7 +471,10 @@ namespace SteerLoggerUser
                     sftpclient.DownloadFile(path, stream);
                 }
                 sftpclient.Dispose();
-                
+
+                dataQueue.Enqueue("Converting data...");
+                worker.ReportProgress(50);
+
                 // Read from the file selected
                 using (StreamReader reader = new StreamReader(temp))
                 {
@@ -498,8 +501,9 @@ namespace SteerLoggerUser
                         tempLog.logData.AddConvData(convData);
                     }
                 }
-                worker.ReportProgress(80);
+
                 dataQueue.Enqueue("Finalising download...");
+                worker.ReportProgress(80);
                 // If there is already a log being processed, ask user if they want to merge logs
                 if (DAP.processing == true)
                 {
@@ -1769,7 +1773,13 @@ namespace SteerLoggerUser
                 // Set script to user selected python script
                 script = ofdPythonScript.FileName;
                 // Get path to activate.bat
-                string condaPath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + @"\anaconda3\Scripts\activate.bat";
+                string condaPath = progConfig.activatePath;
+                if (File.Exists(condaPath) == false)
+                {
+                    MessageBox.Show("activate.bat is not the the location expected. Please change the settings to correct the activate.bat location."
+                                    + Environment.NewLine + "Expected location: " + condaPath);
+                    return;
+                }
                 // Construct the argument to pass to the command shell
                 string cmdArguments = "/c \"chdir " + dirPath + "\\ && call " + condaPath + " && python " + script + " " + dirPath + "\"";
 
@@ -1874,7 +1884,13 @@ namespace SteerLoggerUser
                 // Set script to user selected python script
                 script = ofdPythonScript.FileName;
                 // Get the path to activate .bat
-                string condaPath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + @"\anaconda3\Scripts\activate.bat";
+                string condaPath = progConfig.activatePath;
+                if (File.Exists(condaPath) == false)
+                {
+                    MessageBox.Show("activate.bat is not the the location expected. Please change the settings to correct the activate.bat location."
+                                    + Environment.NewLine + "Expected location: " + condaPath);
+                    return;
+                }
                 // Construct the argument to pass to the command shell
                 string cmdArguments = "/c \"chdir " + dirPath + "\\ && call " + condaPath + " && python " + script + " " + dirPath + "\"";
 
