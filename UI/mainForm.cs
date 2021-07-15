@@ -107,6 +107,7 @@ namespace SteerLoggerUser
                                             else
                                             {
                                                 MessageBox.Show("Cannot find activate.bat for Anaconda, please edit settings and give the location of activate.bat.");
+                                                progConfig.activatePath = "";
                                             }
                                         }
                                         else
@@ -118,6 +119,7 @@ namespace SteerLoggerUser
                                             else
                                             {
                                                 MessageBox.Show("Cannot find activate.bat for Anaconda, please edit settings and give the location of activate.bat.");
+                                                progConfig.activatePath = "";
                                             }
                                         }
                                         break;
