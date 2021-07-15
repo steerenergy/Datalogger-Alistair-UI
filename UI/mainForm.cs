@@ -47,6 +47,7 @@ namespace SteerLoggerUser
         // Objective 1
         private void ReadProgConfig()
         {
+            progConfig = new ProgConfig();
             // Opens config using StreamReader
             using (StreamReader reader = new StreamReader(Application.StartupPath + "\\progConf.ini"))
             {
@@ -61,43 +62,67 @@ namespace SteerLoggerUser
                     if (line != "" && line[0] != '#')
                     {
                         // Set which section is being read from using section headers
-                        if (line == "[unitTypes]")
+                        switch (line)
                         {
-                            headerNum = 0;
-                        }
-                        else if (line == "[inputTypes]")
-                        {
-                            headerNum = 1;
-                        }
-                        else if (line == "[gains]")
-                        {
-                            headerNum = 2;
-                        }
-                        else if (line == "[hostnames]")
-                        {
-                            headerNum = 3;
-                        }
-                        else
-                        {
-                            // Store data in progConfig in correct variable depending on the section being read
-                            string[] data = line.Split(" = ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-                            if (headerNum == 0)
-                            {
-                                progConfig.units.Add(Convert.ToInt32(data[0]), data[1]);
-                            }
-                            else if (headerNum == 1)
-                            {
-                                string[] decimalData = data[1].Trim(new char[] { '(', ')' }).Split(',');
-                                progConfig.inputTypes.Add(data[0], decimalData.Select(i => Convert.ToDouble(i)).ToArray());
-                            }
-                            else if (headerNum == 2)
-                            {
-                                progConfig.gains.Add(Convert.ToInt32(data[0]), Convert.ToDouble(data[1]));
-                            }
-                            else if (headerNum == 3)
-                            {
-                                progConfig.loggers.Add(Convert.ToInt32(data[0]), data[1]);
-                            }
+                            case "[unitTypes]":
+                                headerNum = 0;
+                                break;
+                            case "[inputTypes]":
+                                headerNum = 1;
+                                break;
+                            case "[gains]":
+                                headerNum = 2;
+                                break;
+                            case "[hostnames]":
+                                headerNum = 3;
+                                break;
+                            case "[activate]":
+                                headerNum = 4;
+                                break;
+                            default:
+                                // Store data in progConfig in correct variable depending on the section being read
+                                string[] data = line.Split(" = ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+                                switch (headerNum)
+                                {
+                                    case 0:
+                                        progConfig.units.Add(data[1]);
+                                        break;
+                                    case 1:
+                                        string[] decimalData = data[1].Trim(new char[] { '(', ')' }).Split(',');
+                                        progConfig.inputTypes.Add(data[0], decimalData.Select(i => Convert.ToDouble(i)).ToArray());
+                                        break;
+                                    case 2:
+                                        progConfig.gains.Add(Convert.ToInt32(data[0]), Convert.ToDouble(data[1]));
+                                        break;
+                                    case 3:
+                                        progConfig.loggers.Add(data[1]);
+                                        break;
+                                    case 4:
+                                        if (data.Length == 1)
+                                        {
+                                            if (File.Exists(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + @"\anaconda3\Scripts\activate.bat"))
+                                            {
+                                                progConfig.activatePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + @"\anaconda3\Scripts\activate.bat";
+                                            }
+                                            else
+                                            {
+                                                MessageBox.Show("Cannot find activate.bat for Anaconda, please edit settings and give the location of activate.bat.");
+                                            }
+                                        }
+                                        else
+                                        {
+                                            if (File.Exists(data[1]))
+                                            {
+                                                progConfig.activatePath = data[1];
+                                            }
+                                            else
+                                            {
+                                                MessageBox.Show("Cannot find activate.bat for Anaconda, please edit settings and give the location of activate.bat.");
+                                            }
+                                        }
+                                        break;
+                                }
+                                break;
                         }
                     }
                 }
@@ -112,7 +137,7 @@ namespace SteerLoggerUser
             ReadProgConfig();
             // Starts the connect form, which searches for loggers and allows user to connect to one
             // Objective 2 and 3
-            ConnectForm connectForm = new ConnectForm(progConfig.loggers.Values.ToArray());
+            ConnectForm connectForm = new ConnectForm(progConfig.loggers.ToArray());
             connectForm.ShowDialog();
 
             // If logger is null, close application as user has closed the connect form
@@ -146,7 +171,7 @@ namespace SteerLoggerUser
                 ((DataGridViewComboBoxColumn)dgvInputSetup.Columns["gain"]).Items.Add(gain.ToString());
             }
 
-            foreach (string value in progConfig.units.Values)
+            foreach (string value in progConfig.units)
             {
                 ((DataGridViewComboBoxColumn)dgvInputSetup.Columns["units"]).Items.Add(value);
             }
@@ -250,7 +275,7 @@ namespace SteerLoggerUser
                 newLog.id = Convert.ToInt32(data[0]);
                 newLog.name = data[1];
                 newLog.date = data[2];
-                newLog.size = Convert.ToInt32(data[3]);
+                newLog.size = (data[3] == "None") ? 0 : Convert.ToInt32(data[3]);
                 logsAvailable.Add(newLog);
                 response = TCPReceive();
             }
@@ -279,11 +304,10 @@ namespace SteerLoggerUser
         private void ReceiveLog(object sender, DoWorkEventArgs e)
         {
             BackgroundWorker worker = sender as BackgroundWorker;
-            dataQueue.Enqueue("Converting data on Pi...");
+
             //progressForm.UpdateTextBox("Converting data on Pi...");
             //progressForm.UpdateProgressBar();
             string received = TCPReceive();
-
             // Continue receiving logs until all have been sent
             while (received != "All_Sent")
             {
@@ -425,12 +449,13 @@ namespace SteerLoggerUser
                 }
                 catch (SocketException)
                 {
+                    dataQueue.Enqueue("Error occurred. Aborting!");
                     MessageBox.Show("Failed to download, check that Pi has FTP/SSH enabled.");
                     TCPSend("Quit");
                     stream.Close();
                     client.Close();
                     logger = "";
-                    lblConnection.Text = "You're not connected to a logger.";
+                    this.Invoke(new Action(() => { lblConnection.Text = "You're not connected to a logger."; }));
                     return;
                 }
 
@@ -509,8 +534,9 @@ namespace SteerLoggerUser
                     }
                 }
                 received = TCPReceive();
-                worker.ReportProgress(100);
+
             }
+            worker.ReportProgress(100);
         }
 
 
@@ -977,7 +1003,7 @@ namespace SteerLoggerUser
                 newLog.id = Convert.ToInt32(data[0]);
                 newLog.name = data[1];
                 newLog.date = data[2];
-                newLog.size = Convert.ToInt32(data[3]);
+                newLog.size = (data[3] == "None") ? 0 : Convert.ToInt32(data[3]);
                 logsAvailable.Add(newLog);
                 response = TCPReceive();
             }
@@ -1271,6 +1297,7 @@ namespace SteerLoggerUser
         {
             if (listener.IsAlive)
             {
+                TCPSend("Quit");
                 listener.Abort();
             }
             // Close current TCP connection
@@ -1282,7 +1309,7 @@ namespace SteerLoggerUser
             logger = "";
             lblConnection.Text = "You're not connected to a logger.";
             // Create new connectForm to search for available loggers
-            ConnectForm connectForm = new ConnectForm(progConfig.loggers.Values.ToArray());
+            ConnectForm connectForm = new ConnectForm(progConfig.loggers.ToArray());
             connectForm.user = user;
             connectForm.ShowDialog();
             logger = connectForm.logger;
@@ -1479,7 +1506,8 @@ namespace SteerLoggerUser
                 // If a log config exists, allow user to save it on local machine
                 if (log.config != null)
                 {
-                    sfdConfig.FileName = "logConf-" + log.name + log.date + ".ini";
+                    sfdConfig.FileName = "logConf-" + log.name + "-" + log.date + ".ini";
+                    sfdConfig.DefaultExt = "ini";
                     if (sfdConfig.ShowDialog() == DialogResult.OK)
                     {
                         try
@@ -1498,7 +1526,8 @@ namespace SteerLoggerUser
                 // If a log has raw data, allow user to save raw data csv on local machine
                 if (log.logData.rawData[0].Count != 0)
                 {
-                    sfdLog.FileName = "raw-" + log.name + log.date + ".csv";
+                    sfdLog.FileName = "raw-" + log.name + "-" + log.date + ".csv";
+                    sfdLog.DefaultExt = "csv";
                     if (sfdLog.ShowDialog() == DialogResult.OK)
                     {
                         try
@@ -1517,7 +1546,8 @@ namespace SteerLoggerUser
                 // If a log has converted data, allow user to save conv data csv on local machine
                 if (log.logData.convData[0].Count != 0)
                 {
-                    sfdLog.FileName = "converted-" + log.name + log.date + ".csv";
+                    sfdLog.FileName = "converted-" + log.name + "-" + log.date + ".csv";
+                    sfdLog.DefaultExt = "csv";
                     if (sfdLog.ShowDialog() == DialogResult.OK)
                     {
                         try
@@ -1537,7 +1567,8 @@ namespace SteerLoggerUser
             // If the log is being processed, allow user to save processed data (data in data display)
             if (DAP.processing == true)
             {
-                sfdLog.FileName = "processed-" + DAP.logsProcessing[0].name + DAP.logsProcessing[0].date + ".csv";
+                sfdLog.FileName = "processed-" + DAP.logsProcessing[0].name + "-" + DAP.logsProcessing[0].date + ".csv";
+                sfdLog.DefaultExt = "csv";
                 if (sfdLog.ShowDialog() == DialogResult.OK)
                 {
                     try
@@ -1877,7 +1908,9 @@ namespace SteerLoggerUser
 
         private void cmdSettings_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("WIP: Will likely allow progConfig.ini to be changed from here.");
+            SettingsForm settings = new SettingsForm(progConfig);
+            settings.ShowDialog();
+            ReadProgConfig();
         }
 
         private void cmdAbt_Click(object sender, EventArgs e)

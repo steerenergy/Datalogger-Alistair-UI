@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(mainForm));
             this.pnlCtrlConf = new System.Windows.Forms.Panel();
             this.cmdResetConfig = new System.Windows.Forms.Button();
@@ -183,9 +183,9 @@
             this.dgvInputSetup.Name = "dgvInputSetup";
             this.dgvInputSetup.RowHeadersVisible = false;
             this.dgvInputSetup.RowHeadersWidth = 51;
-            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dgvInputSetup.RowsDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle5.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle5.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dgvInputSetup.RowsDefaultCellStyle = dataGridViewCellStyle5;
             this.dgvInputSetup.Size = new System.Drawing.Size(614, 391);
             this.dgvInputSetup.TabIndex = 5;
             this.dgvInputSetup.SizeChanged += new System.EventHandler(this.dgvInputSetup_SizeChanged);
@@ -486,6 +486,7 @@
             // sfdConfig
             // 
             this.sfdConfig.DefaultExt = "ini";
+            this.sfdConfig.Filter = "ini files (*.ini)|*.ini|All files (*.*)|*.*";
             // 
             // ofdConfig
             // 
@@ -520,6 +521,7 @@
             // sfdLog
             // 
             this.sfdLog.DefaultExt = "csv";
+            this.sfdLog.Filter = "csv files (*.csv)|*.csv|All files (*.*)|*.*";
             // 
             // ofdPythonScript
             // 

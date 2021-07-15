@@ -62,6 +62,10 @@ namespace SteerLoggerUser
             if (main.dataQueue.TryDequeue(out string line))
             {
                 txtOuput.Text += line + Environment.NewLine;
+                if (line == "Error occurred. Aborting!")
+                {
+                    this.Close();
+                }
             }
             int value = main.pbValue;
             pbDownload.Value = value;

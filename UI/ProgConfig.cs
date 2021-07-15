@@ -8,17 +8,18 @@ namespace SteerLoggerUser
 {
     public class ProgConfig
     {
-        public Dictionary<int, string> units;
+        public string activatePath;
+        public List<string> units;
         public Dictionary<string, double[]> inputTypes;
         public Dictionary<int, double> gains;
-        public Dictionary<int, string> loggers;
+        public List<string> loggers;
 
         public ProgConfig()
         {
-            units = new Dictionary<int, string>();
+            units = new List<string>();
             inputTypes = new Dictionary<string, double[]>();
             gains = new Dictionary<int, double>();
-            loggers = new Dictionary<int, string>();
+            loggers = new List<string>();
         }
     }
 }
