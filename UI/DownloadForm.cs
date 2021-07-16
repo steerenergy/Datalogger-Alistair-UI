@@ -73,7 +73,7 @@ namespace SteerLoggerUser
             }
 
 
-            cmdDownload.Width = panel.Width;
+            cmdDownload.Width = dgvDownload.Width;
         }
 
         // Sends the selected log ids to the logger

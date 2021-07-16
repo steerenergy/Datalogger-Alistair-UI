@@ -185,6 +185,7 @@ namespace SteerLoggerUser
                 {
                     Int32 port = 13000;
                     client = new TcpClient(logger, port);
+                    //client.ReceiveTimeout = 100;
                     stream = client.GetStream();
 
                     listener = new Thread(TCPListen);

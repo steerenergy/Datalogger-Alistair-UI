@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(mainForm));
             this.pnlCtrlConf = new System.Windows.Forms.Panel();
             this.cmdResetConfig = new System.Windows.Forms.Button();
@@ -183,9 +183,9 @@
             this.dgvInputSetup.Name = "dgvInputSetup";
             this.dgvInputSetup.RowHeadersVisible = false;
             this.dgvInputSetup.RowHeadersWidth = 51;
-            dataGridViewCellStyle5.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle5.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dgvInputSetup.RowsDefaultCellStyle = dataGridViewCellStyle5;
+            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dgvInputSetup.RowsDefaultCellStyle = dataGridViewCellStyle1;
             this.dgvInputSetup.Size = new System.Drawing.Size(614, 391);
             this.dgvInputSetup.TabIndex = 5;
             this.dgvInputSetup.SizeChanged += new System.EventHandler(this.dgvInputSetup_SizeChanged);
@@ -539,8 +539,8 @@
             this.Controls.Add(this.cmdSettings);
             this.Controls.Add(this.cmdDataProc);
             this.Controls.Add(this.cmdCtrlConf);
-            this.Controls.Add(this.pnlCtrlConf);
             this.Controls.Add(this.pnlDataProc);
+            this.Controls.Add(this.pnlCtrlConf);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MinimumSize = new System.Drawing.Size(871, 489);
             this.Name = "mainForm";
