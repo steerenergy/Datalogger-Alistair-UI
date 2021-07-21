@@ -72,10 +72,10 @@ namespace SteerLoggerUser
         // Export data to Excel by creating new workbook
         private void ExportNew()
         {
+            Excel.Application excel = new Excel.Application();
             try
             {
                 // Open Excel and create a new workbook and worksheet
-                Excel.Application excel = new Excel.Application();
                 Excel._Workbook excelWb = (Excel._Workbook)(excel.Workbooks.Add(Missing.Value));
                 Excel._Worksheet excelSheet = (Excel._Worksheet)excelWb.ActiveSheet;
 
@@ -158,8 +158,8 @@ namespace SteerLoggerUser
 
                 MessageBox.Show(errorMessage, "Error");
                 MessageBox.Show(theException.ToString());
-            }
-
+                System.Runtime.InteropServices.Marshal.FinalReleaseComObject(excel);
+            }  
         }
 
         // Creates a graph from two of the columns
@@ -447,6 +447,9 @@ namespace SteerLoggerUser
                 
                 excel.Visible = true;
                 excel.UserControl = true;
+
+                MessageBox.Show("Exported Successfully!");
+                this.Close();
             }
             // Catch any exceptions and report to user
             catch (Exception theException)
@@ -459,8 +462,8 @@ namespace SteerLoggerUser
 
                 MessageBox.Show(errorMessage, "Error");
                 MessageBox.Show(theException.ToString());
+                System.Runtime.InteropServices.Marshal.FinalReleaseComObject(excel);
             }
-            System.Runtime.InteropServices.Marshal.FinalReleaseComObject(excel);
         }
 
         private void cmdLoadTemplate_Click(object sender, EventArgs e)
