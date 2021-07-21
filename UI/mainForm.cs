@@ -129,6 +129,47 @@ namespace SteerLoggerUser
                     }
                 }
             }
+            // Read in simple config pins
+            using (StreamReader reader = new StreamReader(Application.StartupPath + "\\configPresets.csv"))
+            {
+                // Read header line and ignore
+                reader.ReadLine();
+                char[] trimChars = new char[] { '\n', ' ' };
+                string line = "";
+                string prevSensor = "";
+                while (!reader.EndOfStream)
+                {
+                    line = reader.ReadLine().Trim(trimChars);
+                    string[] pinData = line.Split(',');
+                    // Add sensor name and variation to variationDict (used for populating cmb menus)
+                    if (pinData[0] != prevSensor && pinData[1] != "")
+                    {
+                        progConfig.variationDict.Add(pinData[0], new List<string> { pinData[1] });
+                    }
+                    else if (pinData[1] != "")
+                    {
+                        progConfig.variationDict[pinData[0]].Add(pinData[1]);
+                    }
+                    else if (pinData[0] != prevSensor)
+                    {
+                        progConfig.variationDict.Add(pinData[0], new List<string> { "N/A" });
+                    }
+
+                    // Add preset to dict of preset pins
+                    string presetName = pinData[0] + pinData[1];
+                    Pin tempPin = new Pin();
+                    tempPin.fName = pinData[2];
+                    tempPin.inputType = pinData[3];
+                    tempPin.gain = Convert.ToInt32(pinData[4]);
+                    tempPin.scaleMin = Convert.ToDouble(pinData[5]);
+                    tempPin.scaleMax = Convert.ToDouble(pinData[6]);
+                    tempPin.units = pinData[7];
+
+                    progConfig.configPins.Add(presetName, tempPin);
+                    prevSensor = pinData[0];
+                }
+            }
+            SetupSimpleConf();
         }
 
         // Loads the mainForm
@@ -752,6 +793,10 @@ namespace SteerLoggerUser
                         {
                             throw new Exception();
                         }
+                        else if (line == "Close")
+                        {
+                            throw new IOException();
+                        }
                         tcpQueue.Enqueue(line);
                     }
                     if (data.Last() != "")
@@ -1058,6 +1103,15 @@ namespace SteerLoggerUser
             }
         }
 
+
+        // Save but don't upload config
+        private void cmdSave_Click(object sender, EventArgs e)
+        {
+            // Validate config settings
+            ValidateConfig(false);
+        }
+
+
         // Saves and uploads config settings to Pi
         // Objective 10
         private void cmdSaveUpload_Click(object sender, EventArgs e)
@@ -1084,14 +1138,18 @@ namespace SteerLoggerUser
                 MessageBox.Show("Please input a value for the log name.");
                 return;
             }
-            // Check with Pi that the name is unique
-            TCPSend("Check_Name");
-            TCPSend(txtLogName.Text);
-            if (TCPReceive() == "Name exists")
+            if (upload)
             {
-                MessageBox.Show("A log with that name already exists.");
-                return;
+                // Check with Pi that the name is unique
+                TCPSend("Check_Name");
+                TCPSend(txtLogName.Text);
+                if (TCPReceive() == "Name exists")
+                {
+                    MessageBox.Show("A log with that name already exists.");
+                    return;
+                }
             }
+          
             // Make sure time interval is > 0.1 seconds
             if (nudInterval.Value < Convert.ToDecimal(0.1))
             {
@@ -1295,14 +1353,16 @@ namespace SteerLoggerUser
         // Reset InputSetup grid to default values
         private void cmdResetConfig_Click(object sender, EventArgs e)
         {
+            txtLogPins.Text = "";
             dgvInputSetup.Rows.Clear();
             LoadDefaultConfig();
+            SetupSimpleConf();
         }
 
         // Allows user to reconnect to logger or connect to a different one
         private void cmdConnect_Click(object sender, EventArgs e)
         {
-            if (listener.IsAlive)
+            if (listener != null && listener.IsAlive)
             {
                 TCPSend("Quit");
                 listener.Abort();
@@ -1935,6 +1995,111 @@ namespace SteerLoggerUser
         private void cmdAbt_Click(object sender, EventArgs e)
         {
             MessageBox.Show("Epic new logger!!", "About", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void cmdConfigSwitch_Click(object sender, EventArgs e)
+        {
+            if (dgvInputSetup.Visible == false)
+            {
+                //cmbPin.Visible = false;
+                //cmbVar.Visible = false;
+                //cmbSensor.Visible = false;
+                //cmdAddPin.Visible = false;
+                //txtLogPins.Visible = false;
+                pnlSimpleConfig.Visible = false;
+                cmdConfigSwitch.Text = "Simple Config";
+                dgvInputSetup.Visible = true;
+            }
+            else
+            {
+                dgvInputSetup.Visible = false;
+                //cmbPin.Visible = true;
+                //cmbVar.Visible = true;
+                //cmbSensor.Visible = true;
+                //cmdAddPin.Visible = true;
+                //txtLogPins.Visible = true;
+                pnlSimpleConfig.Visible = true;
+                SetupSimpleConf();
+                cmdConfigSwitch.Text = "Advanced Config";
+            }
+        }
+
+
+        private void SetupSimpleConf()
+        {
+            cmbPin.Items.Clear();
+            for (int i = 1; i <= 16; i++)
+            {
+                cmbPin.Items.Add(i.ToString());
+            }
+            cmbPin.SelectedIndex = 0;
+
+            cmbSensor.Items.Clear();
+            foreach (string sensor in progConfig.variationDict.Keys)
+            {
+                cmbSensor.Items.Add(sensor);
+            }
+            cmbSensor.SelectedIndex = 0;
+
+            cmbVar.Items.Clear();
+            cmbVar.Enabled = true;
+            foreach (string variation in progConfig.variationDict[cmbSensor.SelectedItem.ToString()])
+            {
+                cmbVar.Items.Add(variation);
+            }
+            cmbVar.SelectedIndex = 0;
+
+            if (cmbVar.SelectedItem.ToString() == "N/A")
+            {
+                cmbVar.Enabled = false;
+            }
+            txtLogPins.Text = "";
+            foreach (DataGridViewRow row in dgvInputSetup.Rows)
+            {
+                if (Convert.ToBoolean(row.Cells[2].Value) == true)
+                {
+                    txtLogPins.Text += "Pin " + row.Cells[0].Value + " is set to log " 
+                                       + row.Cells[3].Value + "." + Environment.NewLine;
+                }
+            }
+        }
+
+        private void cmbSensor_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            cmbVar.Items.Clear();
+            cmbVar.Enabled = true;
+            foreach (string variation in progConfig.variationDict[cmbSensor.SelectedItem.ToString()])
+            {
+                cmbVar.Items.Add(variation);
+            }
+            cmbVar.SelectedIndex = 0;
+
+            if (cmbVar.SelectedItem.ToString() == "N/A")
+            {
+                cmbVar.Enabled = false;
+            }
+        }
+
+        private void cmdAddPin_Click(object sender, EventArgs e)
+        {
+            string preset = cmbSensor.SelectedItem.ToString();
+            if (cmbVar.Enabled)
+            {
+                preset += cmbVar.SelectedItem.ToString();
+            }
+            Pin pin = progConfig.configPins[preset];
+            int row = cmbPin.SelectedIndex;
+            dgvInputSetup.Rows[row].Cells[2].Value = true;
+            dgvInputSetup.Rows[row].Cells[3].Value = pin.fName;
+            dgvInputSetup.Rows[row].Cells[4].Value = pin.inputType;
+            dgvInputSetup.Rows[row].Cells[5].Value = pin.gain.ToString();
+            dgvInputSetup.Rows[row].Cells[6].Value = pin.scaleMin.ToString();
+            dgvInputSetup.Rows[row].Cells[7].Value = pin.scaleMax.ToString();
+            dgvInputSetup.Rows[row].Cells[8].Value = pin.units;
+
+            txtLogPins.Text += "Added " + cmbSensor.SelectedItem.ToString() +
+                               " " + (cmbVar.SelectedItem.ToString() == "N/A" ? "" : cmbVar.SelectedItem.ToString()) + 
+                               " to log." + Environment.NewLine;
         }
     }
 }

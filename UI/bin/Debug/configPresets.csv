@@ -1,0 +1,14 @@
+﻿Sensor,Variation,FName,InputType,Gain,ScaleMin,ScaleMax,Units
+Temp Sensor,,Amb Temp,0-10V,2,-8.929,348.2,DegC
+Bot Bronkhorst,Air,Bronk 0.2 A,4-20mA,1,0,0.2,ls/min
+Bot Bronkhorst,Hydrogen,Bronk 0.2 H,4-20mA,1,0,0.2,ls/min
+Bot Bronkhorst,Methane,Bronk 0.16 M,4-20mA,1,0,0.16,ls/min
+Mid Bronkhorst,Air,Bronk 5 A,4-20mA,1,0,5,ls/min
+Mid Bronkhorst,Hydrogen,Bronk 10 H,4-20mA,1,0,10,ls/min
+Mid Bronkhorst,Methane,Bronk 8 M,4-20mA,1,0,8,ls/min
+Top Bronkhorst,Air,Bronk 50 A,4-20mA,1,0,50,ls/min
+Top Bronkhorst,Hydrogen,Bronk 110 H,4-20mA,1,0,110,ls/min
+Top Bronkhorst,Methane,Bronk 50 M,4-20mA,1,0,50,ls/min
+IFM Pressure Gauge,100,PG100,4-20mA,1,0,100,mbar
+IFM Pressure Gauge,1000,PG1000,4-20mA,1,0,1000,mbar
+IFM Pressure Gauge,4000,PG4000,4-20mA,1,0,4000,mbar
