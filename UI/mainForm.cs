@@ -811,7 +811,14 @@ namespace SteerLoggerUser
                 stream.Close();
                 client.Close();
                 logger = "";
-                this.Invoke(new Action(() => { lblConnection.Text = "You're not connected to a logger."; }));
+                try
+                {
+                    this.Invoke(new Action(() => { lblConnection.Text = "You're not connected to a logger."; }));
+                }
+                catch (InvalidOperationException)
+                {
+                    // This occurs if the main form is closed by user while message box is showing
+                }
             }
             catch (SocketException)
             {
@@ -819,8 +826,16 @@ namespace SteerLoggerUser
                 stream.Close();
                 client.Close();
                 logger = "";
-                this.Invoke(new Action(() => { lblConnection.Text = "You're not connected to a logger."; }));
+                try
+                {
+                    this.Invoke(new Action(() => { lblConnection.Text = "You're not connected to a logger."; }));
+                }
+                catch (InvalidOperationException)
+                {
+                    // This occurs if the main form is closed by user while message box is showing
+                }
             }
+            this.Dispose();
             return;
         }
 
