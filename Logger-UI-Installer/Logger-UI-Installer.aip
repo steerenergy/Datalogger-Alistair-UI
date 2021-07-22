@@ -51,7 +51,7 @@
   <COMPONENT cid="caphyon.advinst.msicomp.MsiCompsComponent">
     <ROW Component="APPDIR" ComponentId="{D360745E-7381-401F-9F70-3EF6FAFC63C2}" Directory_="APPDIR" Attributes="0"/>
     <ROW Component="ProductInformation" ComponentId="{A83F5025-7300-43D8-B306-BBFBF84B59C2}" Directory_="APPDIR" Attributes="4" KeyPath="Version"/>
-    <ROW Component="SHORTCUTDIR" ComponentId="{D812DD0C-0BB2-4E3E-8DD6-F5ED16578A93}" Directory_="SHORTCUTDIR" Attributes="0"/>
+    <ROW Component="SHORTCUTDIR" ComponentId="{5B86C03A-F825-4F1D-AA4A-FA24D1D0D4F9}" Directory_="SHORTCUTDIR" Attributes="0"/>
     <ROW Component="SteerLoggerUser_ContentOutput" ComponentId="{BC1D4F3A-315A-4342-9CC3-3C4D7AF2C0E6}" Directory_="SteerLoggerUser_Dir" Attributes="0" KeyPath="progConf.ini" Type="0"/>
     <ROW Component="SteerLoggerUser_ContentOutput_pythonScripts" ComponentId="{01FDAF4E-C0B6-4488-A007-BE5DA1FD64BA}" Directory_="pythonScripts_Dir" Attributes="0" KeyPath="compression.py" Type="0"/>
     <ROW Component="SteerLoggerUser_PrimaryOutput" ComponentId="{91588482-3F77-42AC-9427-2B3C9CBEEFE7}" Directory_="SteerLoggerUser_Dir" Attributes="0" KeyPath="SteerLoggerUser.exe"/>
@@ -155,9 +155,9 @@
     <ROW Feature_="MainFeature" Component_="APPDIR"/>
     <ROW Feature_="MainFeature" Component_="ProductInformation"/>
     <ROW Feature_="MainFeature" Component_="SteerLoggerUser_PrimaryOutput"/>
-    <ROW Feature_="MainFeature" Component_="SHORTCUTDIR"/>
     <ROW Feature_="MainFeature" Component_="SteerLoggerUser_ContentOutput"/>
     <ROW Feature_="MainFeature" Component_="SteerLoggerUser_ContentOutput_pythonScripts"/>
+    <ROW Feature_="MainFeature" Component_="SHORTCUTDIR"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiIconsComponent">
     <ROW Name="steer_1.exe" SourcePath="..\UI\steer.ico" Index="0"/>
@@ -187,7 +187,7 @@
     <ROW Registry="Version" Root="-1" Key="Software\[Manufacturer]\[ProductName]" Name="Version" Value="[ProductVersion]" Component_="ProductInformation"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiShortsComponent">
-    <ROW Shortcut="SteerLoggerUser" Directory_="SHORTCUTDIR" Name="STEERL~1|SteerLoggerUser" Component_="SteerLoggerUser_PrimaryOutput" Target="[#SteerLoggerUser.exe]" Hotkey="0" Icon_="steer_1.exe" IconIndex="0" ShowCmd="1"/>
+    <ROW Shortcut="SteerLoggerUser" Directory_="SHORTCUTDIR" Name="STEERL~1|SteerLoggerUser" Component_="SteerLoggerUser_PrimaryOutput" Target="[#SteerLoggerUser.exe]" Hotkey="0" IconIndex="0" ShowCmd="1"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiThemeComponent">
     <ATTRIBUTE name="UsedTheme" value="classic"/>

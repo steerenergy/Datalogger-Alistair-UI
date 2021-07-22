@@ -700,7 +700,7 @@ namespace SteerLoggerUser
                 dgvInputSetup.Rows.Add(rowData);
                 received = TCPReceive();
             }
-
+            SetupSimpleConf();
         }
 
         // Populates InputSetup grid with default values if recent config can't be gotten
