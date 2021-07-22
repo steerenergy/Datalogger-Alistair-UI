@@ -3,8 +3,10 @@
   <COMPONENT cid="caphyon.advinst.msicomp.MsiPropsComponent">
     <ROW Property="AI_BITMAP_DISPLAY_MODE" Value="0"/>
     <ROW Property="AI_CURRENT_YEAR" Value="2021" ValueLocId="-"/>
+    <ROW Property="AI_PROPPATH_DIR_PERBUILD_Renci.SshNet.dll" Value="..\UI\packages\SSH.NET.2020.0.1\lib\net40"/>
     <ROW Property="AI_PROPPATH_DIR_PERBUILD_SteerLoggerUser.exe" Value="..\UI\bin\Debug"/>
     <ROW Property="AI_PROPPATH_DIR_PERBUILD_SteerLoggerUser.exe.config" Value="..\UI\bin\Debug"/>
+    <ROW Property="AI_PROPPATH_DIR_PERBUILD_SteerLoggerUser.pdb" Value="..\UI\bin\Debug"/>
     <ROW Property="AI_PROPPATH_DIR_PERBUILD_compression.py" Value="..\UI\bin\Debug\pythonScripts"/>
     <ROW Property="AI_PROPPATH_DIR_PERBUILD_configPresets.csv" Value="..\UI\bin\Debug"/>
     <ROW Property="AI_PROPPATH_DIR_PERBUILD_graph.py" Value="..\UI\bin\Debug\pythonScripts"/>
@@ -12,8 +14,10 @@
     <ROW Property="AI_PROPPATH_DIR_PERBUILD_moving_average.py" Value="..\UI\bin\Debug\pythonScripts"/>
     <ROW Property="AI_PROPPATH_DIR_PERBUILD_progConf.ini" Value="..\UI\bin\Debug"/>
     <ROW Property="AI_PROPPATH_DIR_PERBUILD_steer.ico" Value="..\UI\bin\Debug"/>
+    <ROW Property="AI_PROPPATH_FILENAME_PERBUILD_Renci.SshNet.dll" Value="Renci.SshNet.dll"/>
     <ROW Property="AI_PROPPATH_FILENAME_PERBUILD_SteerLoggerUser.exe" Value="SteerLoggerUser.exe"/>
     <ROW Property="AI_PROPPATH_FILENAME_PERBUILD_SteerLoggerUser.exe.config" Value="SteerLoggerUser.exe.config"/>
+    <ROW Property="AI_PROPPATH_FILENAME_PERBUILD_SteerLoggerUser.pdb" Value="SteerLoggerUser.pdb"/>
     <ROW Property="AI_PROPPATH_FILENAME_PERBUILD_compression.py" Value="compression.py"/>
     <ROW Property="AI_PROPPATH_FILENAME_PERBUILD_configPresets.csv" Value="configPresets.csv"/>
     <ROW Property="AI_PROPPATH_FILENAME_PERBUILD_graph.py" Value="graph.py"/>
@@ -55,6 +59,8 @@
     <ROW Component="SteerLoggerUser_ContentOutput" ComponentId="{BC1D4F3A-315A-4342-9CC3-3C4D7AF2C0E6}" Directory_="SteerLoggerUser_Dir" Attributes="0" KeyPath="progConf.ini" Type="0"/>
     <ROW Component="SteerLoggerUser_ContentOutput_pythonScripts" ComponentId="{01FDAF4E-C0B6-4488-A007-BE5DA1FD64BA}" Directory_="pythonScripts_Dir" Attributes="0" KeyPath="compression.py" Type="0"/>
     <ROW Component="SteerLoggerUser_PrimaryOutput" ComponentId="{91588482-3F77-42AC-9427-2B3C9CBEEFE7}" Directory_="SteerLoggerUser_Dir" Attributes="0" KeyPath="SteerLoggerUser.exe"/>
+    <ROW Component="SteerLoggerUser_References" ComponentId="{1A84DD60-FEE1-47BB-8932-559B32E76806}" Directory_="SteerLoggerUser_Dir" Attributes="0" KeyPath="Renci.SshNet.dll"/>
+    <ROW Component="SteerLoggerUser_SymbolsOutput" ComponentId="{DFAC8239-DE2D-443B-B395-7DC5E24E1AE0}" Directory_="SteerLoggerUser_Dir" Attributes="0" KeyPath="SteerLoggerUser.pdb"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFeatsComponent">
     <ROW Feature="MainFeature" Title="MainFeature" Description="Description" Display="1" Level="1" Directory_="APPDIR" Attributes="0"/>
@@ -70,10 +76,14 @@
     <ROW File="moving_average.py" Component_="SteerLoggerUser_ContentOutput_pythonScripts" FileName="MOVING~2.PY|[|AI_PROPPATH_FILENAME_PERBUILD_moving_average.py]" Attributes="0" SourcePath="&lt;AI_APPPATH_PERBUILD_moving_average.py&gt;" SelfReg="false"/>
     <ROW File="steer.ico" Component_="SteerLoggerUser_ContentOutput" FileName="[|AI_PROPPATH_FILENAME_PERBUILD_steer.ico]" Attributes="0" SourcePath="&lt;AI_APPPATH_PERBUILD_steer.ico&gt;" SelfReg="false"/>
     <ROW File="configPresets.csv" Component_="SteerLoggerUser_ContentOutput" FileName="CONFIG~2.CSV|[|AI_PROPPATH_FILENAME_PERBUILD_configPresets.csv]" Attributes="0" SourcePath="&lt;AI_APPPATH_PERBUILD_configPresets.csv&gt;" SelfReg="false"/>
+    <ROW File="SteerLoggerUser.pdb" Component_="SteerLoggerUser_SymbolsOutput" FileName="STEERL~2.PDB|[|AI_PROPPATH_FILENAME_PERBUILD_SteerLoggerUser.pdb]" Attributes="0" SourcePath="&lt;AI_APPPATH_PERBUILD_SteerLoggerUser.pdb&gt;" SelfReg="false"/>
+    <ROW File="Renci.SshNet.dll" Component_="SteerLoggerUser_References" FileName="RENCIS~2.DLL|[|AI_PROPPATH_FILENAME_PERBUILD_Renci.SshNet.dll]" Attributes="0" SourcePath="&lt;AI_APPPATH_PERBUILD_Renci.SshNet.dll&gt;" SelfReg="false"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.AppPathsComponent">
+    <ROW Name="AI_APPPATH_PERBUILD_Renci.SshNet.dll" Path="[|AI_PROPPATH_DIR_PERBUILD_Renci.SshNet.dll]\[|AI_PROPPATH_FILENAME_PERBUILD_Renci.SshNet.dll]" Type="2" Content="0"/>
     <ROW Name="AI_APPPATH_PERBUILD_SteerLoggerUser.exe" Path="[|AI_PROPPATH_DIR_PERBUILD_SteerLoggerUser.exe]\[|AI_PROPPATH_FILENAME_PERBUILD_SteerLoggerUser.exe]" Type="2" Content="0"/>
     <ROW Name="AI_APPPATH_PERBUILD_SteerLoggerUser.exe.config" Path="[|AI_PROPPATH_DIR_PERBUILD_SteerLoggerUser.exe.config]\[|AI_PROPPATH_FILENAME_PERBUILD_SteerLoggerUser.exe.config]" Type="2" Content="0"/>
+    <ROW Name="AI_APPPATH_PERBUILD_SteerLoggerUser.pdb" Path="[|AI_PROPPATH_DIR_PERBUILD_SteerLoggerUser.pdb]\[|AI_PROPPATH_FILENAME_PERBUILD_SteerLoggerUser.pdb]" Type="2" Content="0"/>
     <ROW Name="AI_APPPATH_PERBUILD_compression.py" Path="[|AI_PROPPATH_DIR_PERBUILD_compression.py]\[|AI_PROPPATH_FILENAME_PERBUILD_compression.py]" Type="2" Content="0"/>
     <ROW Name="AI_APPPATH_PERBUILD_configPresets.csv" Path="[|AI_PROPPATH_DIR_PERBUILD_configPresets.csv]\[|AI_PROPPATH_FILENAME_PERBUILD_configPresets.csv]" Type="2" Content="0"/>
     <ROW Name="AI_APPPATH_PERBUILD_graph.py" Path="[|AI_PROPPATH_DIR_PERBUILD_graph.py]\[|AI_PROPPATH_FILENAME_PERBUILD_graph.py]" Type="2" Content="0"/>
@@ -158,6 +168,8 @@
     <ROW Feature_="MainFeature" Component_="SteerLoggerUser_ContentOutput"/>
     <ROW Feature_="MainFeature" Component_="SteerLoggerUser_ContentOutput_pythonScripts"/>
     <ROW Feature_="MainFeature" Component_="SHORTCUTDIR"/>
+    <ROW Feature_="MainFeature" Component_="SteerLoggerUser_SymbolsOutput"/>
+    <ROW Feature_="MainFeature" Component_="SteerLoggerUser_References"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiIconsComponent">
     <ROW Name="steer_1.exe" SourcePath="..\UI\steer.ico" Index="0"/>
@@ -206,5 +218,7 @@
     <ROW ProjectId="{8a887a5e-fce9-492a-9dcf-ea0e3e73657a}" ProjectName="SteerLoggerUser" OutputGroup="ContentOutput" OutputFile="moving_average.py"/>
     <ROW ProjectId="{8a887a5e-fce9-492a-9dcf-ea0e3e73657a}" ProjectName="SteerLoggerUser" OutputGroup="ContentOutput" OutputFile="steer.ico"/>
     <ROW ProjectId="{8a887a5e-fce9-492a-9dcf-ea0e3e73657a}" ProjectName="SteerLoggerUser" OutputGroup="ContentOutput" OutputFile="configPresets.csv"/>
+    <ROW ProjectId="{8a887a5e-fce9-492a-9dcf-ea0e3e73657a}" ProjectName="SteerLoggerUser" OutputGroup="SymbolsOutput" OutputFile="SteerLoggerUser.pdb"/>
+    <ROW ProjectId="{8a887a5e-fce9-492a-9dcf-ea0e3e73657a}" ProjectName="SteerLoggerUser" OutputGroup="References" OutputFile="Renci.SshNet.dll"/>
   </COMPONENT>
 </DOCUMENT>

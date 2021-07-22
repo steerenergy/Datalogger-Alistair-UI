@@ -1,5 +1,6 @@
 ﻿using System;
 using Renci.SshNet;
+using Excel = Microsoft.Office.Interop.Excel;
 using Renci.SshNet.Sftp;
 using System.Net.Sockets;
 using System.Net;
@@ -32,6 +33,7 @@ namespace SteerLoggerUser
         private Thread listener;
         public int pbValue;
         public ConcurrentQueue<string> dataQueue = new ConcurrentQueue<string>();
+        public Excel.Application excel = null;
 
         // Initialises the form
         public mainForm()
@@ -258,6 +260,10 @@ namespace SteerLoggerUser
                     MessageBox.Show("An error occured in the connection, please reconnect.");
                     stream.Close();
                     client.Close();
+                    while (tcpQueue.IsEmpty == false)
+                    {
+                        tcpQueue.TryDequeue(out string result);
+                    }
                     logger = "";
                     // Loads InputSetup grid with default values as cannot retrieve recent config
                     LoadDefaultConfig();
@@ -335,19 +341,21 @@ namespace SteerLoggerUser
             // Objective 4.1
             //ReceiveLog(false, progressForm);
             //ReceiveLog(false);
-            BackgroundWorker worker = new BackgroundWorker();
-            worker.WorkerReportsProgress = true;
-            worker.DoWork += new DoWorkEventHandler(ReceiveLog);
-            worker.ProgressChanged += new ProgressChangedEventHandler(ProgressChanged);
-            worker.RunWorkerAsync();
-
+            //BackgroundWorker worker = new BackgroundWorker();
+            //worker.WorkerReportsProgress = true;
+            //worker.DoWork += new DoWorkEventHandler(ReceiveLog);
+            //worker.ProgressChanged += new ProgressChangedEventHandler(ProgressChanged);
+            //worker.RunWorkerAsync();
+            Task downloader = new Task(() => ReceiveLog());
+            downloader.Start();
         }
 
         // Receive a full log from the logger
         // Objectives 4.1 and 13.3
-        private void ReceiveLog(object sender, DoWorkEventArgs e)
+        private void ReceiveLog()
         {
-            BackgroundWorker worker = sender as BackgroundWorker;
+            MessageBox.Show("Worker running!!!");
+            //BackgroundWorker worker = sender as BackgroundWorker;
 
             //progressForm.UpdateTextBox("Converting data on Pi...");
             //progressForm.UpdateProgressBar();
@@ -372,7 +380,7 @@ namespace SteerLoggerUser
                     tempLog.description = metaData[6];
                     received = TCPReceive();
                 }
-                worker.ReportProgress(10);
+                //worker.ReportProgress(10);
                 received = TCPReceive();
                 dataQueue.Enqueue("Receiving config data...");
                 //progressForm.UpdateTextBox("Receiving config data...");
@@ -396,7 +404,7 @@ namespace SteerLoggerUser
                     tempLog.config.pinList.Add(tempPin);
                     received = TCPReceive();
                 }
-                worker.ReportProgress(20);
+                //worker.ReportProgress(20);
                 dataQueue.Enqueue("Receiving log data...");
                 // progressForm.UpdateTextBox("Receiving log data...");
                 received = TCPReceive();
@@ -429,7 +437,7 @@ namespace SteerLoggerUser
                         pins.Add(pin);
                     }
                 }
-                worker.ReportProgress(30);
+                //worker.ReportProgress(30);
                 // pbValue += 1;
                 // //progressForm.UpdateProgressBar();
                 // // Receive log data and write to LogData object
@@ -499,6 +507,10 @@ namespace SteerLoggerUser
                     TCPSend("Quit");
                     stream.Close();
                     client.Close();
+                    while (tcpQueue.IsEmpty == false)
+                    {
+                        tcpQueue.TryDequeue(out string result);
+                    }
                     logger = "";
                     this.Invoke(new Action(() => { lblConnection.Text = "You're not connected to a logger."; }));
                     return;
@@ -516,7 +528,7 @@ namespace SteerLoggerUser
                 sftpclient.Dispose();
 
                 dataQueue.Enqueue("Converting data...");
-                worker.ReportProgress(50);
+                //worker.ReportProgress(50);
 
                 // Read from the file selected
                 using (StreamReader reader = new StreamReader(temp))
@@ -546,7 +558,7 @@ namespace SteerLoggerUser
                 }
 
                 dataQueue.Enqueue("Finalising download...");
-                worker.ReportProgress(80);
+                //worker.ReportProgress(80);
                 // If there is already a log being processed, ask user if they want to merge logs
                 if (DAP.processing == true)
                 {
@@ -585,7 +597,7 @@ namespace SteerLoggerUser
                 received = TCPReceive();
 
             }
-            worker.ReportProgress(100);
+            //worker.ReportProgress(100);
         }
 
 
@@ -763,6 +775,10 @@ namespace SteerLoggerUser
             {
                 stream.Close();
                 client.Close();
+                while (tcpQueue.IsEmpty == false)
+                {
+                    tcpQueue.TryDequeue(out string result);
+                }
                 throw new SocketException();
             }
         }
@@ -812,6 +828,10 @@ namespace SteerLoggerUser
                 MessageBox.Show("An error occured in the connection, please reconnect.");
                 stream.Close();
                 client.Close();
+                while (tcpQueue.IsEmpty == false)
+                {
+                    tcpQueue.TryDequeue(out string result);
+                }
                 logger = "";
                 try
                 {
@@ -827,6 +847,10 @@ namespace SteerLoggerUser
                 MessageBox.Show("An error occured in the connection, please reconnect.");
                 stream.Close();
                 client.Close();
+                while (tcpQueue.IsEmpty == false)
+                {
+                    tcpQueue.TryDequeue(out string result);
+                }
                 logger = "";
                 try
                 {
@@ -1398,6 +1422,10 @@ namespace SteerLoggerUser
             {
                 stream.Close();
                 client.Close();
+                while (tcpQueue.IsEmpty == false)
+                {
+                    tcpQueue.TryDequeue(out string result);
+                }
             }
             logger = "";
             lblConnection.Text = "You're not connected to a logger.";
@@ -1446,6 +1474,10 @@ namespace SteerLoggerUser
                     TCPSend("Quit");
                     stream.Close();
                     client.Close();
+                    while (tcpQueue.IsEmpty == false)
+                    {
+                        tcpQueue.TryDequeue(out string result);
+                    }
                 }
             }
             // If an error occurs, close stream and client anyway as program is exiting, don't need to alert user
@@ -1453,6 +1485,10 @@ namespace SteerLoggerUser
             {
                 stream.Close();
                 client.Close();
+                while (tcpQueue.IsEmpty == false)
+                {
+                    tcpQueue.TryDequeue(out string result);
+                }
             }
         }
 
@@ -1582,11 +1618,14 @@ namespace SteerLoggerUser
             progressForm.Show();
             pbValue = 0;
 
-            BackgroundWorker worker = new BackgroundWorker();
-            worker.WorkerReportsProgress = true;
-            worker.DoWork += new DoWorkEventHandler(ReceiveLog);
-            worker.ProgressChanged += new ProgressChangedEventHandler(ProgressChanged);
-            worker.RunWorkerAsync();
+            //BackgroundWorker worker = new BackgroundWorker();
+            //worker.WorkerReportsProgress = true;
+            //worker.DoWork += new DoWorkEventHandler(ReceiveLog);
+            //worker.ProgressChanged += new ProgressChangedEventHandler(ProgressChanged);
+            //worker.RunWorkerAsync();
+            Task downloader = new Task(() => ReceiveLog());
+            downloader.Start();
+            MessageBox.Show("Worker running!");
         }
 
         // Dowload log CSV files
@@ -1825,8 +1864,15 @@ namespace SteerLoggerUser
             if (DAP.logProc.timestamp.Count != 0)
             {
                 // Create new excelForm to allow user to select how to export data
-                ExcelForm excelForm = new ExcelForm(DAP.logProc);
-                excelForm.ShowDialog();
+                ExcelForm excelForm = new ExcelForm(DAP.logProc, excel);
+                try
+                {
+                    excelForm.ShowDialog();
+                }
+                catch (System.Runtime.InteropServices.COMException)
+                {
+                    // Excel closed before form closed
+                }
             }
             else
             {

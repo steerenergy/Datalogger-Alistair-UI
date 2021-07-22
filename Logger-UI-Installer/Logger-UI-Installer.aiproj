@@ -29,6 +29,12 @@
       <Private>True</Private>
       <OutputsToImport>PrimaryOutput;ContentOutput</OutputsToImport>
     </ProjectReference>
+    <ProjectReference Include="..\UI\SteerLoggerUser.csproj">
+      <Name>SteerLoggerUser</Name>
+      <Project>{8a887a5e-fce9-492a-9dcf-ea0e3e73657a}</Project>
+      <Private>True</Private>
+      <OutputsToImport>PrimaryOutput;ContentOutput;LocalizedResourcesOutput;SymbolsOutput;References;DocumentationOutput;ComTypeLibraryOutput</OutputsToImport>
+    </ProjectReference>
   </ItemGroup>
   <Target Name="Build">
     <Error Text="This project requires Advanced Installer tool. Please download it from https://www.advancedinstaller.com/download.html" />
