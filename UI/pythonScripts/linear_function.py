@@ -9,6 +9,16 @@ path = Path(sys.argv[1])#
 
 # Read data in from csv file
 current_data = pd.read_csv(path / "temp.csv")
+
+
+proc_columns = current_data.columns[0:2]
+# Enumerate through data columns and allow user to select whether to apply the linear function
+for column in current_data.columns[2:]:
+    apply = input("Apply linear function to " + column + "?\n[y\\n]:")
+    if apply.lower() == "y":
+        proc_columns = proc_columns.append(pd.Index([column]))
+
+
 # Get m value of y = mx + c function
 m = input("Please enter the m value.\n>")
 
@@ -33,12 +43,6 @@ while (type(c) != Decimal):
         c = input("Please enter the c value.\n>")
         c = Decimal(c)
 
-proc_columns = current_data.columns[0:2]
-# Enumerate through data columns and allow user to select whether to apply the linear function
-for column in current_data.columns[2:]:
-    apply = input("Apply linear function to " + column + "?\n[y\\n]:")
-    if apply.lower() == "y":
-        proc_columns = proc_columns.append(pd.Index([column]))
 
 # Create DataFrame for processed data
 proc_data = pd.DataFrame(columns=proc_columns)

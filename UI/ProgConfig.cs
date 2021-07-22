@@ -13,6 +13,8 @@ namespace SteerLoggerUser
         public Dictionary<string, double[]> inputTypes;
         public Dictionary<int, double> gains;
         public List<string> loggers;
+        public Dictionary<string,Pin> configPins;
+        public Dictionary<string, List<string>> variationDict;
 
         public ProgConfig()
         {
@@ -20,6 +22,8 @@ namespace SteerLoggerUser
             inputTypes = new Dictionary<string, double[]>();
             gains = new Dictionary<int, double>();
             loggers = new List<string>();
+            configPins = new Dictionary<string, Pin>();
+            variationDict = new Dictionary<string, List<string>>();
         }
     }
 }

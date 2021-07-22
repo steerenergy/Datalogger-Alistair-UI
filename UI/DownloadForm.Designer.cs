@@ -29,7 +29,7 @@ namespace SteerLoggerUser
         /// </summary>
         private void InitializeComponent()
         {
-            this.panel = new System.Windows.Forms.Panel();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(DownloadForm));
             this.cmdDownload = new System.Windows.Forms.Button();
             this.lblDownload = new System.Windows.Forms.Label();
             this.dgvDownload = new System.Windows.Forms.DataGridView();
@@ -38,21 +38,13 @@ namespace SteerLoggerUser
             this.LogName = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Date = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.LogSize = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.panel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvDownload)).BeginInit();
             this.SuspendLayout();
             // 
-            // panel
-            // 
-            this.panel.AutoSize = true;
-            this.panel.Controls.Add(this.dgvDownload);
-            this.panel.Location = new System.Drawing.Point(13, 27);
-            this.panel.Name = "panel";
-            this.panel.Size = new System.Drawing.Size(261, 315);
-            this.panel.TabIndex = 0;
-            // 
             // cmdDownload
             // 
+            this.cmdDownload.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.cmdDownload.Location = new System.Drawing.Point(13, 345);
             this.cmdDownload.Name = "cmdDownload";
             this.cmdDownload.Size = new System.Drawing.Size(258, 23);
@@ -74,19 +66,20 @@ namespace SteerLoggerUser
             // 
             this.dgvDownload.AllowUserToAddRows = false;
             this.dgvDownload.AllowUserToDeleteRows = false;
-            this.dgvDownload.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
-            this.dgvDownload.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dgvDownload.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.dgvDownload.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.Download,
             this.Id,
             this.LogName,
             this.Date,
             this.LogSize});
-            this.dgvDownload.Location = new System.Drawing.Point(0, 0);
+            this.dgvDownload.Location = new System.Drawing.Point(13, 26);
             this.dgvDownload.Name = "dgvDownload";
             this.dgvDownload.RowHeadersVisible = false;
             this.dgvDownload.Size = new System.Drawing.Size(258, 312);
-            this.dgvDownload.TabIndex = 0;
+            this.dgvDownload.TabIndex = 3;
             // 
             // Download
             // 
@@ -129,18 +122,19 @@ namespace SteerLoggerUser
             // 
             // DownloadForm
             // 
+            this.AcceptButton = this.cmdDownload;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.AutoSize = true;
             this.ClientSize = new System.Drawing.Size(284, 381);
+            this.Controls.Add(this.dgvDownload);
             this.Controls.Add(this.lblDownload);
             this.Controls.Add(this.cmdDownload);
-            this.Controls.Add(this.panel);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.MinimumSize = new System.Drawing.Size(300, 420);
             this.Name = "DownloadForm";
             this.Padding = new System.Windows.Forms.Padding(10);
             this.Text = "DownloadForm";
             this.Load += new System.EventHandler(this.DownloadForm_Load);
-            this.panel.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dgvDownload)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -148,8 +142,6 @@ namespace SteerLoggerUser
         }
 
         #endregion
-
-        private System.Windows.Forms.Panel panel;
         private System.Windows.Forms.Button cmdDownload;
         private System.Windows.Forms.Label lblDownload;
         private System.Windows.Forms.DataGridView dgvDownload;

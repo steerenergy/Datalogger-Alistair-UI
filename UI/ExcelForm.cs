@@ -2,16 +2,28 @@
 using System.Collections.Generic;
 using Excel = Microsoft.Office.Interop.Excel;
 using System.Reflection;
+using System.IO;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace SteerLoggerUser
 {
     public partial class ExcelForm : Form
     {
+
+        // TO-DO close workbook nicely on crash
+
+
         // Stores data to export to Excel
         private LogProc logProc;
         // Stores a queue of Excel formulas that user has added
         private Queue<string[]> formulaQueue = new Queue<string[]>();
+        // Stores path of template workbook
+        private string path = "";
+        // Stores whether using template
+        private bool template = false;
+        // Stores arrays of data to export to template
+        private Dictionary<int[],string[]> exportingArrays = new Dictionary<int[],string[]>();
 
         public ExcelForm(LogProc logToExp)
         {
@@ -22,23 +34,48 @@ namespace SteerLoggerUser
         // Populate graph drop down menus with column headers
         private void ExcelForm_Load(object sender, EventArgs e)
         {
+            dgvTemplate.SelectionChanged += new EventHandler(dgvTemplate_SelectionChanged);
+
+            pnlTemplate.Hide();
+            pnlExportNew.Show();
+            template = false;
+            ofdTemplate.Filter = "Excel files (*.xlsx)|*.xlsx|All files (*.*)|*.*";
+
             foreach (string column in logProc.procheaders)
             {
                 cmbXAxis.Items.Add(column);
                 cmbYAxis.Items.Add(column);
+                cmbLogCols.Items.Add(column);
             }
             cmbXAxis.SelectedIndex = 1;
             cmbYAxis.SelectedIndex = 0;
+            cmbLogCols.SelectedIndex = 0;
+            cmbTemplate.Items.Add("No workbook loaded");
+            cmbTemplate.SelectedIndex = 0;
         }
 
         // Exports data to Excel
         // Objective 14.3
         private void cmdExport_Click(object sender, EventArgs e)
         {
-            try 
+            if (template == true)
+            {
+                ExportTemplate();
+            }
+            else
+            {
+                ExportNew();
+            }
+        }
+
+
+        // Export data to Excel by creating new workbook
+        private void ExportNew()
+        {
+            Excel.Application excel = new Excel.Application();
+            try
             {
                 // Open Excel and create a new workbook and worksheet
-                Excel.Application excel = new Excel.Application();
                 Excel._Workbook excelWb = (Excel._Workbook)(excel.Workbooks.Add(Missing.Value));
                 Excel._Worksheet excelSheet = (Excel._Worksheet)excelWb.ActiveSheet;
 
@@ -47,22 +84,32 @@ namespace SteerLoggerUser
                 {
                     excelSheet.Cells[1, i + 1] = logProc.procheaders[i];
                 }
-                
+
                 // Change the format of the timestamp column to display timestamps nicely
                 Excel.Range range = excelSheet.get_Range("A2", "A" + (logProc.timestamp.Count + 1));
                 range.NumberFormat = "yyyy/mm/dd hh:mm:ss.000";
 
+
+                Excel.Range valueRange = excelSheet.get_Range("A2", GetColumn(logProc.procheaders.Count - 1) + (logProc.timestamp.Count + 1));
+                object[,] values = valueRange.get_Value(Excel.XlRangeValueDataType.xlRangeValueDefault);
                 // Enumerate through data and add each row to the spreadsheet
                 for (int i = 0; i < logProc.timestamp.Count; i++)
                 {
 
-                    excelSheet.Cells[i + 2, 1] = logProc.timestamp[i].ToString("yyyy/MM/dd HH:mm:ss.fff");
-                    excelSheet.Cells[i + 2, 2] = logProc.time[i];
+                    //excelSheet.Cells[i + 2, 1] = logProc.timestamp[i].ToString("yyyy/MM/dd HH:mm:ss.fff");
+                    //excelSheet.Cells[i + 2, 2] = logProc.time[i];
+                    //for (int j = 0; j < logProc.procData.Count; j++)
+                    //{
+                    //   excelSheet.Cells[i + 2, j + 3] = logProc.procData[j][i];
+                    //}
+                    values[i + 1, 1] = logProc.timestamp[i].ToString("yyyy/MM/dd HH:mm:ss.fff");
+                    values[i + 1, 2] = logProc.time[i];
                     for (int j = 0; j < logProc.procData.Count; j++)
                     {
-                        excelSheet.Cells[i + 2, j + 3] = logProc.procData[j][i];
+                        values[i + 1, j + 3] = logProc.procData[j][i];
                     }
                 }
+                valueRange.Value = values;
 
                 // Store the next available column for writing formula columns
                 int availableCol = logProc.procheaders.Count;
@@ -111,7 +158,8 @@ namespace SteerLoggerUser
 
                 MessageBox.Show(errorMessage, "Error");
                 MessageBox.Show(theException.ToString());
-            }
+                System.Runtime.InteropServices.Marshal.FinalReleaseComObject(excel);
+            }  
         }
 
         // Creates a graph from two of the columns
@@ -217,6 +265,274 @@ namespace SteerLoggerUser
             // Reset formula controls
             txtFormula.Text = "";
             txtColTitle.Text = "";
+        }
+
+        private void cmdCreateWb_Click(object sender, EventArgs e)
+        {
+            pnlTemplate.Hide();
+            pnlExportNew.Show();
+            template = false;
+        }
+
+        private void cmdUseTemplate_Click(object sender, EventArgs e)
+        {
+            pnlExportNew.Hide();
+            pnlTemplate.Show();
+            template = true;
+        }
+
+        private void cmdOpenTemplate_Click(object sender, EventArgs e)
+        {
+            if (ofdTemplate.ShowDialog() == DialogResult.OK)
+            {
+                path = ofdTemplate.FileName;
+                if (Path.GetExtension(path) != ".xlsx")
+                {
+                    MessageBox.Show("File input doesn't appear to be an Excel file. Please double check file extension");
+                }
+            }
+            else
+            {
+                return;
+            }
+
+            Excel.Application excel = new Excel.Application();
+            try
+            {
+                Excel._Workbook excelWb = (Excel._Workbook)(excel.Workbooks.Open(path));
+                Excel._Worksheet template = new Excel.Worksheet();
+                cmbTemplate.Items.Clear();
+                // Enumerate sheets in workbook
+                foreach (Excel._Worksheet worksheet in excelWb.Sheets)
+                {
+                    cmbTemplate.Items.Add(worksheet.Name);
+                }
+                cmbTemplate.SelectedIndex = 0;
+            }
+            catch (Exception theException)
+            {
+                String errorMessage;
+                errorMessage = "Error: ";
+                errorMessage = String.Concat(errorMessage, theException.Message);
+                errorMessage = String.Concat(errorMessage, " Line: ");
+                errorMessage = String.Concat(errorMessage, theException.Source);
+
+                MessageBox.Show(errorMessage, "Error");
+                MessageBox.Show(theException.ToString());
+            }
+            System.Runtime.InteropServices.Marshal.FinalReleaseComObject(excel);
+        }
+
+        private void dgvTemplate_SelectionChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                // Update the txtCellSelected to reflect changes to the selection.
+                txtSelectedCell.Text = "Selected cell: "
+                                        + GetColumn(dgvTemplate.SelectedCells[0].ColumnIndex)
+                                        + (dgvTemplate.SelectedCells[0].RowIndex + 1).ToString();
+            }
+            catch
+            {
+                txtSelectedCell.Text = "Selected cell:";
+            }
+            
+        }
+
+        private void cmdWriteCol_Click(object sender, EventArgs e)
+        {
+            int col = dgvTemplate.SelectedCells[0].ColumnIndex;
+            int row = dgvTemplate.SelectedCells[0].RowIndex;
+
+            int logCol = 0;
+            int i = 0;
+            foreach (string header in logProc.procheaders)
+            {
+                if (header == cmbLogCols.SelectedItem.ToString())
+                {
+                    logCol = i; 
+                }
+                i++;
+            }
+
+            dgvTemplate.Rows[row].Cells[col].Value = logProc.procheaders[logCol];
+
+
+            // Gets array of data depending on column selected
+            string[] data;
+            if (logCol == 0)
+            {
+                data = Array.ConvertAll(logProc.timestamp.ToArray(), x => x.ToString("yyyy/MM/dd HH:mm:ss.fff"));
+            }
+            else if (logCol == 1)
+            {
+                data = Array.ConvertAll(logProc.time.ToArray(), x => x.ToString());
+            }
+            else
+            {
+                data = Array.ConvertAll(logProc.procData[logCol - 2].ToArray(), x => x.ToString());
+            }
+
+            int[] cell = { dgvTemplate.SelectedCells[0].ColumnIndex, dgvTemplate.SelectedCells[0].RowIndex };
+            string[] name = { logProc.procheaders[logCol] };
+            exportingArrays.Add(cell, name.Concat(data).ToArray());
+
+            row++;
+            // Adds extra rows if needed
+            while (data.Length > dgvTemplate.Rows.Count - row)
+            {
+                i = dgvTemplate.Rows.Count;
+                dgvTemplate.Rows.Add(new DataGridViewRow());
+                dgvTemplate.Rows[i].HeaderCell.Value = i.ToString();
+            }
+
+            // Writes data to dgvTemplate
+            for (i = row; i < logProc.timestamp.Count + row; i++)
+            {
+                dgvTemplate.Rows[i].Cells[col].Value = data[i - row];
+            }
+        }
+
+
+        private void ExportTemplate()
+        {
+            string name = txtSheetName.Text;
+            if (name == "")
+            {
+                MessageBox.Show("Please input a name for the new sheet.");
+                return;
+            }
+            Excel.Application excel = new Excel.Application();
+            try
+            {
+                Excel._Workbook excelWb = (Excel._Workbook)(excel.Workbooks.Open(path));
+                Excel._Worksheet template = new Excel.Worksheet();
+                // Enumerate sheets in workbook
+                foreach (Excel._Worksheet worksheet in excelWb.Sheets)
+                {
+                    if (worksheet.Name == cmbTemplate.SelectedItem.ToString())
+                    {
+                        template = worksheet;
+                    }
+
+                    if (worksheet.Name == name)
+                    {
+                        MessageBox.Show("There is already a sheet with that name.");
+                        excelWb.Close();
+                        System.Runtime.InteropServices.Marshal.FinalReleaseComObject(excelWb);
+                        System.Runtime.InteropServices.Marshal.FinalReleaseComObject(excel);
+                        return;
+                    }
+                }
+
+                // Create copy of template sheet
+                Excel.Range excelRange = template.UsedRange;
+                template.Copy(template);
+
+                // Rename template sheet to user defined name
+                Excel._Worksheet excelSheet = excelWb.ActiveSheet;
+                excelSheet.Name = name;
+
+                foreach (int[] key in exportingArrays.Keys)
+                {
+                    Excel.Range valueRange = excelSheet.get_Range(GetColumn(key[0]) + (key[1] + 1).ToString(), GetColumn(key[0]) + (exportingArrays[key].Length + key[1] + 1).ToString());
+                    object[,] values = valueRange.get_Value(Excel.XlRangeValueDataType.xlRangeValueDefault);
+                    // Enumerate through data and add each row to the spreadsheet
+                    for (int i = 0; i < exportingArrays[key].Length; i++)
+                    {
+                        values[i + 1, 1] = exportingArrays[key][i];
+                    }
+                    valueRange.Value = values;
+                }
+                
+                excel.Visible = true;
+                excel.UserControl = true;
+
+                MessageBox.Show("Exported Successfully!");
+                this.Close();
+            }
+            // Catch any exceptions and report to user
+            catch (Exception theException)
+            {
+                String errorMessage;
+                errorMessage = "Error: ";
+                errorMessage = String.Concat(errorMessage, theException.Message);
+                errorMessage = String.Concat(errorMessage, " Line: ");
+                errorMessage = String.Concat(errorMessage, theException.Source);
+
+                MessageBox.Show(errorMessage, "Error");
+                MessageBox.Show(theException.ToString());
+                System.Runtime.InteropServices.Marshal.FinalReleaseComObject(excel);
+            }
+        }
+
+        private void cmdLoadTemplate_Click(object sender, EventArgs e)
+        {
+            // Read data into dgvtemplate
+            Excel.Application excel = new Excel.Application();
+            try
+            {
+                Excel._Workbook excelWb = (Excel._Workbook)(excel.Workbooks.Open(path));
+                Excel._Worksheet template = new Excel.Worksheet();
+                // Enumerate sheets in workbook
+                foreach (Excel._Worksheet worksheet in excelWb.Sheets)
+                {
+                    if (worksheet.Name == cmbTemplate.SelectedItem.ToString())
+                    {
+                        template = worksheet;
+                    }
+                }
+
+                if (template == new Excel.Worksheet())
+                {
+                    MessageBox.Show("Cannot find a sheet called " + cmbTemplate.SelectedItem.ToString() 
+                                 +  "  in workbook, make sure there is a template sheet called Template.");
+                }
+
+                // Create copy of template sheet
+                Excel.Range excelRange = template.UsedRange;
+                object[,] valueArray = excelRange.get_Value(Excel.XlRangeValueDataType.xlRangeValueDefault);
+
+                dgvTemplate.Rows.Clear();
+                dgvTemplate.Columns.Clear();
+
+                for (int i = 1; i <= valueArray.GetLength(1); i++)
+                {
+                    DataGridViewColumn tempColumn = new DataGridViewColumn();
+                    tempColumn.Name = GetColumn(i - 1);
+                    tempColumn.HeaderText = GetColumn(i - 1);
+                    tempColumn.CellTemplate = new DataGridViewTextBoxCell();
+                    dgvTemplate.Columns.Add(tempColumn);
+                }
+
+                for (int i = 1; i <= valueArray.GetLength(0); i++)
+                {
+                    List<string> rowData = new List<string>();
+                    for (int j = 1; j <= valueArray.GetLength(1); j++)
+                    {
+                        rowData.Add((valueArray[i, j] == null) ? "" : valueArray[i, j].ToString());
+                    }
+                    dgvTemplate.Rows.Add(rowData.ToArray());
+                    dgvTemplate.Rows[i - 1].HeaderCell.Value = i.ToString();
+                }
+
+                excelWb.Close();
+                System.Runtime.InteropServices.Marshal.FinalReleaseComObject(excelWb);
+                System.Runtime.InteropServices.Marshal.FinalReleaseComObject(excel);
+            }
+            // Catch any exceptions and report to user
+            catch (Exception theException)
+            {
+                String errorMessage;
+                errorMessage = "Error: ";
+                errorMessage = String.Concat(errorMessage, theException.Message);
+                errorMessage = String.Concat(errorMessage, " Line: ");
+                errorMessage = String.Concat(errorMessage, theException.Source);
+
+                MessageBox.Show(errorMessage, "Error");
+                MessageBox.Show(theException.ToString());
+            }
+            System.Runtime.InteropServices.Marshal.FinalReleaseComObject(excel);
         }
     }
 }

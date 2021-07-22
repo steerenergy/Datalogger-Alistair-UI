@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<DOCUMENT Type="Advanced Installer" CreateVersion="18.3" version="18.4" Modules="simple" RootPath="." Language="en" Id="{114F7471-20A7-4FAC-999E-6A4ACEBD7AA8}">
+<DOCUMENT Type="Advanced Installer" CreateVersion="18.3" version="18.3" Modules="simple" RootPath="." Language="en" Id="{114F7471-20A7-4FAC-999E-6A4ACEBD7AA8}">
   <COMPONENT cid="caphyon.advinst.msicomp.MsiPropsComponent">
     <ROW Property="AI_BITMAP_DISPLAY_MODE" Value="0"/>
     <ROW Property="AI_CURRENT_YEAR" Value="2021" ValueLocId="-"/>
     <ROW Property="AI_PROPPATH_DIR_PERBUILD_SteerLoggerUser.exe" Value="..\UI\bin\Debug"/>
     <ROW Property="AI_PROPPATH_DIR_PERBUILD_SteerLoggerUser.exe.config" Value="..\UI\bin\Debug"/>
     <ROW Property="AI_PROPPATH_DIR_PERBUILD_compression.py" Value="..\UI\bin\Debug\pythonScripts"/>
-    <ROW Property="AI_PROPPATH_DIR_PERBUILD_configPresets.csv" Value="..\UI\bin\Debug"/>
     <ROW Property="AI_PROPPATH_DIR_PERBUILD_graph.py" Value="..\UI\bin\Debug\pythonScripts"/>
     <ROW Property="AI_PROPPATH_DIR_PERBUILD_linear_function.py" Value="..\UI\bin\Debug\pythonScripts"/>
     <ROW Property="AI_PROPPATH_DIR_PERBUILD_moving_average.py" Value="..\UI\bin\Debug\pythonScripts"/>
@@ -15,7 +14,6 @@
     <ROW Property="AI_PROPPATH_FILENAME_PERBUILD_SteerLoggerUser.exe" Value="SteerLoggerUser.exe"/>
     <ROW Property="AI_PROPPATH_FILENAME_PERBUILD_SteerLoggerUser.exe.config" Value="SteerLoggerUser.exe.config"/>
     <ROW Property="AI_PROPPATH_FILENAME_PERBUILD_compression.py" Value="compression.py"/>
-    <ROW Property="AI_PROPPATH_FILENAME_PERBUILD_configPresets.csv" Value="configPresets.csv"/>
     <ROW Property="AI_PROPPATH_FILENAME_PERBUILD_graph.py" Value="graph.py"/>
     <ROW Property="AI_PROPPATH_FILENAME_PERBUILD_linear_function.py" Value="linear_function.py"/>
     <ROW Property="AI_PROPPATH_FILENAME_PERBUILD_moving_average.py" Value="moving_average.py"/>
@@ -69,13 +67,11 @@
     <ROW File="linear_function.py" Component_="SteerLoggerUser_ContentOutput_pythonScripts" FileName="LINEAR~2.PY|[|AI_PROPPATH_FILENAME_PERBUILD_linear_function.py]" Attributes="0" SourcePath="&lt;AI_APPPATH_PERBUILD_linear_function.py&gt;" SelfReg="false"/>
     <ROW File="moving_average.py" Component_="SteerLoggerUser_ContentOutput_pythonScripts" FileName="MOVING~2.PY|[|AI_PROPPATH_FILENAME_PERBUILD_moving_average.py]" Attributes="0" SourcePath="&lt;AI_APPPATH_PERBUILD_moving_average.py&gt;" SelfReg="false"/>
     <ROW File="steer.ico" Component_="SteerLoggerUser_ContentOutput" FileName="[|AI_PROPPATH_FILENAME_PERBUILD_steer.ico]" Attributes="0" SourcePath="&lt;AI_APPPATH_PERBUILD_steer.ico&gt;" SelfReg="false"/>
-    <ROW File="configPresets.csv" Component_="SteerLoggerUser_ContentOutput" FileName="CONFIG~2.CSV|[|AI_PROPPATH_FILENAME_PERBUILD_configPresets.csv]" Attributes="0" SourcePath="&lt;AI_APPPATH_PERBUILD_configPresets.csv&gt;" SelfReg="false"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.AppPathsComponent">
     <ROW Name="AI_APPPATH_PERBUILD_SteerLoggerUser.exe" Path="[|AI_PROPPATH_DIR_PERBUILD_SteerLoggerUser.exe]\[|AI_PROPPATH_FILENAME_PERBUILD_SteerLoggerUser.exe]" Type="2" Content="0"/>
     <ROW Name="AI_APPPATH_PERBUILD_SteerLoggerUser.exe.config" Path="[|AI_PROPPATH_DIR_PERBUILD_SteerLoggerUser.exe.config]\[|AI_PROPPATH_FILENAME_PERBUILD_SteerLoggerUser.exe.config]" Type="2" Content="0"/>
     <ROW Name="AI_APPPATH_PERBUILD_compression.py" Path="[|AI_PROPPATH_DIR_PERBUILD_compression.py]\[|AI_PROPPATH_FILENAME_PERBUILD_compression.py]" Type="2" Content="0"/>
-    <ROW Name="AI_APPPATH_PERBUILD_configPresets.csv" Path="[|AI_PROPPATH_DIR_PERBUILD_configPresets.csv]\[|AI_PROPPATH_FILENAME_PERBUILD_configPresets.csv]" Type="2" Content="0"/>
     <ROW Name="AI_APPPATH_PERBUILD_graph.py" Path="[|AI_PROPPATH_DIR_PERBUILD_graph.py]\[|AI_PROPPATH_FILENAME_PERBUILD_graph.py]" Type="2" Content="0"/>
     <ROW Name="AI_APPPATH_PERBUILD_linear_function.py" Path="[|AI_PROPPATH_DIR_PERBUILD_linear_function.py]\[|AI_PROPPATH_FILENAME_PERBUILD_linear_function.py]" Type="2" Content="0"/>
     <ROW Name="AI_APPPATH_PERBUILD_moving_average.py" Path="[|AI_PROPPATH_DIR_PERBUILD_moving_average.py]\[|AI_PROPPATH_FILENAME_PERBUILD_moving_average.py]" Type="2" Content="0"/>
@@ -205,6 +201,5 @@
     <ROW ProjectId="{8a887a5e-fce9-492a-9dcf-ea0e3e73657a}" ProjectName="SteerLoggerUser" OutputGroup="ContentOutput" OutputFile="linear_function.py"/>
     <ROW ProjectId="{8a887a5e-fce9-492a-9dcf-ea0e3e73657a}" ProjectName="SteerLoggerUser" OutputGroup="ContentOutput" OutputFile="moving_average.py"/>
     <ROW ProjectId="{8a887a5e-fce9-492a-9dcf-ea0e3e73657a}" ProjectName="SteerLoggerUser" OutputGroup="ContentOutput" OutputFile="steer.ico"/>
-    <ROW ProjectId="{8a887a5e-fce9-492a-9dcf-ea0e3e73657a}" ProjectName="SteerLoggerUser" OutputGroup="ContentOutput" OutputFile="configPresets.csv"/>
   </COMPONENT>
 </DOCUMENT>

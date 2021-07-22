@@ -129,6 +129,47 @@ namespace SteerLoggerUser
                     }
                 }
             }
+            // Read in simple config pins
+            using (StreamReader reader = new StreamReader(Application.StartupPath + "\\configPresets.csv"))
+            {
+                // Read header line and ignore
+                reader.ReadLine();
+                char[] trimChars = new char[] { '\n', ' ' };
+                string line = "";
+                string prevSensor = "";
+                while (!reader.EndOfStream)
+                {
+                    line = reader.ReadLine().Trim(trimChars);
+                    string[] pinData = line.Split(',');
+                    // Add sensor name and variation to variationDict (used for populating cmb menus)
+                    if (pinData[0] != prevSensor && pinData[1] != "")
+                    {
+                        progConfig.variationDict.Add(pinData[0], new List<string> { pinData[1] });
+                    }
+                    else if (pinData[1] != "")
+                    {
+                        progConfig.variationDict[pinData[0]].Add(pinData[1]);
+                    }
+                    else if (pinData[0] != prevSensor)
+                    {
+                        progConfig.variationDict.Add(pinData[0], new List<string> { "N/A" });
+                    }
+
+                    // Add preset to dict of preset pins
+                    string presetName = pinData[0] + pinData[1];
+                    Pin tempPin = new Pin();
+                    tempPin.fName = pinData[2];
+                    tempPin.inputType = pinData[3];
+                    tempPin.gain = Convert.ToInt32(pinData[4]);
+                    tempPin.scaleMin = Convert.ToDouble(pinData[5]);
+                    tempPin.scaleMax = Convert.ToDouble(pinData[6]);
+                    tempPin.units = pinData[7];
+
+                    progConfig.configPins.Add(presetName, tempPin);
+                    prevSensor = pinData[0];
+                }
+            }
+            SetupSimpleConf();
         }
 
         // Loads the mainForm
@@ -185,6 +226,7 @@ namespace SteerLoggerUser
                 {
                     Int32 port = 13000;
                     client = new TcpClient(logger, port);
+                    //client.ReceiveTimeout = 100;
                     stream = client.GetStream();
 
                     listener = new Thread(TCPListen);
@@ -327,6 +369,7 @@ namespace SteerLoggerUser
                     tempLog.time = decimal.Parse(metaData[3]);
                     tempLog.loggedBy = metaData[4];
                     tempLog.downloadedBy = metaData[5];
+                    tempLog.description = metaData[6];
                     received = TCPReceive();
                 }
                 worker.ReportProgress(10);
@@ -664,6 +707,7 @@ namespace SteerLoggerUser
         private void LoadDefaultConfig()
         {
             nudInterval.Value = 1.0M;
+            txtDescription.Text = "";
             int number = 1;
             for (int i = 0; i <= 3; i++)
             {
@@ -751,6 +795,10 @@ namespace SteerLoggerUser
                         {
                             throw new Exception();
                         }
+                        else if (line == "Close")
+                        {
+                            throw new IOException();
+                        }
                         tcpQueue.Enqueue(line);
                     }
                     if (data.Last() != "")
@@ -765,7 +813,14 @@ namespace SteerLoggerUser
                 stream.Close();
                 client.Close();
                 logger = "";
-                this.Invoke(new Action(() => { lblConnection.Text = "You're not connected to a logger."; }));
+                try
+                {
+                    this.Invoke(new Action(() => { lblConnection.Text = "You're not connected to a logger."; }));
+                }
+                catch (InvalidOperationException)
+                {
+                    // This occurs if the main form is closed by user while message box is showing
+                }
             }
             catch (SocketException)
             {
@@ -773,7 +828,14 @@ namespace SteerLoggerUser
                 stream.Close();
                 client.Close();
                 logger = "";
-                this.Invoke(new Action(() => { lblConnection.Text = "You're not connected to a logger."; }));
+                try
+                {
+                    this.Invoke(new Action(() => { lblConnection.Text = "You're not connected to a logger."; }));
+                }
+                catch (InvalidOperationException)
+                {
+                    // This occurs if the main form is closed by user while message box is showing
+                }
             }
             return;
         }
@@ -871,116 +933,22 @@ namespace SteerLoggerUser
         // Objective 8
         private void cmdImportConf_Click(object sender, EventArgs e)
         {
-            // Ask user whether they want to import from Pi or file
-            DialogResult dialogResult = MessageBox.Show("Select Yes to import from Pi, select no to import from file on local machine.",
-                                                        "Import from Pi?",
-                                                        MessageBoxButtons.YesNo);
-            if (dialogResult == DialogResult.No)
+            if (logger == "")
             {
-                ImportConfigFile();
+                MessageBox.Show("You need to be connected to a logger to do that.");
+                return;
             }
-            else
+            try
             {
-                if (logger == "")
-                {
-                    MessageBox.Show("You need to be connected to a logger to do that.");
-                    return;
-                }
-                try
-                {
-                    ImportConfigPi();
-                }
-                catch (SocketException)
-                {
-                    MessageBox.Show("An error occured in the connection, please reconnect.");
-                    return;
-                }
+                ImportConfigPi();
+            }
+            catch (SocketException)
+            {
+                MessageBox.Show("An error occured in the connection, please reconnect.");
+                return;
             }
         }
 
-        // Imports a config from a config file
-        // Objective 8.1
-        private void ImportConfigFile()
-        {
-            if (ofdConfig.ShowDialog() == DialogResult.OK)
-            {
-                // Create stream object to use in StreamReader creation
-                var fileStream = ofdConfig.OpenFile();
-
-                bool general = false;
-                // Used to select which data grid cell to change
-                // pinNumber represents row, cellNumber represents column
-                int pinNumber = -1;
-                int cellNumber = 0;
-
-                using (StreamReader reader = new StreamReader(fileStream))
-                {
-                    // Reads lines one at a time until the end of the file
-                    while (reader.EndOfStream == false)
-                    {
-                        string line = reader.ReadLine().Trim();
-                        if (line != "")
-                        {
-                            if (line == "[General]")
-                            {
-                                general = true;
-                            }
-                            // Indicates that a new pin header has been reached
-                            else if (line[0] == '[')
-                            {
-                                general = false;
-                                // Increase pin number by one to move one row down on the grid
-                                pinNumber += 1;
-                                // Reset cell number to start in first column on grid
-                                cellNumber = 0;
-                                dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = pinNumber;
-                                // Cell number increased by one each time a value is changed to change column
-                                cellNumber += 1;
-
-                                string pinName = line.Replace("[", "").Replace("]", "");
-                                dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = pinName;
-                                cellNumber += 1;
-                            }
-                            else if (general == true)
-                            {
-                                string[] data = line.Split(" = ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-                                // Only time interval is imported from general settings
-                                if (data[0] == "timeinterval")
-                                {
-                                    nudInterval.Value = Convert.ToDecimal(data[1]);
-                                }
-                            }
-                            else
-                            {
-                                string[] data = line.Split(new string[] { " = " }, StringSplitOptions.None);
-                                // As enabled has to be a bool, a special case for conversion is used
-                                if (data[0] == "enabled")
-                                {
-                                    bool enabled = data[1] == "True";
-                                    dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = enabled;
-                                    cellNumber += 1;
-                                }
-                                else if (data[0] == "inputtype" && data[1] == "Edit Me")
-                                {
-                                    dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = "4-20mA";
-                                    cellNumber += 1;
-                                }
-                                else if (data[0] == "unit" && data[1] == "Edit Me")
-                                {
-                                    dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = "V";
-                                    cellNumber += 1;
-                                }
-                                else if (data[0] != "m" && data[0] != "c")
-                                {
-                                    dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = data[1];
-                                    cellNumber += 1;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
 
         // Imports config from Pi
         // Objectives 8.2, 8.3 and 8.4
@@ -1029,6 +997,8 @@ namespace SteerLoggerUser
             // Objective 8.4
             nudInterval.Value = Convert.ToDecimal(response);
             response = TCPReceive();
+            txtDescription.Text = response;
+            response = TCPReceive();
 
             // Recevie data for each pin until all pins have been received
             // Objective 8.4
@@ -1055,7 +1025,106 @@ namespace SteerLoggerUser
                 dgvInputSetup.Rows.Add(rowData);
                 response = TCPReceive();
             }
+            SetupSimpleConf();
         }
+
+
+        // Imports a config from a config file
+        // Objective 8.1
+        private void cmdImportConfFile_Click(object sender, EventArgs e)
+        {
+            if (ofdConfig.ShowDialog() == DialogResult.OK)
+            {
+                // Create stream object to use in StreamReader creation
+                var fileStream = ofdConfig.OpenFile();
+
+                bool general = false;
+                // Used to select which data grid cell to change
+                // pinNumber represents row, cellNumber represents column
+                int pinNumber = -1;
+                int cellNumber = 0;
+
+                using (StreamReader reader = new StreamReader(fileStream))
+                {
+                    // Reads lines one at a time until the end of the file
+                    while (reader.EndOfStream == false)
+                    {
+                        string line = reader.ReadLine().Trim();
+                        if (line != "")
+                        {
+                            if (line == "[General]")
+                            {
+                                general = true;
+                            }
+                            // Indicates that a new pin header has been reached
+                            else if (line[0] == '[')
+                            {
+                                general = false;
+                                // Increase pin number by one to move one row down on the grid
+                                pinNumber += 1;
+                                // Reset cell number to start in first column on grid
+                                cellNumber = 0;
+                                dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = pinNumber + 1;
+                                // Cell number increased by one each time a value is changed to change column
+                                cellNumber += 1;
+
+                                string pinName = line.Replace("[", "").Replace("]", "");
+                                dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = pinName;
+                                cellNumber += 1;
+                            }
+                            else if (general == true)
+                            {
+                                string[] data = line.Split(new string[] { " = " }, StringSplitOptions.RemoveEmptyEntries);
+                                // Only time interval is imported from general settings
+                                if (data[0] == "timeinterval")
+                                {
+                                    nudInterval.Value = Convert.ToDecimal(data[1]);
+                                }
+                                if (data[0] == "description")
+                                {
+                                    txtDescription.Text = data[1];
+                                }
+                            }
+                            else
+                            {
+                                string[] data = line.Split(new string[] { " = " }, StringSplitOptions.None);
+                                // As enabled has to be a bool, a special case for conversion is used
+                                if (data[0] == "enabled")
+                                {
+                                    bool enabled = data[1] == "True";
+                                    dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = enabled;
+                                    cellNumber += 1;
+                                }
+                                else if (data[0] == "inputtype" && data[1] == "Edit Me")
+                                {
+                                    dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = "4-20mA";
+                                    cellNumber += 1;
+                                }
+                                else if (data[0] == "unit" && data[1] == "Edit Me")
+                                {
+                                    dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = "V";
+                                    cellNumber += 1;
+                                }
+                                else if (data[0] != "m" && data[0] != "c")
+                                {
+                                    dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = data[1];
+                                    cellNumber += 1;
+                                }
+                            }
+                        }
+                    }
+                }
+                SetupSimpleConf();
+            }
+        }
+
+        // Save but don't upload config
+        private void cmdSave_Click(object sender, EventArgs e)
+        {
+            // Validate config settings
+            ValidateConfig(false);
+        }
+
 
         // Saves and uploads config settings to Pi
         // Objective 10
@@ -1083,14 +1152,27 @@ namespace SteerLoggerUser
                 MessageBox.Show("Please input a value for the log name.");
                 return;
             }
-            // Check with Pi that the name is unique
-            TCPSend("Check_Name");
-            TCPSend(txtLogName.Text);
-            if (TCPReceive() == "Name exists")
+            // If user hasn't added description, ask if they want to add one
+            if (txtDescription.Text == "")
             {
-                MessageBox.Show("A log with that name already exists.");
-                return;
+                if (MessageBox.Show("No description. Press OK to continue without description or cancel to cancel upload and add description.","No Description!",MessageBoxButtons.OKCancel) != DialogResult.OK)
+                {
+                    return;
+                }
             }
+
+            if (upload)
+            {
+                // Check with Pi that the name is unique
+                TCPSend("Check_Name");
+                TCPSend(txtLogName.Text);
+                if (TCPReceive() == "Name exists")
+                {
+                    MessageBox.Show("A log with that name already exists.");
+                    return;
+                }
+            }
+          
             // Make sure time interval is > 0.1 seconds
             if (nudInterval.Value < Convert.ToDecimal(0.1))
             {
@@ -1102,6 +1184,7 @@ namespace SteerLoggerUser
             newLog.name = txtLogName.Text;
             newLog.time = nudInterval.Value;
             newLog.loggedBy = user;
+            newLog.description = txtDescription.Text;
 
             ConfigFile newConfig = new ConfigFile();
             foreach (DataGridViewRow row in dgvInputSetup.Rows)
@@ -1184,6 +1267,7 @@ namespace SteerLoggerUser
                 writer.WriteLine("[General]");
                 writer.WriteLine("timeinterval = " + newLog.time);
                 writer.WriteLine("name = " + newLog.name);
+                writer.WriteLine("description = " + newLog.description);
                 writer.WriteLine();
 
                 // Enumerate through Pins and write each one to file
@@ -1238,7 +1322,8 @@ namespace SteerLoggerUser
             metadata += newLog.date + ",";
             metadata += newLog.time + ",";
             metadata += newLog.loggedBy + ",";
-            metadata += newLog.downloadedBy;
+            metadata += newLog.downloadedBy + ",";
+            metadata += newLog.description;
             TCPSend(metadata);
             // Enumerate through pinList and send settings for each Pin to logger
             foreach (Pin pin in newLog.config.pinList)
@@ -1294,14 +1379,16 @@ namespace SteerLoggerUser
         // Reset InputSetup grid to default values
         private void cmdResetConfig_Click(object sender, EventArgs e)
         {
+            txtLogPins.Text = "";
             dgvInputSetup.Rows.Clear();
             LoadDefaultConfig();
+            SetupSimpleConf();
         }
 
         // Allows user to reconnect to logger or connect to a different one
         private void cmdConnect_Click(object sender, EventArgs e)
         {
-            if (listener.IsAlive)
+            if (listener != null && listener.IsAlive)
             {
                 TCPSend("Quit");
                 listener.Abort();
@@ -1934,6 +2021,111 @@ namespace SteerLoggerUser
         private void cmdAbt_Click(object sender, EventArgs e)
         {
             MessageBox.Show("Epic new logger!!", "About", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void cmdConfigSwitch_Click(object sender, EventArgs e)
+        {
+            if (dgvInputSetup.Visible == false)
+            {
+                //cmbPin.Visible = false;
+                //cmbVar.Visible = false;
+                //cmbSensor.Visible = false;
+                //cmdAddPin.Visible = false;
+                //txtLogPins.Visible = false;
+                pnlSimpleConfig.Visible = false;
+                cmdConfigSwitch.Text = "Simple Config";
+                dgvInputSetup.Visible = true;
+            }
+            else
+            {
+                dgvInputSetup.Visible = false;
+                //cmbPin.Visible = true;
+                //cmbVar.Visible = true;
+                //cmbSensor.Visible = true;
+                //cmdAddPin.Visible = true;
+                //txtLogPins.Visible = true;
+                pnlSimpleConfig.Visible = true;
+                SetupSimpleConf();
+                cmdConfigSwitch.Text = "Advanced Config";
+            }
+        }
+
+
+        private void SetupSimpleConf()
+        {
+            cmbPin.Items.Clear();
+            for (int i = 1; i <= 16; i++)
+            {
+                cmbPin.Items.Add(i.ToString());
+            }
+            cmbPin.SelectedIndex = 0;
+
+            cmbSensor.Items.Clear();
+            foreach (string sensor in progConfig.variationDict.Keys)
+            {
+                cmbSensor.Items.Add(sensor);
+            }
+            cmbSensor.SelectedIndex = 0;
+
+            cmbVar.Items.Clear();
+            cmbVar.Enabled = true;
+            foreach (string variation in progConfig.variationDict[cmbSensor.SelectedItem.ToString()])
+            {
+                cmbVar.Items.Add(variation);
+            }
+            cmbVar.SelectedIndex = 0;
+
+            if (cmbVar.SelectedItem.ToString() == "N/A")
+            {
+                cmbVar.Enabled = false;
+            }
+            txtLogPins.Text = "";
+            foreach (DataGridViewRow row in dgvInputSetup.Rows)
+            {
+                if (Convert.ToBoolean(row.Cells[2].Value) == true)
+                {
+                    txtLogPins.Text += "Pin " + row.Cells[0].Value + " is set to log " 
+                                       + row.Cells[3].Value + "." + Environment.NewLine;
+                }
+            }
+        }
+
+        private void cmbSensor_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            cmbVar.Items.Clear();
+            cmbVar.Enabled = true;
+            foreach (string variation in progConfig.variationDict[cmbSensor.SelectedItem.ToString()])
+            {
+                cmbVar.Items.Add(variation);
+            }
+            cmbVar.SelectedIndex = 0;
+
+            if (cmbVar.SelectedItem.ToString() == "N/A")
+            {
+                cmbVar.Enabled = false;
+            }
+        }
+
+        private void cmdAddPin_Click(object sender, EventArgs e)
+        {
+            string preset = cmbSensor.SelectedItem.ToString();
+            if (cmbVar.Enabled)
+            {
+                preset += cmbVar.SelectedItem.ToString();
+            }
+            Pin pin = progConfig.configPins[preset];
+            int row = cmbPin.SelectedIndex;
+            dgvInputSetup.Rows[row].Cells[2].Value = true;
+            dgvInputSetup.Rows[row].Cells[3].Value = pin.fName;
+            dgvInputSetup.Rows[row].Cells[4].Value = pin.inputType;
+            dgvInputSetup.Rows[row].Cells[5].Value = pin.gain.ToString();
+            dgvInputSetup.Rows[row].Cells[6].Value = pin.scaleMin.ToString();
+            dgvInputSetup.Rows[row].Cells[7].Value = pin.scaleMax.ToString();
+            dgvInputSetup.Rows[row].Cells[8].Value = pin.units;
+
+            txtLogPins.Text += "Added " + cmbSensor.SelectedItem.ToString() +
+                               " " + (cmbVar.SelectedItem.ToString() == "N/A" ? "" : cmbVar.SelectedItem.ToString()) + 
+                               " to log." + Environment.NewLine;
         }
     }
 }
