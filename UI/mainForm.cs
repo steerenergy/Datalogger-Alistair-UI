@@ -707,6 +707,7 @@ namespace SteerLoggerUser
         private void LoadDefaultConfig()
         {
             nudInterval.Value = 1.0M;
+            txtDescription.Text = "";
             int number = 1;
             for (int i = 0; i <= 3; i++)
             {
@@ -932,120 +933,22 @@ namespace SteerLoggerUser
         // Objective 8
         private void cmdImportConf_Click(object sender, EventArgs e)
         {
-            // Ask user whether they want to import from Pi or file
-            DialogResult dialogResult = MessageBox.Show("Select Yes to import from Pi, select no to import from file on local machine.",
-                                                        "Import from Pi?",
-                                                        MessageBoxButtons.YesNo);
-            if (dialogResult == DialogResult.No)
+            if (logger == "")
             {
-                ImportConfigFile();
+                MessageBox.Show("You need to be connected to a logger to do that.");
+                return;
             }
-            else
+            try
             {
-                if (logger == "")
-                {
-                    MessageBox.Show("You need to be connected to a logger to do that.");
-                    return;
-                }
-                try
-                {
-                    ImportConfigPi();
-                }
-                catch (SocketException)
-                {
-                    MessageBox.Show("An error occured in the connection, please reconnect.");
-                    return;
-                }
+                ImportConfigPi();
+            }
+            catch (SocketException)
+            {
+                MessageBox.Show("An error occured in the connection, please reconnect.");
+                return;
             }
         }
 
-        // Imports a config from a config file
-        // Objective 8.1
-        private void ImportConfigFile()
-        {
-            if (ofdConfig.ShowDialog() == DialogResult.OK)
-            {
-                // Create stream object to use in StreamReader creation
-                var fileStream = ofdConfig.OpenFile();
-
-                bool general = false;
-                // Used to select which data grid cell to change
-                // pinNumber represents row, cellNumber represents column
-                int pinNumber = -1;
-                int cellNumber = 0;
-
-                using (StreamReader reader = new StreamReader(fileStream))
-                {
-                    // Reads lines one at a time until the end of the file
-                    while (reader.EndOfStream == false)
-                    {
-                        string line = reader.ReadLine().Trim();
-                        if (line != "")
-                        {
-                            if (line == "[General]")
-                            {
-                                general = true;
-                            }
-                            // Indicates that a new pin header has been reached
-                            else if (line[0] == '[')
-                            {
-                                general = false;
-                                // Increase pin number by one to move one row down on the grid
-                                pinNumber += 1;
-                                // Reset cell number to start in first column on grid
-                                cellNumber = 0;
-                                dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = pinNumber;
-                                // Cell number increased by one each time a value is changed to change column
-                                cellNumber += 1;
-
-                                string pinName = line.Replace("[", "").Replace("]", "");
-                                dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = pinName;
-                                cellNumber += 1;
-                            }
-                            else if (general == true)
-                            {
-                                string[] data = line.Split(" = ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-                                // Only time interval is imported from general settings
-                                if (data[0] == "timeinterval")
-                                {
-                                    nudInterval.Value = Convert.ToDecimal(data[1]);
-                                }
-                                if (data[1] == "description")
-                                {
-                                    txtDescription.Text = data[1];
-                                }
-                            }
-                            else
-                            {
-                                string[] data = line.Split(new string[] { " = " }, StringSplitOptions.None);
-                                // As enabled has to be a bool, a special case for conversion is used
-                                if (data[0] == "enabled")
-                                {
-                                    bool enabled = data[1] == "True";
-                                    dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = enabled;
-                                    cellNumber += 1;
-                                }
-                                else if (data[0] == "inputtype" && data[1] == "Edit Me")
-                                {
-                                    dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = "4-20mA";
-                                    cellNumber += 1;
-                                }
-                                else if (data[0] == "unit" && data[1] == "Edit Me")
-                                {
-                                    dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = "V";
-                                    cellNumber += 1;
-                                }
-                                else if (data[0] != "m" && data[0] != "c")
-                                {
-                                    dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = data[1];
-                                    cellNumber += 1;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
 
         // Imports config from Pi
         // Objectives 8.2, 8.3 and 8.4
@@ -1122,8 +1025,98 @@ namespace SteerLoggerUser
                 dgvInputSetup.Rows.Add(rowData);
                 response = TCPReceive();
             }
+            SetupSimpleConf();
         }
 
+
+        // Imports a config from a config file
+        // Objective 8.1
+        private void cmdImportConfFile_Click(object sender, EventArgs e)
+        {
+            if (ofdConfig.ShowDialog() == DialogResult.OK)
+            {
+                // Create stream object to use in StreamReader creation
+                var fileStream = ofdConfig.OpenFile();
+
+                bool general = false;
+                // Used to select which data grid cell to change
+                // pinNumber represents row, cellNumber represents column
+                int pinNumber = -1;
+                int cellNumber = 0;
+
+                using (StreamReader reader = new StreamReader(fileStream))
+                {
+                    // Reads lines one at a time until the end of the file
+                    while (reader.EndOfStream == false)
+                    {
+                        string line = reader.ReadLine().Trim();
+                        if (line != "")
+                        {
+                            if (line == "[General]")
+                            {
+                                general = true;
+                            }
+                            // Indicates that a new pin header has been reached
+                            else if (line[0] == '[')
+                            {
+                                general = false;
+                                // Increase pin number by one to move one row down on the grid
+                                pinNumber += 1;
+                                // Reset cell number to start in first column on grid
+                                cellNumber = 0;
+                                dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = pinNumber + 1;
+                                // Cell number increased by one each time a value is changed to change column
+                                cellNumber += 1;
+
+                                string pinName = line.Replace("[", "").Replace("]", "");
+                                dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = pinName;
+                                cellNumber += 1;
+                            }
+                            else if (general == true)
+                            {
+                                string[] data = line.Split(new string[] { " = " }, StringSplitOptions.RemoveEmptyEntries);
+                                // Only time interval is imported from general settings
+                                if (data[0] == "timeinterval")
+                                {
+                                    nudInterval.Value = Convert.ToDecimal(data[1]);
+                                }
+                                if (data[0] == "description")
+                                {
+                                    txtDescription.Text = data[1];
+                                }
+                            }
+                            else
+                            {
+                                string[] data = line.Split(new string[] { " = " }, StringSplitOptions.None);
+                                // As enabled has to be a bool, a special case for conversion is used
+                                if (data[0] == "enabled")
+                                {
+                                    bool enabled = data[1] == "True";
+                                    dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = enabled;
+                                    cellNumber += 1;
+                                }
+                                else if (data[0] == "inputtype" && data[1] == "Edit Me")
+                                {
+                                    dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = "4-20mA";
+                                    cellNumber += 1;
+                                }
+                                else if (data[0] == "unit" && data[1] == "Edit Me")
+                                {
+                                    dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = "V";
+                                    cellNumber += 1;
+                                }
+                                else if (data[0] != "m" && data[0] != "c")
+                                {
+                                    dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = data[1];
+                                    cellNumber += 1;
+                                }
+                            }
+                        }
+                    }
+                }
+                SetupSimpleConf();
+            }
+        }
 
         // Save but don't upload config
         private void cmdSave_Click(object sender, EventArgs e)

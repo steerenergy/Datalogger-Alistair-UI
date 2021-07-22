@@ -35,7 +35,7 @@
             this.cmdResetConfig = new System.Windows.Forms.Button();
             this.cmdStopLog = new System.Windows.Forms.Button();
             this.cmdStartLog = new System.Windows.Forms.Button();
-            this.cmdImportConf = new System.Windows.Forms.Button();
+            this.cmdImportConfPi = new System.Windows.Forms.Button();
             this.cmdSaveUpload = new System.Windows.Forms.Button();
             this.cmdSave = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
@@ -84,6 +84,7 @@
             this.ofdPythonScript = new System.Windows.Forms.OpenFileDialog();
             this.txtDescription = new System.Windows.Forms.TextBox();
             this.lblDescription = new System.Windows.Forms.Label();
+            this.cmdImportConfFile = new System.Windows.Forms.Button();
             this.pnlCtrlConf.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.nudInterval)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dgvInputSetup)).BeginInit();
@@ -97,21 +98,22 @@
             this.pnlCtrlConf.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.pnlCtrlConf.Controls.Add(this.cmdImportConfFile);
             this.pnlCtrlConf.Controls.Add(this.lblDescription);
             this.pnlCtrlConf.Controls.Add(this.txtDescription);
             this.pnlCtrlConf.Controls.Add(this.cmdConfigSwitch);
             this.pnlCtrlConf.Controls.Add(this.cmdResetConfig);
             this.pnlCtrlConf.Controls.Add(this.cmdStopLog);
             this.pnlCtrlConf.Controls.Add(this.cmdStartLog);
-            this.pnlCtrlConf.Controls.Add(this.cmdImportConf);
+            this.pnlCtrlConf.Controls.Add(this.cmdImportConfPi);
             this.pnlCtrlConf.Controls.Add(this.cmdSaveUpload);
             this.pnlCtrlConf.Controls.Add(this.cmdSave);
             this.pnlCtrlConf.Controls.Add(this.label2);
             this.pnlCtrlConf.Controls.Add(this.nudInterval);
             this.pnlCtrlConf.Controls.Add(this.label1);
             this.pnlCtrlConf.Controls.Add(this.txtLogName);
-            this.pnlCtrlConf.Controls.Add(this.dgvInputSetup);
             this.pnlCtrlConf.Controls.Add(this.pnlSimpleConfig);
+            this.pnlCtrlConf.Controls.Add(this.dgvInputSetup);
             this.pnlCtrlConf.Location = new System.Drawing.Point(13, 40);
             this.pnlCtrlConf.Name = "pnlCtrlConf";
             this.pnlCtrlConf.Size = new System.Drawing.Size(821, 379);
@@ -161,17 +163,17 @@
             this.cmdStartLog.UseVisualStyleBackColor = true;
             this.cmdStartLog.Click += new System.EventHandler(this.cmdStartLog_Click);
             // 
-            // cmdImportConf
+            // cmdImportConfPi
             // 
-            this.cmdImportConf.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.cmdImportConf.AutoEllipsis = true;
-            this.cmdImportConf.Location = new System.Drawing.Point(18, 335);
-            this.cmdImportConf.Name = "cmdImportConf";
-            this.cmdImportConf.Size = new System.Drawing.Size(186, 33);
-            this.cmdImportConf.TabIndex = 7;
-            this.cmdImportConf.Text = "Import Stored Config";
-            this.cmdImportConf.UseVisualStyleBackColor = true;
-            this.cmdImportConf.Click += new System.EventHandler(this.cmdImportConf_Click);
+            this.cmdImportConfPi.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.cmdImportConfPi.AutoEllipsis = true;
+            this.cmdImportConfPi.Location = new System.Drawing.Point(118, 336);
+            this.cmdImportConfPi.Name = "cmdImportConfPi";
+            this.cmdImportConfPi.Size = new System.Drawing.Size(85, 33);
+            this.cmdImportConfPi.TabIndex = 7;
+            this.cmdImportConfPi.Text = "Import From Pi";
+            this.cmdImportConfPi.UseVisualStyleBackColor = true;
+            this.cmdImportConfPi.Click += new System.EventHandler(this.cmdImportConf_Click);
             // 
             // cmdSaveUpload
             // 
@@ -662,6 +664,18 @@
             this.lblDescription.TabIndex = 22;
             this.lblDescription.Text = "Description:";
             // 
+            // cmdImportConfFile
+            // 
+            this.cmdImportConfFile.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.cmdImportConfFile.AutoEllipsis = true;
+            this.cmdImportConfFile.Location = new System.Drawing.Point(18, 336);
+            this.cmdImportConfFile.Name = "cmdImportConfFile";
+            this.cmdImportConfFile.Size = new System.Drawing.Size(94, 33);
+            this.cmdImportConfFile.TabIndex = 23;
+            this.cmdImportConfFile.Text = "Import From File";
+            this.cmdImportConfFile.UseVisualStyleBackColor = true;
+            this.cmdImportConfFile.Click += new System.EventHandler(this.cmdImportConfFile_Click);
+            // 
             // mainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
@@ -701,7 +715,7 @@
         private System.Windows.Forms.Button cmdDataProc;
         private System.Windows.Forms.Button cmdSettings;
         private System.Windows.Forms.Button cmdAbt;
-        private System.Windows.Forms.Button cmdImportConf;
+        private System.Windows.Forms.Button cmdImportConfPi;
         private System.Windows.Forms.Button cmdSaveUpload;
         private System.Windows.Forms.DataGridView dgvInputSetup;
         private System.Windows.Forms.Button cmdSave;
@@ -749,5 +763,6 @@
         private System.Windows.Forms.TextBox txtLogPins;
         private System.Windows.Forms.Label lblDescription;
         private System.Windows.Forms.TextBox txtDescription;
+        private System.Windows.Forms.Button cmdImportConfFile;
     }
 }
