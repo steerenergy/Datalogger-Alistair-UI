@@ -369,6 +369,7 @@ namespace SteerLoggerUser
                     tempLog.time = decimal.Parse(metaData[3]);
                     tempLog.loggedBy = metaData[4];
                     tempLog.downloadedBy = metaData[5];
+                    tempLog.description = metaData[6];
                     received = TCPReceive();
                 }
                 worker.ReportProgress(10);
@@ -835,7 +836,6 @@ namespace SteerLoggerUser
                     // This occurs if the main form is closed by user while message box is showing
                 }
             }
-            this.Dispose();
             return;
         }
 
@@ -1010,6 +1010,10 @@ namespace SteerLoggerUser
                                 {
                                     nudInterval.Value = Convert.ToDecimal(data[1]);
                                 }
+                                if (data[1] == "description")
+                                {
+                                    txtDescription.Text = data[1];
+                                }
                             }
                             else
                             {
@@ -1090,6 +1094,8 @@ namespace SteerLoggerUser
             // Objective 8.4
             nudInterval.Value = Convert.ToDecimal(response);
             response = TCPReceive();
+            txtDescription.Text = response;
+            response = TCPReceive();
 
             // Recevie data for each pin until all pins have been received
             // Objective 8.4
@@ -1153,6 +1159,15 @@ namespace SteerLoggerUser
                 MessageBox.Show("Please input a value for the log name.");
                 return;
             }
+            // If user hasn't added description, ask if they want to add one
+            if (txtDescription.Text == "")
+            {
+                if (MessageBox.Show("No description. Press OK to continue without description or cancel to cancel upload and add description.","No Description!",MessageBoxButtons.OKCancel) != DialogResult.OK)
+                {
+                    return;
+                }
+            }
+
             if (upload)
             {
                 // Check with Pi that the name is unique
@@ -1176,6 +1191,7 @@ namespace SteerLoggerUser
             newLog.name = txtLogName.Text;
             newLog.time = nudInterval.Value;
             newLog.loggedBy = user;
+            newLog.description = txtDescription.Text;
 
             ConfigFile newConfig = new ConfigFile();
             foreach (DataGridViewRow row in dgvInputSetup.Rows)
@@ -1258,6 +1274,7 @@ namespace SteerLoggerUser
                 writer.WriteLine("[General]");
                 writer.WriteLine("timeinterval = " + newLog.time);
                 writer.WriteLine("name = " + newLog.name);
+                writer.WriteLine("description = " + newLog.description);
                 writer.WriteLine();
 
                 // Enumerate through Pins and write each one to file
@@ -1312,7 +1329,8 @@ namespace SteerLoggerUser
             metadata += newLog.date + ",";
             metadata += newLog.time + ",";
             metadata += newLog.loggedBy + ",";
-            metadata += newLog.downloadedBy;
+            metadata += newLog.downloadedBy + ",";
+            metadata += newLog.description;
             TCPSend(metadata);
             // Enumerate through pinList and send settings for each Pin to logger
             foreach (Pin pin in newLog.config.pinList)
