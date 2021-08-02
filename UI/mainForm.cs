@@ -796,6 +796,51 @@ namespace SteerLoggerUser
             }
         }
 
+        private bool IsConnected
+        {
+            get
+            {
+                try
+                {
+                    if (client != null && client.Client != null && client.Client.Connected)
+                    {
+                        /* pear to the documentation on Poll:
+                         * When passing SelectMode.SelectRead as a parameter to the Poll method it will return 
+                         * -either- true if Socket.Listen(Int32) has been called and a connection is pending;
+                         * -or- true if data is available for reading; 
+                         * -or- true if the connection has been closed, reset, or terminated; 
+                         * otherwise, returns false
+                         */
+
+                        // Detect if client disconnected
+                        if (client.Client.Poll(0, SelectMode.SelectRead))
+                        {
+                            byte[] buff = new byte[1];
+                            if (client.Client.Receive(buff, SocketFlags.Peek) == 0)
+                            {
+                                // Client disconnected
+                                return false;
+                            }
+                            else
+                            {
+                                return true;
+                            }
+                        }
+
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+        }
+
 
         public void TCPListen()
         {
@@ -804,6 +849,10 @@ namespace SteerLoggerUser
                 string buffer = "";
                 while (true)
                 {
+                    if (!IsConnected)
+                    {
+                        throw new SocketException();
+                    }
                     List<string> data = new List<string>();
                     Byte[] byteData = new Byte[2048];
                     Int32 bytes = stream.Read(byteData, 0, byteData.Length);
@@ -903,6 +952,19 @@ namespace SteerLoggerUser
             //    client.Close();
             //    throw new SocketException();
             //}
+            if (!IsConnected)
+            {
+                listener.Abort();
+                stream.Close();
+                client.Close();
+                while (tcpQueue.IsEmpty == false)
+                {
+                    tcpQueue.TryDequeue(out string result);
+                }
+                logger = "";
+                lblConnection.Text = "You're not connected to a logger.";
+                throw new SocketException();
+            }
             string response;
             while (tcpQueue.TryDequeue(out response) == false) { }
             return response;
