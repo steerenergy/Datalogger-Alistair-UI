@@ -332,30 +332,29 @@ namespace SteerLoggerUser
             // Show DownloadForm which allows user to select which logs to download
             DownloadForm download = new DownloadForm(this, logsAvailable, "Logs", false);
             download.ShowDialog();
-            //ReceiveProgessFrom progressForm;
-            //progressForm = new ReceiveProgessFrom(this, pbValue);
-            //pbValue = 0;
-            //progressForm.Show();
+            ReceiveProgessFrom progressForm;
+            progressForm = new ReceiveProgessFrom(this, pbValue);
+            pbValue = 0;
+            progressForm.Show();
             // progressForm.Show();
             // Receive the selected logs using TCP
             // Objective 4.1
             //ReceiveLog(false, progressForm);
             //ReceiveLog(false);
-            //BackgroundWorker worker = new BackgroundWorker();
-            //worker.WorkerReportsProgress = true;
-            //worker.DoWork += new DoWorkEventHandler(ReceiveLog);
-            //worker.ProgressChanged += new ProgressChangedEventHandler(ProgressChanged);
-            //worker.RunWorkerAsync();
-            Task downloader = new Task(() => ReceiveLog());
-            downloader.Start();
+            BackgroundWorker worker = new BackgroundWorker();
+            worker.WorkerReportsProgress = true;
+            worker.DoWork += new DoWorkEventHandler(ReceiveLog);
+            worker.ProgressChanged += new ProgressChangedEventHandler(ProgressChanged);
+            worker.RunWorkerAsync();
+            //Task downloader = new Task(() => ReceiveLog());
+            //downloader.Start();
         }
 
         // Receive a full log from the logger
         // Objectives 4.1 and 13.3
-        private void ReceiveLog()
+        private void ReceiveLog(object sender, EventArgs e)
         {
-            MessageBox.Show("Worker running!!!");
-            //BackgroundWorker worker = sender as BackgroundWorker;
+            BackgroundWorker worker = sender as BackgroundWorker;
 
             //progressForm.UpdateTextBox("Converting data on Pi...");
             //progressForm.UpdateProgressBar();
@@ -380,7 +379,7 @@ namespace SteerLoggerUser
                     tempLog.description = metaData[6];
                     received = TCPReceive();
                 }
-                //worker.ReportProgress(10);
+                worker.ReportProgress(10);
                 received = TCPReceive();
                 dataQueue.Enqueue("Receiving config data...");
                 //progressForm.UpdateTextBox("Receiving config data...");
@@ -404,7 +403,7 @@ namespace SteerLoggerUser
                     tempLog.config.pinList.Add(tempPin);
                     received = TCPReceive();
                 }
-                //worker.ReportProgress(20);
+                worker.ReportProgress(20);
                 dataQueue.Enqueue("Receiving log data...");
                 // progressForm.UpdateTextBox("Receiving log data...");
                 received = TCPReceive();
@@ -437,7 +436,7 @@ namespace SteerLoggerUser
                         pins.Add(pin);
                     }
                 }
-                //worker.ReportProgress(30);
+                worker.ReportProgress(30);
                 // pbValue += 1;
                 // //progressForm.UpdateProgressBar();
                 // // Receive log data and write to LogData object
@@ -528,7 +527,7 @@ namespace SteerLoggerUser
                 sftpclient.Dispose();
 
                 dataQueue.Enqueue("Converting data...");
-                //worker.ReportProgress(50);
+                worker.ReportProgress(50);
 
                 // Read from the file selected
                 using (StreamReader reader = new StreamReader(temp))
@@ -558,7 +557,7 @@ namespace SteerLoggerUser
                 }
 
                 dataQueue.Enqueue("Finalising download...");
-                //worker.ReportProgress(80);
+                worker.ReportProgress(80);
                 // If there is already a log being processed, ask user if they want to merge logs
                 if (DAP.processing == true)
                 {
@@ -597,7 +596,7 @@ namespace SteerLoggerUser
                 received = TCPReceive();
 
             }
-            //worker.ReportProgress(100);
+            worker.ReportProgress(100);
         }
 
 
@@ -1618,14 +1617,13 @@ namespace SteerLoggerUser
             progressForm.Show();
             pbValue = 0;
 
-            //BackgroundWorker worker = new BackgroundWorker();
-            //worker.WorkerReportsProgress = true;
-            //worker.DoWork += new DoWorkEventHandler(ReceiveLog);
-            //worker.ProgressChanged += new ProgressChangedEventHandler(ProgressChanged);
-            //worker.RunWorkerAsync();
-            Task downloader = new Task(() => ReceiveLog());
-            downloader.Start();
-            MessageBox.Show("Worker running!");
+            BackgroundWorker worker = new BackgroundWorker();
+            worker.WorkerReportsProgress = true;
+            worker.DoWork += new DoWorkEventHandler(ReceiveLog);
+            worker.ProgressChanged += new ProgressChangedEventHandler(ProgressChanged);
+            worker.RunWorkerAsync();
+            //Task downloader = new Task(() => ReceiveLog());
+            //downloader.Start();
         }
 
         // Dowload log CSV files
