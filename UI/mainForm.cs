@@ -354,249 +354,263 @@ namespace SteerLoggerUser
         // Objectives 4.1 and 13.3
         private void ReceiveLog(object sender, EventArgs e)
         {
-            BackgroundWorker worker = sender as BackgroundWorker;
-
-            //progressForm.UpdateTextBox("Converting data on Pi...");
-            //progressForm.UpdateProgressBar();
-            string received = TCPReceive();
-            // Continue receiving logs until all have been sent
-            while (received != "All_Sent")
+            try
             {
-                // Create a tempoary LogMeta to store log while its being received
-                LogMeta tempLog = new LogMeta();
-                dataQueue.Enqueue("Receiving meta data...");
-                //progressForm.UpdateTextBox("Receiving meta data...");
-                // Receive meta data of log and set LogMeta variables 
-                while (received != "EoMeta")
+                BackgroundWorker worker = sender as BackgroundWorker;
+
+                //progressForm.UpdateTextBox("Converting data on Pi...");
+                //progressForm.UpdateProgressBar();
+                string received = TCPReceive();
+                // Continue receiving logs until all have been sent
+                while (received != "All_Sent")
                 {
-                    string[] metaData = received.Split(',');
-                    tempLog.id = int.Parse(metaData[0]);
-                    tempLog.name = metaData[1];
-                    tempLog.date = metaData[2];
-                    tempLog.time = decimal.Parse(metaData[3]);
-                    tempLog.loggedBy = metaData[4];
-                    tempLog.downloadedBy = metaData[5];
-                    tempLog.description = metaData[6];
+                    // Create a tempoary LogMeta to store log while its being received
+                    LogMeta tempLog = new LogMeta();
+                    dataQueue.Enqueue("Receiving meta data...");
+                    //progressForm.UpdateTextBox("Receiving meta data...");
+                    // Receive meta data of log and set LogMeta variables 
+                    while (received != "EoMeta")
+                    {
+                        string[] metaData = received.Split(',');
+                        tempLog.id = int.Parse(metaData[0]);
+                        tempLog.name = metaData[1];
+                        tempLog.date = metaData[2];
+                        tempLog.time = decimal.Parse(metaData[3]);
+                        tempLog.loggedBy = metaData[4];
+                        tempLog.downloadedBy = metaData[5];
+                        tempLog.description = metaData[6];
+                        received = TCPReceive();
+                    }
+                    worker.ReportProgress(10);
                     received = TCPReceive();
-                }
-                worker.ReportProgress(10);
-                received = TCPReceive();
-                dataQueue.Enqueue("Receiving config data...");
-                //progressForm.UpdateTextBox("Receiving config data...");
-                // Receive config settings of log and write to ConfigFile object
-                tempLog.config = new ConfigFile();
-                while (received != "EoConfig")
-                {
-                    string[] pinData = received.Split(',');
-                    Pin tempPin = new Pin();
-                    tempPin.id = int.Parse(pinData[0]);
-                    tempPin.name = pinData[1];
-                    tempPin.enabled = (pinData[2] == "True") ? true : false;
-                    tempPin.fName = pinData[3];
-                    tempPin.inputType = pinData[4];
-                    tempPin.gain = int.Parse(pinData[5]);
-                    tempPin.scaleMin = double.Parse(pinData[6]);
-                    tempPin.scaleMax = double.Parse(pinData[7]);
-                    tempPin.units = pinData[8];
-                    tempPin.m = double.Parse(pinData[9]);
-                    tempPin.c = double.Parse(pinData[10]);
-                    tempLog.config.pinList.Add(tempPin);
+                    dataQueue.Enqueue("Receiving config data...");
+                    //progressForm.UpdateTextBox("Receiving config data...");
+                    // Receive config settings of log and write to ConfigFile object
+                    tempLog.config = new ConfigFile();
+                    while (received != "EoConfig")
+                    {
+                        string[] pinData = received.Split(',');
+                        Pin tempPin = new Pin();
+                        tempPin.id = int.Parse(pinData[0]);
+                        tempPin.name = pinData[1];
+                        tempPin.enabled = (pinData[2] == "True") ? true : false;
+                        tempPin.fName = pinData[3];
+                        tempPin.inputType = pinData[4];
+                        tempPin.gain = int.Parse(pinData[5]);
+                        tempPin.scaleMin = double.Parse(pinData[6]);
+                        tempPin.scaleMax = double.Parse(pinData[7]);
+                        tempPin.units = pinData[8];
+                        tempPin.m = double.Parse(pinData[9]);
+                        tempPin.c = double.Parse(pinData[10]);
+                        tempLog.config.pinList.Add(tempPin);
+                        received = TCPReceive();
+                    }
+                    worker.ReportProgress(20);
+                    dataQueue.Enqueue("Receiving log data...");
+                    // progressForm.UpdateTextBox("Receiving log data...");
                     received = TCPReceive();
-                }
-                worker.ReportProgress(20);
-                dataQueue.Enqueue("Receiving log data...");
-                // progressForm.UpdateTextBox("Receiving log data...");
-                received = TCPReceive();
-                // Set up rawheaders and convheaders for LogData object
-                tempLog.logData = new LogData();
-                tempLog.logData.rawheaders = new List<string> { "Date/Time", "Time (seconds)" };
-                tempLog.logData.convheaders = new List<string> { "Date/Time", "Time (seconds)" };
-                int pinNum = 0;
-                List<string> rawHeaders = new List<string>();
-                List<string> convHeaders = new List<string>();
-                // Use config file to write pin headers to rawheaders and convheaders
-                foreach (Pin pin in tempLog.config.pinList)
-                {
-                    if (pin.enabled == true)
+                    // Set up rawheaders and convheaders for LogData object
+                    tempLog.logData = new LogData();
+                    tempLog.logData.rawheaders = new List<string> { "Date/Time", "Time (seconds)" };
+                    tempLog.logData.convheaders = new List<string> { "Date/Time", "Time (seconds)" };
+                    int pinNum = 0;
+                    List<string> rawHeaders = new List<string>();
+                    List<string> convHeaders = new List<string>();
+                    // Use config file to write pin headers to rawheaders and convheaders
+                    foreach (Pin pin in tempLog.config.pinList)
                     {
-                        pinNum += 1;
-                        rawHeaders.Add(pin.name);
-                        convHeaders.Add(pin.fName + "|" + pin.units);
-                    }
-                }
-                tempLog.logData.rawheaders.AddRange(rawHeaders);
-                tempLog.logData.convheaders.AddRange(convHeaders);
-                tempLog.logData.InitRawConv(pinNum);
-                // AddHeaderDataViewProc(tempLog.logData.convheaders);
-                List<Pin> pins = new List<Pin>();
-                foreach (Pin pin in tempLog.config.pinList)
-                {
-                    if (pin.enabled)
-                    {
-                        pins.Add(pin);
-                    }
-                }
-                worker.ReportProgress(30);
-                // pbValue += 1;
-                // //progressForm.UpdateProgressBar();
-                // // Receive log data and write to LogData object
-                // while (received != "EoLog")
-                // {
-                //     string[] rowData = received.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-                //     tempLog.logData.timestamp.Add(Convert.ToDateTime(rowData[0]));
-                //     tempLog.logData.time.Add(decimal.Parse(rowData[1]));
-                //     List<decimal> rawData = new List<decimal>();
-                //     // Adds first half of data row (minus timestamp and time) to rawData
-                //     //for (int i = 2; i <= (rowData.Length / 2); i++)
-                //     //{
-                //     //    rawData.Add(decimal.Parse(rowData[i]));
-                //     //}
-                //     for (int i = 2; i < rowData.Length; i++)
-                //     {
-                //         rawData.Add(decimal.Parse(rowData[i]));
-                //     }
-                //     tempLog.logData.AddRawData(rawData);
-                //     List<decimal> convData = new List<decimal>();
-                //     // Adds second half of data row (minus timestamp and time) to convData
-                //     //for (int i = ((rowData.Length / 2) + 1); i < rowData.Length; i++)
-                //     //{
-                //     //    convData.Add(decimal.Parse(rowData[i]));
-                //     //}
-                //     for (int i = 0; i < pins.Count; i++)
-                //     {
-                //         decimal convertedValue = rawData[i] * pins[i].m + pins[i].c;
-                //         convData.Add(convertedValue);
-                //     }
-                //     AddRowDataViewProc(tempLog.logData.timestamp.Last(), tempLog.logData.time.Last(), convData);
-                //     tempLog.logData.AddConvData(convData);
-                //     pbValue += 1;
-                //     //progressForm.UpdateProgressBar();
-                //     received = TCPReceive();
-                // }
-                // //progressForm.UpdateProgressBar();
-                // // If merge is true, merge the log downloaded with the current logProc
-                // if (merge)
-                // {
-                //     DAP.logsProcessing.Add(tempLog);
-                //     LogProc tempProc = new LogProc();
-                //     tempProc.CreateProcFromConv(tempLog.logData);
-                //     DAP.MergeLogs(tempProc);
-                // }
-                // // If merge is not true, add log to logsToProc queue
-                // else
-                // {
-                //     DAP.logsToProc.Enqueue(tempLog);
-                // }
-                // received = TCPReceive();
-
-                string host = logger;
-                string user = "pi";
-                string password = "raspberry";
-
-                SftpClient sftpclient = new SftpClient(host, 22, user, password);
-                // Need to catch error when computer refuses connection
-                try
-                {
-                    sftpclient.Connect();
-                }
-                catch (SocketException)
-                {
-                    dataQueue.Enqueue("Error occurred. Aborting!");
-                    MessageBox.Show("Failed to download, check that Pi has FTP/SSH enabled.");
-                    TCPSend("Quit");
-                    stream.Close();
-                    client.Close();
-                    while (tcpQueue.IsEmpty == false)
-                    {
-                        tcpQueue.TryDequeue(out string result);
-                    }
-                    logger = "";
-                    this.Invoke(new Action(() => { lblConnection.Text = "You're not connected to a logger."; }));
-                    return;
-                }
-
-
-                string path = @"/home/pi/Github/Datalogger-Alistair-Pi/" + received;
-                string temp = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger\" + Path.GetFileName(received);
-
-                dataQueue.Enqueue("Downloading raw data...");
-                using (FileStream stream = new FileStream(temp, FileMode.Create))
-                {
-                    sftpclient.DownloadFile(path, stream);
-                }
-                sftpclient.Dispose();
-
-                dataQueue.Enqueue("Converting data...");
-                worker.ReportProgress(50);
-
-                // Read from the file selected
-                using (StreamReader reader = new StreamReader(temp))
-                {
-                    // Read over header line
-                    reader.ReadLine();
-                    while (!reader.EndOfStream)
-                    {
-                        // Read each line and store the data in the logData object
-                        string[] line = reader.ReadLine().Split(',');
-                        tempLog.logData.timestamp.Add(Convert.ToDateTime(line[0]));
-                        tempLog.logData.time.Add(Convert.ToDouble(line[1]));
-                        List<double> rawData = new List<double>();
-                        List<double> convData = new List<double>();
-                        for (int i = 2; i < line.Length; i++)
+                        if (pin.enabled == true)
                         {
-                            rawData.Add(double.Parse(line[i]));
+                            pinNum += 1;
+                            rawHeaders.Add(pin.name);
+                            convHeaders.Add(pin.fName + "|" + pin.units);
                         }
-                        tempLog.logData.AddRawData(rawData);
-                        for (int i = 0; i < pins.Count; i++)
-                        {
-                            double convertedValue = rawData[i] * pins[i].m + pins[i].c;
-                            convData.Add(convertedValue);
-                        }
-                        tempLog.logData.AddConvData(convData);
                     }
-                }
-
-                dataQueue.Enqueue("Finalising download...");
-                worker.ReportProgress(80);
-                // If there is already a log being processed, ask user if they want to merge logs
-                if (DAP.processing == true)
-                {
-                    DialogResult dialogResult = MessageBox.Show("Would you like to merge the imported log with the current log?\n" +
-                                                "Otherwise the imported log will be added to the queue.",
-                                                "Merge Logs?", MessageBoxButtons.YesNo);
-                    if (dialogResult == DialogResult.Yes)
+                    tempLog.logData.rawheaders.AddRange(rawHeaders);
+                    tempLog.logData.convheaders.AddRange(convHeaders);
+                    tempLog.logData.InitRawConv(pinNum);
+                    // AddHeaderDataViewProc(tempLog.logData.convheaders);
+                    List<Pin> pins = new List<Pin>();
+                    foreach (Pin pin in tempLog.config.pinList)
                     {
-                        // If they want to merge, receive the log with merge argument set to true
-                        DAP.logsProcessing.Add(tempLog);
-                        LogProc tempProc = new LogProc();
-                        tempProc.CreateProcFromConv(tempLog.logData);
-                        DAP.MergeLogs(tempProc);
-                        this.Invoke(new Action(() => { PopulateDataViewProc(DAP.logProc); }));
+                        if (pin.enabled)
+                        {
+                            pins.Add(pin);
+                        }
                     }
+                    worker.ReportProgress(30);
+                    // pbValue += 1;
+                    // //progressForm.UpdateProgressBar();
+                    // // Receive log data and write to LogData object
+                    // while (received != "EoLog")
+                    // {
+                    //     string[] rowData = received.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                    //     tempLog.logData.timestamp.Add(Convert.ToDateTime(rowData[0]));
+                    //     tempLog.logData.time.Add(decimal.Parse(rowData[1]));
+                    //     List<decimal> rawData = new List<decimal>();
+                    //     // Adds first half of data row (minus timestamp and time) to rawData
+                    //     //for (int i = 2; i <= (rowData.Length / 2); i++)
+                    //     //{
+                    //     //    rawData.Add(decimal.Parse(rowData[i]));
+                    //     //}
+                    //     for (int i = 2; i < rowData.Length; i++)
+                    //     {
+                    //         rawData.Add(decimal.Parse(rowData[i]));
+                    //     }
+                    //     tempLog.logData.AddRawData(rawData);
+                    //     List<decimal> convData = new List<decimal>();
+                    //     // Adds second half of data row (minus timestamp and time) to convData
+                    //     //for (int i = ((rowData.Length / 2) + 1); i < rowData.Length; i++)
+                    //     //{
+                    //     //    convData.Add(decimal.Parse(rowData[i]));
+                    //     //}
+                    //     for (int i = 0; i < pins.Count; i++)
+                    //     {
+                    //         decimal convertedValue = rawData[i] * pins[i].m + pins[i].c;
+                    //         convData.Add(convertedValue);
+                    //     }
+                    //     AddRowDataViewProc(tempLog.logData.timestamp.Last(), tempLog.logData.time.Last(), convData);
+                    //     tempLog.logData.AddConvData(convData);
+                    //     pbValue += 1;
+                    //     //progressForm.UpdateProgressBar();
+                    //     received = TCPReceive();
+                    // }
+                    // //progressForm.UpdateProgressBar();
+                    // // If merge is true, merge the log downloaded with the current logProc
+                    // if (merge)
+                    // {
+                    //     DAP.logsProcessing.Add(tempLog);
+                    //     LogProc tempProc = new LogProc();
+                    //     tempProc.CreateProcFromConv(tempLog.logData);
+                    //     DAP.MergeLogs(tempProc);
+                    // }
+                    // // If merge is not true, add log to logsToProc queue
+                    // else
+                    // {
+                    //     DAP.logsToProc.Enqueue(tempLog);
+                    // }
+                    // received = TCPReceive();
+
+                    string host = logger;
+                    string user = "pi";
+                    string password = "raspberry";
+
+                    SftpClient sftpclient = new SftpClient(host, 22, user, password);
+                    // Need to catch error when computer refuses connection
+                    try
+                    {
+                        sftpclient.Connect();
+                    }
+                    catch (SocketException)
+                    {
+                        dataQueue.Enqueue("Error occurred. Aborting!");
+                        MessageBox.Show("Failed to download, check that Pi has FTP/SSH enabled.");
+                        TCPSend("Quit");
+                        stream.Close();
+                        client.Close();
+                        while (tcpQueue.IsEmpty == false)
+                        {
+                            tcpQueue.TryDequeue(out string result);
+                        }
+                        logger = "";
+                        this.Invoke(new Action(() => { lblConnection.Text = "You're not connected to a logger."; }));
+                        return;
+                    }
+
+                    // If SteerLogger directory doesn't exist in appData, crete it
+                    string dirPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger";
+                    if (!Directory.Exists(dirPath))
+                    {
+                        Directory.CreateDirectory(dirPath);
+                    }
+
+                    string path = @"/home/pi/Github/Datalogger-Alistair-Pi/" + received;
+                    string temp = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger\" + Path.GetFileName(received);
+
+                    dataQueue.Enqueue("Downloading raw data...");
+                    using (FileStream stream = new FileStream(temp, FileMode.Create))
+                    {
+                        sftpclient.DownloadFile(path, stream);
+                    }
+                    sftpclient.Dispose();
+
+                    dataQueue.Enqueue("Converting data...");
+                    worker.ReportProgress(50);
+
+                    // Read from the file selected
+                    using (StreamReader reader = new StreamReader(temp))
+                    {
+                        // Read over header line
+                        reader.ReadLine();
+                        while (!reader.EndOfStream)
+                        {
+                            // Read each line and store the data in the logData object
+                            string[] line = reader.ReadLine().Split(',');
+                            tempLog.logData.timestamp.Add(Convert.ToDateTime(line[0]));
+                            tempLog.logData.time.Add(Convert.ToDouble(line[1]));
+                            List<double> rawData = new List<double>();
+                            List<double> convData = new List<double>();
+                            for (int i = 2; i < line.Length; i++)
+                            {
+                                rawData.Add(double.Parse(line[i]));
+                            }
+                            tempLog.logData.AddRawData(rawData);
+                            for (int i = 0; i < pins.Count; i++)
+                            {
+                                double convertedValue = rawData[i] * pins[i].m + pins[i].c;
+                                convData.Add(convertedValue);
+                            }
+                            tempLog.logData.AddConvData(convData);
+                        }
+                    }
+
+                    dataQueue.Enqueue("Finalising download...");
+                    worker.ReportProgress(80);
+                    // If there is already a log being processed, ask user if they want to merge logs
+                    if (DAP.processing == true)
+                    {
+                        DialogResult dialogResult = MessageBox.Show("Would you like to merge the imported log with the current log?\n" +
+                                                    "Otherwise the imported log will be added to the queue.",
+                                                    "Merge Logs?", MessageBoxButtons.YesNo);
+                        if (dialogResult == DialogResult.Yes)
+                        {
+                            // If they want to merge, receive the log with merge argument set to true
+                            DAP.logsProcessing.Add(tempLog);
+                            LogProc tempProc = new LogProc();
+                            tempProc.CreateProcFromConv(tempLog.logData);
+                            DAP.MergeLogs(tempProc);
+                            this.Invoke(new Action(() => { PopulateDataViewProc(DAP.logProc); }));
+                        }
+                        else
+                        {
+                            // Receive log with merge argument set to false
+                            DAP.logsToProc.Enqueue(tempLog);
+                        }
+                    }
+                    // If no log to merge with, receive and add to queue
                     else
                     {
-                        // Receive log with merge argument set to false
                         DAP.logsToProc.Enqueue(tempLog);
+                        // Dequeue next log and display
+                        if (DAP.logsToProc.Count > 0)
+                        {
+                            DAP.logsProcessing.Clear();
+                            DAP.logsProcessing.Add(DAP.logsToProc.Dequeue());
+                            DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].logData);
+                            this.Invoke(new Action(() => { PopulateDataViewProc(DAP.logProc); }));
+                            DAP.processing = true;
+                        }
                     }
-                }
-                // If no log to merge with, receive and add to queue
-                else
-                {
-                    DAP.logsToProc.Enqueue(tempLog);
-                    // Dequeue next log and display
-                    if (DAP.logsToProc.Count > 0)
-                    {
-                        DAP.logsProcessing.Clear();
-                        DAP.logsProcessing.Add(DAP.logsToProc.Dequeue());
-                        DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].logData);
-                        this.Invoke(new Action(() => { PopulateDataViewProc(DAP.logProc); }));
-                        DAP.processing = true;
-                    }
-                }
-                received = TCPReceive();
+                    received = TCPReceive();
 
+                }
+                worker.ReportProgress(100);
             }
-            worker.ReportProgress(100);
+            catch (Exception exp)
+            {
+                MessageBox.Show(exp.Message);
+                MessageBox.Show(exp.ToString());
+            }
         }
 
 
@@ -1020,7 +1034,7 @@ namespace SteerLoggerUser
             // Objective 8.4
             nudInterval.Value = Convert.ToDecimal(response);
             response = TCPReceive();
-            txtDescription.Text = response;
+            txtDescription.Text = response.Replace(";","\r\n");
             response = TCPReceive();
 
             // Recevie data for each pin until all pins have been received
@@ -1105,7 +1119,7 @@ namespace SteerLoggerUser
                                 }
                                 if (data[0] == "description")
                                 {
-                                    txtDescription.Text = data[1];
+                                    txtDescription.Text = data[1].Replace(";","\r\n");
                                 }
                             }
                             else
@@ -1207,7 +1221,9 @@ namespace SteerLoggerUser
             newLog.name = txtLogName.Text;
             newLog.time = nudInterval.Value;
             newLog.loggedBy = user;
-            newLog.description = txtDescription.Text;
+            string description = txtDescription.Text;
+            description = string.Join(";",description.Split(new string[] { "\r\n" }, StringSplitOptions.None));
+            newLog.description = description;
 
             ConfigFile newConfig = new ConfigFile();
             foreach (DataGridViewRow row in dgvInputSetup.Rows)
