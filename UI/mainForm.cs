@@ -1,5 +1,6 @@
 ﻿using System;
 using Renci.SshNet;
+using Excel = Microsoft.Office.Interop.Excel;
 using Renci.SshNet.Sftp;
 using System.Net.Sockets;
 using System.Net;
@@ -32,6 +33,7 @@ namespace SteerLoggerUser
         private Thread listener;
         public int pbValue;
         public ConcurrentQueue<string> dataQueue = new ConcurrentQueue<string>();
+        public Excel.Application excel = null;
 
         // Initialises the form
         public mainForm()
@@ -258,6 +260,10 @@ namespace SteerLoggerUser
                     MessageBox.Show("An error occured in the connection, please reconnect.");
                     stream.Close();
                     client.Close();
+                    while (tcpQueue.IsEmpty == false)
+                    {
+                        tcpQueue.TryDequeue(out string result);
+                    }
                     logger = "";
                     // Loads InputSetup grid with default values as cannot retrieve recent config
                     LoadDefaultConfig();
@@ -326,10 +332,10 @@ namespace SteerLoggerUser
             // Show DownloadForm which allows user to select which logs to download
             DownloadForm download = new DownloadForm(this, logsAvailable, "Logs", false);
             download.ShowDialog();
-            //ReceiveProgessFrom progressForm;
-            //progressForm = new ReceiveProgessFrom(this, pbValue);
-            //pbValue = 0;
-            //progressForm.Show();
+            ReceiveProgessFrom progressForm;
+            progressForm = new ReceiveProgessFrom(this, pbValue);
+            pbValue = 0;
+            progressForm.Show();
             // progressForm.Show();
             // Receive the selected logs using TCP
             // Objective 4.1
@@ -340,12 +346,13 @@ namespace SteerLoggerUser
             worker.DoWork += new DoWorkEventHandler(ReceiveLog);
             worker.ProgressChanged += new ProgressChangedEventHandler(ProgressChanged);
             worker.RunWorkerAsync();
-
+            //Task downloader = new Task(() => ReceiveLog());
+            //downloader.Start();
         }
 
         // Receive a full log from the logger
         // Objectives 4.1 and 13.3
-        private void ReceiveLog(object sender, DoWorkEventArgs e)
+        private void ReceiveLog(object sender, EventArgs e)
         {
             BackgroundWorker worker = sender as BackgroundWorker;
 
@@ -499,6 +506,10 @@ namespace SteerLoggerUser
                     TCPSend("Quit");
                     stream.Close();
                     client.Close();
+                    while (tcpQueue.IsEmpty == false)
+                    {
+                        tcpQueue.TryDequeue(out string result);
+                    }
                     logger = "";
                     this.Invoke(new Action(() => { lblConnection.Text = "You're not connected to a logger."; }));
                     return;
@@ -700,7 +711,7 @@ namespace SteerLoggerUser
                 dgvInputSetup.Rows.Add(rowData);
                 received = TCPReceive();
             }
-
+            SetupSimpleConf();
         }
 
         // Populates InputSetup grid with default values if recent config can't be gotten
@@ -763,6 +774,10 @@ namespace SteerLoggerUser
             {
                 stream.Close();
                 client.Close();
+                while (tcpQueue.IsEmpty == false)
+                {
+                    tcpQueue.TryDequeue(out string result);
+                }
                 throw new SocketException();
             }
         }
@@ -812,6 +827,10 @@ namespace SteerLoggerUser
                 MessageBox.Show("An error occured in the connection, please reconnect.");
                 stream.Close();
                 client.Close();
+                while (tcpQueue.IsEmpty == false)
+                {
+                    tcpQueue.TryDequeue(out string result);
+                }
                 logger = "";
                 try
                 {
@@ -827,6 +846,10 @@ namespace SteerLoggerUser
                 MessageBox.Show("An error occured in the connection, please reconnect.");
                 stream.Close();
                 client.Close();
+                while (tcpQueue.IsEmpty == false)
+                {
+                    tcpQueue.TryDequeue(out string result);
+                }
                 logger = "";
                 try
                 {
@@ -1398,6 +1421,10 @@ namespace SteerLoggerUser
             {
                 stream.Close();
                 client.Close();
+                while (tcpQueue.IsEmpty == false)
+                {
+                    tcpQueue.TryDequeue(out string result);
+                }
             }
             logger = "";
             lblConnection.Text = "You're not connected to a logger.";
@@ -1446,6 +1473,10 @@ namespace SteerLoggerUser
                     TCPSend("Quit");
                     stream.Close();
                     client.Close();
+                    while (tcpQueue.IsEmpty == false)
+                    {
+                        tcpQueue.TryDequeue(out string result);
+                    }
                 }
             }
             // If an error occurs, close stream and client anyway as program is exiting, don't need to alert user
@@ -1453,6 +1484,10 @@ namespace SteerLoggerUser
             {
                 stream.Close();
                 client.Close();
+                while (tcpQueue.IsEmpty == false)
+                {
+                    tcpQueue.TryDequeue(out string result);
+                }
             }
         }
 
@@ -1587,6 +1622,8 @@ namespace SteerLoggerUser
             worker.DoWork += new DoWorkEventHandler(ReceiveLog);
             worker.ProgressChanged += new ProgressChangedEventHandler(ProgressChanged);
             worker.RunWorkerAsync();
+            //Task downloader = new Task(() => ReceiveLog());
+            //downloader.Start();
         }
 
         // Dowload log CSV files
@@ -1825,8 +1862,15 @@ namespace SteerLoggerUser
             if (DAP.logProc.timestamp.Count != 0)
             {
                 // Create new excelForm to allow user to select how to export data
-                ExcelForm excelForm = new ExcelForm(DAP.logProc);
-                excelForm.ShowDialog();
+                ExcelForm excelForm = new ExcelForm(DAP.logProc, excel);
+                try
+                {
+                    excelForm.ShowDialog();
+                }
+                catch (System.Runtime.InteropServices.COMException)
+                {
+                    // Excel closed before form closed
+                }
             }
             else
             {

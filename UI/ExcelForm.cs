@@ -12,7 +12,10 @@ namespace SteerLoggerUser
     {
 
         // TO-DO close workbook nicely on crash
-
+        
+        // Global variables used to interface with Excel
+        private Excel.Application excel;
+        private Excel._Workbook workbook;
 
         // Stores data to export to Excel
         private LogProc logProc;
@@ -25,16 +28,22 @@ namespace SteerLoggerUser
         // Stores arrays of data to export to template
         private Dictionary<int[],string[]> exportingArrays = new Dictionary<int[],string[]>();
 
-        public ExcelForm(LogProc logToExp)
+        public ExcelForm(LogProc logToExp, Excel.Application excelApp)
         {
             InitializeComponent();
             logProc = logToExp;
+            excel = excelApp;
         }
 
         // Populate graph drop down menus with column headers
         private void ExcelForm_Load(object sender, EventArgs e)
         {
+            if (excel == null)
+            {
+                excel = new Excel.Application();
+            }
             dgvTemplate.SelectionChanged += new EventHandler(dgvTemplate_SelectionChanged);
+            this.FormClosed += new FormClosedEventHandler(ExcelFormClosed);
 
             pnlTemplate.Hide();
             pnlExportNew.Show();
@@ -72,12 +81,11 @@ namespace SteerLoggerUser
         // Export data to Excel by creating new workbook
         private void ExportNew()
         {
-            Excel.Application excel = new Excel.Application();
             try
             {
                 // Open Excel and create a new workbook and worksheet
-                Excel._Workbook excelWb = (Excel._Workbook)(excel.Workbooks.Add(Missing.Value));
-                Excel._Worksheet excelSheet = (Excel._Worksheet)excelWb.ActiveSheet;
+                workbook = (Excel._Workbook)(excel.Workbooks.Add(Missing.Value));
+                Excel._Worksheet excelSheet = (Excel._Worksheet)workbook.ActiveSheet;
 
                 // Write the column headers to the first row on the sheet
                 for (int i = 0; i < logProc.procheaders.Count; i++)
@@ -137,7 +145,7 @@ namespace SteerLoggerUser
                 // If user has selected to create graph, create one
                 if (ckbCreateGraph.Checked == true)
                 {
-                    CreateGraph(excelSheet, excelWb);
+                    CreateGraph(excelSheet, workbook);
                 }
 
                 // Allow user to see spreadsheet and control it
@@ -158,16 +166,16 @@ namespace SteerLoggerUser
 
                 MessageBox.Show(errorMessage, "Error");
                 MessageBox.Show(theException.ToString());
-                System.Runtime.InteropServices.Marshal.FinalReleaseComObject(excel);
+                //System.Runtime.InteropServices.Marshal.FinalReleaseComObject(excel);
             }  
         }
 
         // Creates a graph from two of the columns
         // Objective 14.3.2
-        private void CreateGraph(Excel._Worksheet excelSheet, Excel._Workbook excelWb)
+        private void CreateGraph(Excel._Worksheet excelSheet, Excel._Workbook workbook)
         {
             // Create new Excel chart        
-            Excel._Chart chart = (Excel._Chart)excelWb.Charts.Add(Missing.Value, Missing.Value,
+            Excel._Chart chart = (Excel._Chart)workbook.Charts.Add(Missing.Value, Missing.Value,
             Missing.Value, Missing.Value);
 
             // Get cell range for X axis column
@@ -296,14 +304,13 @@ namespace SteerLoggerUser
                 return;
             }
 
-            Excel.Application excel = new Excel.Application();
             try
             {
-                Excel._Workbook excelWb = (Excel._Workbook)(excel.Workbooks.Open(path));
+                workbook = (Excel._Workbook)(excel.Workbooks.Open(path));
                 Excel._Worksheet template = new Excel.Worksheet();
                 cmbTemplate.Items.Clear();
                 // Enumerate sheets in workbook
-                foreach (Excel._Worksheet worksheet in excelWb.Sheets)
+                foreach (Excel._Worksheet worksheet in workbook.Sheets)
                 {
                     cmbTemplate.Items.Add(worksheet.Name);
                 }
@@ -320,7 +327,7 @@ namespace SteerLoggerUser
                 MessageBox.Show(errorMessage, "Error");
                 MessageBox.Show(theException.ToString());
             }
-            System.Runtime.InteropServices.Marshal.FinalReleaseComObject(excel);
+            //System.Runtime.InteropServices.Marshal.FinalReleaseComObject(excel);
         }
 
         private void dgvTemplate_SelectionChanged(object sender, EventArgs e)
@@ -402,13 +409,12 @@ namespace SteerLoggerUser
                 MessageBox.Show("Please input a name for the new sheet.");
                 return;
             }
-            Excel.Application excel = new Excel.Application();
             try
             {
-                Excel._Workbook excelWb = (Excel._Workbook)(excel.Workbooks.Open(path));
+                workbook = (Excel._Workbook)(excel.Workbooks.Open(path));
                 Excel._Worksheet template = new Excel.Worksheet();
                 // Enumerate sheets in workbook
-                foreach (Excel._Worksheet worksheet in excelWb.Sheets)
+                foreach (Excel._Worksheet worksheet in workbook.Sheets)
                 {
                     if (worksheet.Name == cmbTemplate.SelectedItem.ToString())
                     {
@@ -418,9 +424,9 @@ namespace SteerLoggerUser
                     if (worksheet.Name == name)
                     {
                         MessageBox.Show("There is already a sheet with that name.");
-                        excelWb.Close();
-                        System.Runtime.InteropServices.Marshal.FinalReleaseComObject(excelWb);
-                        System.Runtime.InteropServices.Marshal.FinalReleaseComObject(excel);
+                        workbook.Close();
+                        System.Runtime.InteropServices.Marshal.FinalReleaseComObject(workbook);
+                        //System.Runtime.InteropServices.Marshal.FinalReleaseComObject(excel);
                         return;
                     }
                 }
@@ -430,7 +436,7 @@ namespace SteerLoggerUser
                 template.Copy(template);
 
                 // Rename template sheet to user defined name
-                Excel._Worksheet excelSheet = excelWb.ActiveSheet;
+                Excel._Worksheet excelSheet = workbook.ActiveSheet;
                 excelSheet.Name = name;
 
                 foreach (int[] key in exportingArrays.Keys)
@@ -462,20 +468,19 @@ namespace SteerLoggerUser
 
                 MessageBox.Show(errorMessage, "Error");
                 MessageBox.Show(theException.ToString());
-                System.Runtime.InteropServices.Marshal.FinalReleaseComObject(excel);
+                //System.Runtime.InteropServices.Marshal.FinalReleaseComObject(excel);
             }
         }
 
         private void cmdLoadTemplate_Click(object sender, EventArgs e)
         {
             // Read data into dgvtemplate
-            Excel.Application excel = new Excel.Application();
             try
             {
-                Excel._Workbook excelWb = (Excel._Workbook)(excel.Workbooks.Open(path));
+                workbook = (Excel._Workbook)(excel.Workbooks.Open(path));
                 Excel._Worksheet template = new Excel.Worksheet();
                 // Enumerate sheets in workbook
-                foreach (Excel._Worksheet worksheet in excelWb.Sheets)
+                foreach (Excel._Worksheet worksheet in workbook.Sheets)
                 {
                     if (worksheet.Name == cmbTemplate.SelectedItem.ToString())
                     {
@@ -516,9 +521,9 @@ namespace SteerLoggerUser
                     dgvTemplate.Rows[i - 1].HeaderCell.Value = i.ToString();
                 }
 
-                excelWb.Close();
-                System.Runtime.InteropServices.Marshal.FinalReleaseComObject(excelWb);
-                System.Runtime.InteropServices.Marshal.FinalReleaseComObject(excel);
+                workbook.Close();
+                System.Runtime.InteropServices.Marshal.FinalReleaseComObject(workbook);
+                //System.Runtime.InteropServices.Marshal.FinalReleaseComObject(excel);
             }
             // Catch any exceptions and report to user
             catch (Exception theException)
@@ -532,7 +537,23 @@ namespace SteerLoggerUser
                 MessageBox.Show(errorMessage, "Error");
                 MessageBox.Show(theException.ToString());
             }
-            System.Runtime.InteropServices.Marshal.FinalReleaseComObject(excel);
+            //System.Runtime.InteropServices.Marshal.FinalReleaseComObject(excel);
+        }
+
+        private void ExcelFormClosed(object sender, FormClosedEventArgs e)
+        {
+            // Close instance of Excel application
+            //try
+            //{
+            //    workbook.Close(true);
+            //    System.Runtime.InteropServices.Marshal.FinalReleaseComObject(workbook);
+            //    excel.Quit();
+            //   System.Runtime.InteropServices.Marshal.FinalReleaseComObject(excel);
+            //}
+            //catch (System.Runtime.InteropServices.COMException)
+            //{
+            //    // Excel closed before form
+            //}
         }
     }
 }
