@@ -606,6 +606,10 @@ namespace SteerLoggerUser
                 }
                 worker.ReportProgress(100);
             }
+            catch (SocketException)
+            {
+                MessageBox.Show("Error occured in connection, please reconnect.");
+            }
             catch (Exception exp)
             {
                 MessageBox.Show(exp.Message);
