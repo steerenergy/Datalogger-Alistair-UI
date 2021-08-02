@@ -1659,49 +1659,56 @@ namespace SteerLoggerUser
         // Objective 13
         private void cmdImportLogPi_Click(object sender, EventArgs e)
         {
-            // Create new DatabaseSearchForm so user can search for logs
-            // Objective 13.1
-            DatabaseSearchForm databaseSearch = new DatabaseSearchForm(this);
-            databaseSearch.ShowDialog();
-            if (databaseSearch.cancelled)
+            try
             {
-                return;
-            }
-            List<LogMeta> logsAvailable = new List<LogMeta>();
-            string response = TCPReceive();
-            if (response == "No Logs Match Criteria")
-            {
-                MessageBox.Show("No logs match criteria.");
-                return;
-            }
-            // Receive list of logs the meet the search criteria.
-            while (response != "EoT")
-            {
-                string[] data = response.Split(',');
-                LogMeta newLog = new LogMeta();
-                newLog.id = Convert.ToInt32(data[0]);
-                newLog.name = data[1];
-                newLog.date = data[2];
-                newLog.size = (data[3] == "None") ? 0 : Convert.ToInt32(data[3]);
-                logsAvailable.Add(newLog);
-                response = TCPReceive();
-            }
-            // Create new DownloadForm so user can select logs to download
-            // Objective 13.2
-            DownloadForm download = new DownloadForm(this, logsAvailable, "Logs", false);
-            download.ShowDialog();
-            ReceiveProgessFrom progressForm;
-            progressForm = new ReceiveProgessFrom(this, pbValue);
-            progressForm.Show();
-            pbValue = 0;
+                // Create new DatabaseSearchForm so user can search for logs
+                // Objective 13.1
+                DatabaseSearchForm databaseSearch = new DatabaseSearchForm(this);
+                databaseSearch.ShowDialog();
+                if (databaseSearch.cancelled)
+                {
+                    return;
+                }
+                List<LogMeta> logsAvailable = new List<LogMeta>();
+                string response = TCPReceive();
+                if (response == "No Logs Match Criteria")
+                {
+                    MessageBox.Show("No logs match criteria.");
+                    return;
+                }
+                // Receive list of logs the meet the search criteria.
+                while (response != "EoT")
+                {
+                    string[] data = response.Split(',');
+                    LogMeta newLog = new LogMeta();
+                    newLog.id = Convert.ToInt32(data[0]);
+                    newLog.name = data[1];
+                    newLog.date = data[2];
+                    newLog.size = (data[3] == "None") ? 0 : Convert.ToInt32(data[3]);
+                    logsAvailable.Add(newLog);
+                    response = TCPReceive();
+                }
+                // Create new DownloadForm so user can select logs to download
+                // Objective 13.2
+                DownloadForm download = new DownloadForm(this, logsAvailable, "Logs", false);
+                download.ShowDialog();
+                ReceiveProgessFrom progressForm;
+                progressForm = new ReceiveProgessFrom(this, pbValue);
+                progressForm.Show();
+                pbValue = 0;
 
-            BackgroundWorker worker = new BackgroundWorker();
-            worker.WorkerReportsProgress = true;
-            worker.DoWork += new DoWorkEventHandler(ReceiveLog);
-            worker.ProgressChanged += new ProgressChangedEventHandler(ProgressChanged);
-            worker.RunWorkerAsync();
-            //Task downloader = new Task(() => ReceiveLog());
-            //downloader.Start();
+                BackgroundWorker worker = new BackgroundWorker();
+                worker.WorkerReportsProgress = true;
+                worker.DoWork += new DoWorkEventHandler(ReceiveLog);
+                worker.ProgressChanged += new ProgressChangedEventHandler(ProgressChanged);
+                worker.RunWorkerAsync();
+                //Task downloader = new Task(() => ReceiveLog());
+                //downloader.Start();
+            }
+            catch (SocketException)
+            {
+                MessageBox.Show("An error occured in the connection, or you are not connected. Please reconnect.");
+            }
         }
 
         // Dowload log CSV files
