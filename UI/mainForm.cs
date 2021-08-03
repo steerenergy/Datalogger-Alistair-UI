@@ -38,11 +38,9 @@ namespace SteerLoggerUser
         // Initialises the form
         public mainForm()
         {
-
             // Add custom function that is run when the form is closed to close TCP connection
             this.FormClosed += new FormClosedEventHandler(MainFormClosed);
             InitializeComponent();
-
         }
 
         // Reads program config
@@ -52,7 +50,7 @@ namespace SteerLoggerUser
         {
             progConfig = new ProgConfig();
             // Opens config using StreamReader
-            using (StreamReader reader = new StreamReader(Application.StartupPath + "\\progConf.ini"))
+            using (StreamReader reader = new StreamReader(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger\progConf.ini"))
             {
                 string line = "";
                 char[] trimChars = new char[] { '\n', ' ' };
@@ -133,7 +131,7 @@ namespace SteerLoggerUser
                 }
             }
             // Read in simple config pins
-            using (StreamReader reader = new StreamReader(Application.StartupPath + "\\configPresets.csv"))
+            using (StreamReader reader = new StreamReader(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger\configPresets.csv"))
             {
                 // Read header line and ignore
                 reader.ReadLine();
@@ -175,9 +173,57 @@ namespace SteerLoggerUser
             SetupSimpleConf();
         }
 
+
+        private void InitialiseAppData()
+        {
+            // If SteerLogger directory doesn't exist in appData, crete it
+            string dirPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger";
+            if (!Directory.Exists(dirPath))
+            {
+                Directory.CreateDirectory(dirPath);
+            }
+
+            // If progConf.ini and configPresets.csv are not in the appData directory, add them
+            string[] files = { "progConf.ini", "configPresets.csv" };
+            foreach (string filename in files)
+            {
+                string output = dirPath + @"\" + filename;
+                string file = Application.StartupPath + @"\" + filename;
+                if (!File.Exists(output))
+                {
+                    File.Copy(filename, output);
+                }
+            }
+
+            // If SteerLogger directory doesn't exist in appData, crete it
+            dirPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger\pythonScripts";
+            if (!Directory.Exists(dirPath))
+            {
+                Directory.CreateDirectory(dirPath);
+            }
+
+            // Add python files to appData directory
+            string[] filePaths = Directory.GetFiles(Application.StartupPath + @"\pythonScripts");
+            foreach (var filename in filePaths)
+            {
+                string file = filename.ToString();
+
+                //Do your job with "file"  
+                string str = dirPath + file.ToString().Replace(Application.StartupPath + @"\pythonScripts", "");
+                if (!File.Exists(str))
+                {
+                    File.Copy(file, str);
+                }
+            }
+        }
+
+
         // Loads the mainForm
         private void mainForm_Load(object sender, EventArgs e)
         {
+            // Initialises appData and copies required files there
+            InitialiseAppData();
+
             // Reads the program config file
             // Objective 1
             ReadProgConfig();
@@ -196,6 +242,8 @@ namespace SteerLoggerUser
             // Set logger and name of user
             logger = connectForm.logger;
             user = connectForm.user;
+            // Clear up resources
+            connectForm.Dispose();
 
             if (logger == "")
             {
@@ -315,6 +363,8 @@ namespace SteerLoggerUser
             // Show DownloadForm which allows user to select which logs to download
             DownloadForm download = new DownloadForm(this, logsAvailable, "Logs", false);
             download.ShowDialog();
+            // Clear up resources
+            download.Dispose();
             ReceiveProgessFrom progressForm;
             progressForm = new ReceiveProgessFrom(this, pbValue);
             pbValue = 0;
@@ -544,7 +594,7 @@ namespace SteerLoggerUser
                 }
                 worker.ReportProgress(100);
             }
-            catch (SocketException)
+            catch (SocketException exp)
             {
                 MessageBox.Show("Error occured in connection, please reconnect.");
             }
@@ -560,39 +610,6 @@ namespace SteerLoggerUser
         {
             pbValue = e.ProgressPercentage;
         }
-
-
-        // Clear and add header line to DataProc grid
-        private void AddHeaderDataViewProc(List<string> procHeaders)
-        {
-            // Clear grid
-            dgvDataProc.Rows.Clear();
-            dgvDataProc.Columns.Clear();
-            // Create columns and set the header text to log headers
-            foreach (string header in procHeaders)
-            {
-                DataGridViewColumn tempColumn = new DataGridViewColumn();
-                tempColumn.Name = header.Split('|')[0];
-                tempColumn.HeaderText = header;
-                tempColumn.CellTemplate = new DataGridViewTextBoxCell();
-                dgvDataProc.Columns.Add(tempColumn);
-            }
-        }
-
-
-        // Add row of data to DataProc grid
-        private void AddRowDataViewProc(DateTime timestamp, decimal time, List<decimal> data)
-        {
-            List<string> newRow = new List<string>();
-            newRow.Add(timestamp.ToString("yyyy/MM/dd HH:mm:ss.fff"));
-            newRow.Add(time.ToString());
-            foreach (decimal point in data)
-            {
-                newRow.Add(point.ToString());
-            }
-            dgvDataProc.Rows.Add(newRow.ToArray());
-        }
-
 
 
         // Display logProc in DataProc grid
@@ -1947,12 +1964,10 @@ namespace SteerLoggerUser
                 return;
             }
 
-            // If SteerLogger directory doesn't exist in appData, crete it
+            // Make sure scripts and files are in appData
+            InitialiseAppData();
             string dirPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger";
-            if (!Directory.Exists(dirPath))
-            {
-                Directory.CreateDirectory(dirPath);
-            }
+            ofdPythonScript.InitialDirectory = dirPath + @"\pythonScripts";
 
             // Save data to temporary csv in appData directory
             SaveProcCsv(DAP.logProc, dirPath + @"\temp.csv");
@@ -2059,12 +2074,10 @@ namespace SteerLoggerUser
                 return;
             }
 
-            // If SteerLogger directory doesn't exist in appData, crete it
+            // Make sure scripts and files are in appData
+            InitialiseAppData();
             string dirPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger";
-            if (!Directory.Exists(dirPath))
-            {
-                Directory.CreateDirectory(dirPath);
-            }
+            ofdPythonScript.InitialDirectory = dirPath + @"\pythonScripts";
 
             // Save data to temporary csv in python script directory
             SaveProcCsv(DAP.logProc, dirPath + @"\temp.csv");

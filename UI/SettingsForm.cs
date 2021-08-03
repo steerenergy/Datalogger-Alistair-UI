@@ -127,7 +127,7 @@ namespace SteerLoggerUser
         {
             List<string> lines = new List<string>();
             // Opens config using StreamReader
-            using (StreamReader reader = new StreamReader(Application.StartupPath + "\\progConf.ini"))
+            using (StreamReader reader = new StreamReader(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger\progConf.ini"))
             {
                 string line = "";
                 char[] trimChars = new char[] { '\n', ' ' };
@@ -143,7 +143,7 @@ namespace SteerLoggerUser
                 }
             }
 
-            using (StreamWriter writer = new StreamWriter(Application.StartupPath + "\\progConf.ini"))
+            using (StreamWriter writer = new StreamWriter(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger\progConf.ini"))
             {
                 foreach (string line in lines)
                 {

@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(mainForm));
             this.pnlCtrlConf = new System.Windows.Forms.Panel();
             this.cmdImportConfFile = new System.Windows.Forms.Button();
@@ -399,9 +399,9 @@
             this.dgvInputSetup.Name = "dgvInputSetup";
             this.dgvInputSetup.RowHeadersVisible = false;
             this.dgvInputSetup.RowHeadersWidth = 51;
-            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dgvInputSetup.RowsDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dgvInputSetup.RowsDefaultCellStyle = dataGridViewCellStyle4;
             this.dgvInputSetup.Size = new System.Drawing.Size(607, 379);
             this.dgvInputSetup.TabIndex = 5;
             this.dgvInputSetup.Visible = false;
@@ -676,7 +676,7 @@
             // ofdPythonScript
             // 
             this.ofdPythonScript.DefaultExt = "py";
-            this.ofdPythonScript.InitialDirectory = "..\\..\\pythonScripts";
+            this.ofdPythonScript.Filter = "Python Files (*.py)|*.py|All files (*.*)|*.*";
             // 
             // lblLogDisplay
             // 
