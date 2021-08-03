@@ -3,6 +3,7 @@ using Renci.SshNet;
 using Excel = Microsoft.Office.Interop.Excel;
 using Renci.SshNet.Sftp;
 using System.Net.Sockets;
+using System.Data;
 using System.Net;
 using System.Collections.Generic;
 using System.Drawing;
@@ -445,25 +446,25 @@ namespace SteerLoggerUser
                     // progressForm.UpdateTextBox("Receiving log data...");
                     received = TCPReceive();
                     // Set up rawheaders and convheaders for LogData object
-                    tempLog.logData = new LogData();
-                    tempLog.logData.rawheaders = new List<string> { "Date/Time", "Time (seconds)" };
-                    tempLog.logData.convheaders = new List<string> { "Date/Time", "Time (seconds)" };
+                    //tempLog.logData = new LogData();
+                    //tempLog.logData.rawheaders = new List<string> { "Date/Time", "Time (seconds)" };
+                    //tempLog.logData.convheaders = new List<string> ();
                     int pinNum = 0;
-                    List<string> rawHeaders = new List<string>();
-                    List<string> convHeaders = new List<string>();
+                    //List<string> rawHeaders = new List<string>();
+                    List<string> convHeaders = new List<string> { "Date/Time", "Time (seconds)" };
                     // Use config file to write pin headers to rawheaders and convheaders
                     foreach (Pin pin in tempLog.config.pinList)
                     {
                         if (pin.enabled == true)
                         {
                             pinNum += 1;
-                            rawHeaders.Add(pin.name);
-                            convHeaders.Add(pin.fName + "|" + pin.units);
+                            //rawHeaders.Add(pin.name);
+                            convHeaders.Add(pin.fName + " | " + pin.units);
                         }
                     }
-                    tempLog.logData.rawheaders.AddRange(rawHeaders);
-                    tempLog.logData.convheaders.AddRange(convHeaders);
-                    tempLog.logData.InitRawConv(pinNum);
+                    //tempLog.logData.rawheaders.AddRange(rawHeaders);
+                    //tempLog.logData.convheaders.AddRange(convHeaders);
+                    //tempLog.logData.InitRawConv(pinNum);
                     // AddHeaderDataViewProc(tempLog.logData.convheaders);
                     List<Pin> pins = new List<Pin>();
                     foreach (Pin pin in tempLog.config.pinList)
@@ -518,35 +519,54 @@ namespace SteerLoggerUser
                     }
                     sftpclient.Dispose();
 
+                    tempLog.raw = temp;
+
                     dataQueue.Enqueue("Converting data...");
                     worker.ReportProgress(50);
+
 
                     // Read from the file selected
                     using (StreamReader reader = new StreamReader(temp))
                     {
-                        // Read over header line
-                        reader.ReadLine();
-                        while (!reader.EndOfStream)
+                        using (StreamWriter writer = new StreamWriter(temp.Replace("raw", "converted")))
                         {
-                            // Read each line and store the data in the logData object
-                            string[] line = reader.ReadLine().Split(',');
-                            tempLog.logData.timestamp.Add(Convert.ToDateTime(line[0]));
-                            tempLog.logData.time.Add(Convert.ToDouble(line[1]));
-                            List<double> rawData = new List<double>();
-                            List<double> convData = new List<double>();
-                            for (int i = 2; i < line.Length; i++)
+                            // Read over header line
+                            reader.ReadLine();
+                            writer.WriteLine(string.Join(",",convHeaders));
+                            while (!reader.EndOfStream)
                             {
-                                rawData.Add(double.Parse(line[i]));
+                                // Read each line and store the data in the logData object
+                                string[] line = reader.ReadLine().Split(',');
+                                string output = String.Format("{0},{1}",line[0],line[1]);
+
+                                for (int i = 2; i < line.Length; i++)
+                                {
+                                    output += String.Format(",{0}", double.Parse(line[i]) * pins[i - 2].m + pins[i - 2].c);
+                                }
+                                writer.WriteLine(output);
+                                
+                                /*
+                                tempLog.logData.timestamp.Add(Convert.ToDateTime(line[0]));
+                                tempLog.logData.time.Add(Convert.ToDouble(line[1]));
+                                List<double> rawData = new List<double>();
+                                List<double> convData = new List<double>();
+                                for (int i = 2; i < line.Length; i++)
+                                {
+                                    rawData.Add(double.Parse(line[i]));
+                                }
+                                tempLog.logData.AddRawData(rawData);
+                                for (int i = 0; i < pins.Count; i++)
+                                {
+                                    double convertedValue = rawData[i] * pins[i].m + pins[i].c;
+                                    convData.Add(convertedValue);
+                                }
+                                tempLog.logData.AddConvData(convData);
+                                */
                             }
-                            tempLog.logData.AddRawData(rawData);
-                            for (int i = 0; i < pins.Count; i++)
-                            {
-                                double convertedValue = rawData[i] * pins[i].m + pins[i].c;
-                                convData.Add(convertedValue);
-                            }
-                            tempLog.logData.AddConvData(convData);
                         }
                     }
+
+                    tempLog.conv = tempLog.raw.Replace("raw", "converted");
 
                     dataQueue.Enqueue("Finalising download...");
                     worker.ReportProgress(80);
@@ -561,7 +581,7 @@ namespace SteerLoggerUser
                             // If they want to merge, receive the log with merge argument set to true
                             DAP.logsProcessing.Add(tempLog);
                             LogProc tempProc = new LogProc();
-                            tempProc.CreateProcFromConv(tempLog.logData);
+                            tempProc.CreateProcFromConv(tempLog.conv);
                             DAP.MergeLogs(tempProc);
                             this.Invoke(new Action(() => { lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name; }));
                             this.Invoke(new Action(() => { PopulateDataViewProc(DAP.logProc); }));
@@ -583,7 +603,7 @@ namespace SteerLoggerUser
                             this.Invoke(new Action(() => { pnlDataProc.Show(); }));
                             DAP.logsProcessing.Clear();
                             DAP.logsProcessing.Add(DAP.logsToProc.Dequeue());
-                            DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].logData);
+                            DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].conv);
                             this.Invoke(new Action(() => { lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name; }));
                             this.Invoke(new Action(() => { PopulateDataViewProc(DAP.logProc); }));
                             DAP.processing = true;
@@ -593,16 +613,42 @@ namespace SteerLoggerUser
 
                 }
                 worker.ReportProgress(100);
+                worker.Dispose();
             }
             catch (SocketException exp)
             {
                 MessageBox.Show("Error occured in connection, please reconnect.");
+                dataQueue.Enqueue("Error occurred. Aborting!");
+                MessageBox.Show("Failed to download, check that Pi has FTP/SSH enabled.");
+                TCPSend("Quit");
+                stream.Close();
+                client.Close();
+                while (tcpQueue.IsEmpty == false)
+                {
+                    tcpQueue.TryDequeue(out string result);
+                }
+                logger = "";
+                this.Invoke(new Action(() => { lblConnection.Text = "You're not connected to a logger."; }));
+                return;
             }
             catch (Exception exp)
             {
                 MessageBox.Show(exp.Message);
                 MessageBox.Show(exp.ToString());
+                dataQueue.Enqueue("Error occurred. Aborting!");
+                MessageBox.Show("Failed to download, check that Pi has FTP/SSH enabled.");
+                TCPSend("Quit");
+                stream.Close();
+                client.Close();
+                while (tcpQueue.IsEmpty == false)
+                {
+                    tcpQueue.TryDequeue(out string result);
+                }
+                logger = "";
+                this.Invoke(new Action(() => { lblConnection.Text = "You're not connected to a logger."; }));
+                return;
             }
+            
         }
 
 
@@ -616,9 +662,39 @@ namespace SteerLoggerUser
         // Objectives 4.2 and 15.2
         private void PopulateDataViewProc(LogProc logToShow)
         {
-            // Clear grid
-            dgvDataProc.Rows.Clear();
-            dgvDataProc.Columns.Clear();
+            DataTable table = new DataTable();
+            foreach (string header in logToShow.procheaders)
+            {
+                if (header == "Date/Time")
+                {
+                    table.Columns.Add(header, typeof(DateTime));
+                }
+                else 
+                {
+                    table.Columns.Add(header, typeof(double));
+                }
+            }
+
+            // Enumerate through logProc and add data to grid
+            for (int i = 0; i < logToShow.timestamp.Count; i++)
+            {
+                object[] row = new object[table.Columns.Count];
+                row[0] = logToShow.timestamp[i];
+                row[1] = logToShow.time[i];
+                
+                int len = table.Columns.Count - 2;
+                for (int j = 0; j < len; j ++)
+                {
+                    row[j + 2] = logToShow.procData[j][i];
+                }
+                table.Rows.Add(row);
+            }
+            dgvDataProc.DataSource = table;
+            dgvDataProc.Columns[0].DefaultCellStyle.Format = "yyyy/MM/dd HH:mm:ss.fff";
+
+
+
+            /*
             // Create columns and set the header text to log headers
             foreach (string header in logToShow.procheaders)
             {
@@ -639,7 +715,7 @@ namespace SteerLoggerUser
                     newRow.Add(column[i].ToString());
                 }
                 dgvDataProc.Rows.Add(newRow.ToArray());
-            }
+            }*/
         }
 
         // Gets the most recently used config from the logger
@@ -956,8 +1032,6 @@ namespace SteerLoggerUser
         {
             if (DAP.processing == false)
             {
-                dgvDataProc.Rows.Clear();
-                dgvDataProc.Columns.Clear();
                 return;
             }
             // If the data there is being processed, ask if user wants to save before clearing
@@ -966,26 +1040,29 @@ namespace SteerLoggerUser
             {
                 cmdDwnldCsv.PerformClick();
             }
-            else if (dialogResult == DialogResult.No)
+            else if (dialogResult == DialogResult.Cancel)
             {
+                return;
+            }
+
+            // If there is a log in the processing queue, display that log
+            if (DAP.logsToProc.Count > 0)
+            {
+                DAP.logsProcessing.Clear();
+                DAP.logsProcessing.Add(DAP.logsToProc.Dequeue());
+                DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].conv);
+                lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name;
+                PopulateDataViewProc(DAP.logProc);
+                DAP.processing = true;
+            }
+            else
+            {
+                DAP.logsProcessing.Clear();
+                lblLogDisplay.Text = "No Log Displaying";
+                DAP.processing = false;
+                dgvDataProc.DataSource = null;
                 dgvDataProc.Rows.Clear();
                 dgvDataProc.Columns.Clear();
-                // If there is a log in the processing queue, display that log
-                if (DAP.logsToProc.Count > 0)
-                {
-                    DAP.logsProcessing.Clear();
-                    DAP.logsProcessing.Add(DAP.logsToProc.Dequeue());
-                    DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].logData);
-                    lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name;
-                    PopulateDataViewProc(DAP.logProc);
-                    DAP.processing = true;
-                }
-                else
-                {
-                    DAP.logsProcessing.Clear();
-                    lblLogDisplay.Text = "No Log Displaying";
-                    DAP.processing = false;
-                }
             }
         }
 
@@ -1564,31 +1641,80 @@ namespace SteerLoggerUser
         {
             // Create new logMeta and logData to hold log
             LogMeta logMeta = new LogMeta();
-            logMeta.logData = new LogData();
+            //logMeta.logData = new LogData();
             if (ofdLog.ShowDialog() == DialogResult.OK)
             {
                 // Set log name to name of file imported
                 logMeta.name = ofdLog.SafeFileName.Replace("converted-", "");
                 logMeta.name = logMeta.name.Replace(".csv", "");
-                // Read from the file selected
-                using (StreamReader reader = new StreamReader(ofdLog.OpenFile()))
+                logMeta.conv = ofdLog.FileName;
+                //// Read from the file selected
+                //using (StreamReader reader = new StreamReader(ofdLog.OpenFile()))
+                //{
+                //    // Read the headerline and set convheaders
+                //    logMeta.logData.convheaders.AddRange(reader.ReadLine().Split(','));
+                //    // Initialise convData using the number of headers
+                //    logMeta.logData.InitRawConv(logMeta.logData.convheaders.Count - 2);
+                //    while (!reader.EndOfStream)
+                //    {
+                //        // Read each line and store the data in the logData object
+                //        string[] line = reader.ReadLine().Split(',');
+                //        logMeta.logData.timestamp.Add(Convert.ToDateTime(line[0]));
+                //        logMeta.logData.time.Add(Convert.ToDouble(line[1]));
+                //        List<double> convData = new List<double>();
+                //        for (int i = 2; i < line.Length; i++)
+                //        {
+                //            convData.Add(double.Parse(line[i]));
+                //        }
+                //        logMeta.logData.AddConvData(convData);
+                //    }
+                //}
+                // If there is already a log being processed, allow user to merge logs
+                if (DAP.processing == true)
                 {
-                    // Read the headerline and set convheaders
-                    logMeta.logData.convheaders.AddRange(reader.ReadLine().Split(','));
-                    // Initialise convData using the number of headers
-                    logMeta.logData.InitRawConv(logMeta.logData.convheaders.Count - 2);
-                    while (!reader.EndOfStream)
+                    DialogResult dialogResult = MessageBox.Show("Would you like to merge the imported log with the current log?\n" +
+                                                                "Otherwise the imported log will be added to the queue.",
+                                                                "Merge Logs?", MessageBoxButtons.YesNo);
+                    if (dialogResult == DialogResult.Yes)
                     {
-                        // Read each line and store the data in the logData object
-                        string[] line = reader.ReadLine().Split(',');
-                        logMeta.logData.timestamp.Add(Convert.ToDateTime(line[0]));
-                        logMeta.logData.time.Add(Convert.ToDouble(line[1]));
-                        List<double> convData = new List<double>();
-                        for (int i = 2; i < line.Length; i++)
-                        {
-                            convData.Add(double.Parse(line[i]));
-                        }
-                        logMeta.logData.AddConvData(convData);
+                        // If select to merge, create new logProc from imported log
+                        DAP.logsProcessing.Add(logMeta);
+                        LogProc tempProc = new LogProc();
+                        tempProc.CreateProcFromConv(logMeta.conv);
+                        // Merge logs together
+                        DAP.MergeLogs(tempProc);
+                        //dgvDataProc.Columns.Clear();
+                        // Update data display
+                        lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name;
+                        PopulateDataViewProc(DAP.logProc);
+                    }
+                    else
+                    {
+                        // If not selected to merge, enqueue imported log
+                        DAP.logsToProc.Enqueue(logMeta);
+                        // Dequeue next log and display it
+                        //if (DAP.logsToProc.Count > 0)
+                        //{
+                        //    DAP.logsProcessing.Clear();
+                        //    DAP.logsProcessing.Add(DAP.logsToProc.Dequeue());
+                        //    DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].logData);
+                        //    PopulateDataViewProc(DAP.logProc);
+                        //}
+                    }
+                }
+                else
+                {
+                    // Enqueue imported log
+                    DAP.logsToProc.Enqueue(logMeta);
+                    // Dequeue next log and display it
+                    if (DAP.logsToProc.Count > 0)
+                    {
+                        DAP.logsProcessing.Clear();
+                        DAP.logsProcessing.Add(DAP.logsToProc.Dequeue());
+                        DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].conv);
+                        lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name;
+                        PopulateDataViewProc(DAP.logProc);
+                        DAP.processing = true;
                     }
                 }
             }
@@ -1597,53 +1723,7 @@ namespace SteerLoggerUser
             {
                 return;
             }
-            // If there is already a log being processed, allow user to merge logs
-            if (DAP.processing == true)
-            {
-                DialogResult dialogResult = MessageBox.Show("Would you like to merge the imported log with the current log?\n" +
-                                                            "Otherwise the imported log will be added to the queue.",
-                                                            "Merge Logs?", MessageBoxButtons.YesNo);
-                if (dialogResult == DialogResult.Yes)
-                {
-                    // If select to merge, create new logProc from imported log
-                    DAP.logsProcessing.Add(logMeta);
-                    LogProc tempProc = new LogProc();
-                    tempProc.CreateProcFromConv(logMeta.logData);
-                    // Merge logs together
-                    dgvDataProc.Columns.Clear();
-                    // Update data display
-                    lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name;
-                    PopulateDataViewProc(DAP.logProc);
-                }
-                else
-                {
-                    // If not selected to merge, enqueue imported log
-                    DAP.logsToProc.Enqueue(logMeta);
-                    // Dequeue next log and display it
-                    //if (DAP.logsToProc.Count > 0)
-                    //{
-                    //    DAP.logsProcessing.Clear();
-                    //    DAP.logsProcessing.Add(DAP.logsToProc.Dequeue());
-                    //    DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].logData);
-                    //    PopulateDataViewProc(DAP.logProc);
-                    //}
-                }
-            }
-            else
-            {
-                // Enqueue imported log
-                DAP.logsToProc.Enqueue(logMeta);
-                // Dequeue next log and display it
-                if (DAP.logsToProc.Count > 0)
-                {
-                    DAP.logsProcessing.Clear();
-                    DAP.logsProcessing.Add(DAP.logsToProc.Dequeue());
-                    DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].logData);
-                    lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name;
-                    PopulateDataViewProc(DAP.logProc);
-                    DAP.processing = true;
-                }
-            }
+
         }
 
         // Imports log from Pi
@@ -1730,7 +1810,7 @@ namespace SteerLoggerUser
                     }
                 }
                 // If a log has raw data, allow user to save raw data csv on local machine
-                if (log.logData.rawData[0].Count != 0)
+                if (log.raw != null || log.raw != "")
                 {
                     sfdLog.FileName = "raw-" + log.name + "-" + log.date + ".csv";
                     sfdLog.DefaultExt = "csv";
@@ -1739,7 +1819,12 @@ namespace SteerLoggerUser
                         try
                         {
                             // Write raw data csv to specified location
-                            SaveRawCsv(log.logData, sfdLog.FileName);
+                            SaveCsv(log.raw, sfdLog.FileName);
+                        }
+                        catch (FileNotFoundException)
+                        {
+                            MessageBox.Show("Raw csv file does not exist in appData folder. Redownload log and try again.",
+                                            "Error Saving File", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         }
                         // Catch any input/output errors
                         catch (IOException)
@@ -1750,7 +1835,7 @@ namespace SteerLoggerUser
                     }
                 }
                 // If a log has converted data, allow user to save conv data csv on local machine
-                if (log.logData.convData[0].Count != 0)
+                if (log.conv != null || log.conv != "")
                 {
                     sfdLog.FileName = "converted-" + log.name + "-" + log.date + ".csv";
                     sfdLog.DefaultExt = "csv";
@@ -1759,9 +1844,14 @@ namespace SteerLoggerUser
                         try
                         {
                             // Write conv data csv to specified location
-                            SaveConvCsv(log.logData, sfdLog.FileName);
+                            SaveCsv(log.conv, sfdLog.FileName);
                         }
-                        // Cathc any input/output errors
+                        catch (FileNotFoundException)
+                        {
+                            MessageBox.Show("Raw csv file does not exist in appData folder. Redownload log and try again.",
+                                            "Error Saving File", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                        // Catch any input/output errors
                         catch (IOException)
                         {
                             MessageBox.Show("Error saving converted csv file. Make sure the file is not being used by another application and try again.",
@@ -1789,6 +1879,20 @@ namespace SteerLoggerUser
                                         "Error Saving File", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
+            }
+        }
+
+
+        private void SaveCsv(string temp, string output)
+        {
+            if (File.Exists(temp))
+            {
+                File.Copy(temp, output);
+                File.Delete(temp);
+            }
+            else
+            {
+                throw new FileNotFoundException();
             }
         }
 
@@ -1900,16 +2004,32 @@ namespace SteerLoggerUser
                     SaveConfig(log, confPath);
                 }
 
-                if (log.logData.rawData[0].Count != 0)
+                if (log.raw == null || log.raw == "")
                 {
                     string rawPath = dirPath + @"\raw-" + log.name + ".csv";
-                    SaveRawCsv(log.logData, rawPath);
+                    try
+                    {
+                        SaveCsv(log.raw, rawPath);
+                    }
+                    catch (FileNotFoundException)
+                    {
+                        MessageBox.Show("Raw csv file does not exist in appData folder. Redownload log and try again.",
+                                        "Error Saving File", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
 
-                if (log.logData.convData[0].Count != 0)
+                if (log.conv == null || log.conv == "")
                 {
                     string convPath = dirPath + @"\converted-" + log.name + ".csv";
-                    SaveConvCsv(log.logData, convPath);
+                    try
+                    {
+                        SaveCsv(log.conv, convPath);
+                    }
+                    catch (FileNotFoundException)
+                    {
+                        MessageBox.Show("Raw csv file does not exist in appData folder. Redownload log and try again.",
+                                        "Error Saving File", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
             }
             // Write processed data csv to zipDir if data has been processed
