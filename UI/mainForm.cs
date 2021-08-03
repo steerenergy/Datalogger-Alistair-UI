@@ -42,6 +42,7 @@ namespace SteerLoggerUser
             // Add custom function that is run when the form is closed to close TCP connection
             this.FormClosed += new FormClosedEventHandler(MainFormClosed);
             InitializeComponent();
+
         }
 
         // Reads program config
@@ -239,20 +240,6 @@ namespace SteerLoggerUser
                     // Get a list of logs that user hasn't downloaded
                     // Objective 4
                     RequestRecentLogs();
-                    // If a log has been downloaded, show the Download/Process panel instead
-                    if (DAP.logsToProc.Count > 0)
-                    {
-                        pnlCtrlConf.Hide();
-                        pnlDataProc.Show();
-                        // Dequeue log from queue of logs to be processed
-                        DAP.logsProcessing.Add(DAP.logsToProc.Dequeue());
-                        // Set logProc to the log being processed
-                        DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].logData);
-                        // Display logProc data to user
-                        // Objective 4.2
-                        PopulateDataViewProc(DAP.logProc);
-                        DAP.processing = true;
-                    }
                 }
                 // If there is an issue connecting to Pi, catch error and continue without connection
                 catch (SocketException)
@@ -288,12 +275,6 @@ namespace SteerLoggerUser
                     row.Height = height / (dgvInputSetup.Rows.Count);
                 }
             }
-            else
-            {
-                pnlCtrlConf.Hide();
-                pnlDataProc.Show();
-            }
-
         }
 
         // Used to get the logs the user hasn't downloaded
@@ -321,11 +302,13 @@ namespace SteerLoggerUser
             while (response != "EoT")
             {
                 string[] data = response.Split(',');
-                LogMeta newLog = new LogMeta();
-                newLog.id = Convert.ToInt32(data[0]);
-                newLog.name = data[1];
-                newLog.date = data[2];
-                newLog.size = (data[3] == "None") ? 0 : Convert.ToInt32(data[3]);
+                LogMeta newLog = new LogMeta
+                {
+                    id = Convert.ToInt32(data[0]),
+                    name = data[1],
+                    date = data[2],
+                    size = (data[3] == "None") ? 0 : Convert.ToInt32(data[3])
+                };
                 logsAvailable.Add(newLog);
                 response = TCPReceive();
             }
@@ -390,18 +373,20 @@ namespace SteerLoggerUser
                     while (received != "EoConfig")
                     {
                         string[] pinData = received.Split(',');
-                        Pin tempPin = new Pin();
-                        tempPin.id = int.Parse(pinData[0]);
-                        tempPin.name = pinData[1];
-                        tempPin.enabled = (pinData[2] == "True") ? true : false;
-                        tempPin.fName = pinData[3];
-                        tempPin.inputType = pinData[4];
-                        tempPin.gain = int.Parse(pinData[5]);
-                        tempPin.scaleMin = double.Parse(pinData[6]);
-                        tempPin.scaleMax = double.Parse(pinData[7]);
-                        tempPin.units = pinData[8];
-                        tempPin.m = double.Parse(pinData[9]);
-                        tempPin.c = double.Parse(pinData[10]);
+                        Pin tempPin = new Pin
+                        {
+                            id = int.Parse(pinData[0]),
+                            name = pinData[1],
+                            enabled = (pinData[2] == "True") ? true : false,
+                            fName = pinData[3],
+                            inputType = pinData[4],
+                            gain = int.Parse(pinData[5]),
+                            scaleMin = double.Parse(pinData[6]),
+                            scaleMax = double.Parse(pinData[7]),
+                            units = pinData[8],
+                            m = double.Parse(pinData[9]),
+                            c = double.Parse(pinData[10])
+                        };
                         tempLog.config.pinList.Add(tempPin);
                         received = TCPReceive();
                     }
@@ -439,57 +424,6 @@ namespace SteerLoggerUser
                         }
                     }
                     worker.ReportProgress(30);
-                    // pbValue += 1;
-                    // //progressForm.UpdateProgressBar();
-                    // // Receive log data and write to LogData object
-                    // while (received != "EoLog")
-                    // {
-                    //     string[] rowData = received.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-                    //     tempLog.logData.timestamp.Add(Convert.ToDateTime(rowData[0]));
-                    //     tempLog.logData.time.Add(decimal.Parse(rowData[1]));
-                    //     List<decimal> rawData = new List<decimal>();
-                    //     // Adds first half of data row (minus timestamp and time) to rawData
-                    //     //for (int i = 2; i <= (rowData.Length / 2); i++)
-                    //     //{
-                    //     //    rawData.Add(decimal.Parse(rowData[i]));
-                    //     //}
-                    //     for (int i = 2; i < rowData.Length; i++)
-                    //     {
-                    //         rawData.Add(decimal.Parse(rowData[i]));
-                    //     }
-                    //     tempLog.logData.AddRawData(rawData);
-                    //     List<decimal> convData = new List<decimal>();
-                    //     // Adds second half of data row (minus timestamp and time) to convData
-                    //     //for (int i = ((rowData.Length / 2) + 1); i < rowData.Length; i++)
-                    //     //{
-                    //     //    convData.Add(decimal.Parse(rowData[i]));
-                    //     //}
-                    //     for (int i = 0; i < pins.Count; i++)
-                    //     {
-                    //         decimal convertedValue = rawData[i] * pins[i].m + pins[i].c;
-                    //         convData.Add(convertedValue);
-                    //     }
-                    //     AddRowDataViewProc(tempLog.logData.timestamp.Last(), tempLog.logData.time.Last(), convData);
-                    //     tempLog.logData.AddConvData(convData);
-                    //     pbValue += 1;
-                    //     //progressForm.UpdateProgressBar();
-                    //     received = TCPReceive();
-                    // }
-                    // //progressForm.UpdateProgressBar();
-                    // // If merge is true, merge the log downloaded with the current logProc
-                    // if (merge)
-                    // {
-                    //     DAP.logsProcessing.Add(tempLog);
-                    //     LogProc tempProc = new LogProc();
-                    //     tempProc.CreateProcFromConv(tempLog.logData);
-                    //     DAP.MergeLogs(tempProc);
-                    // }
-                    // // If merge is not true, add log to logsToProc queue
-                    // else
-                    // {
-                    //     DAP.logsToProc.Enqueue(tempLog);
-                    // }
-                    // received = TCPReceive();
 
                     string host = logger;
                     string user = "pi";
@@ -579,6 +513,7 @@ namespace SteerLoggerUser
                             LogProc tempProc = new LogProc();
                             tempProc.CreateProcFromConv(tempLog.logData);
                             DAP.MergeLogs(tempProc);
+                            this.Invoke(new Action(() => { lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name; }));
                             this.Invoke(new Action(() => { PopulateDataViewProc(DAP.logProc); }));
                         }
                         else
@@ -594,9 +529,12 @@ namespace SteerLoggerUser
                         // Dequeue next log and display
                         if (DAP.logsToProc.Count > 0)
                         {
+                            this.Invoke(new Action(() => { pnlCtrlConf.Hide(); }));
+                            this.Invoke(new Action(() => { pnlDataProc.Show(); }));
                             DAP.logsProcessing.Clear();
                             DAP.logsProcessing.Add(DAP.logsToProc.Dequeue());
                             DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].logData);
+                            this.Invoke(new Action(() => { lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name; }));
                             this.Invoke(new Action(() => { PopulateDataViewProc(DAP.logProc); }));
                             DAP.processing = true;
                         }
@@ -1021,12 +959,14 @@ namespace SteerLoggerUser
                     DAP.logsProcessing.Clear();
                     DAP.logsProcessing.Add(DAP.logsToProc.Dequeue());
                     DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].logData);
+                    lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name;
                     PopulateDataViewProc(DAP.logProc);
                     DAP.processing = true;
                 }
                 else
                 {
                     DAP.logsProcessing.Clear();
+                    lblLogDisplay.Text = "No Log Displaying";
                     DAP.processing = false;
                 }
             }
@@ -1221,22 +1161,42 @@ namespace SteerLoggerUser
             }
         }
 
-        // Save but don't upload config
+        // Save config
         private void cmdSave_Click(object sender, EventArgs e)
         {
             // Validate config settings
-            ValidateConfig(false);
+            if (ValidateConfig(false))
+            {
+                try
+                {
+                    LogMeta newLog = CreateConfig();
+                    sfdConfig.FileName = "logConf-" + newLog.name + ".ini";
+                    // Allow user to save validated config to local machine
+                    if (sfdConfig.ShowDialog() == DialogResult.OK)
+                    {
+                        SaveConfig(newLog, sfdConfig.FileName);
+                    }
+                }
+                catch (InvalidDataException)
+                {
+                    // Invalid scalemin or scalemax data
+                    return;
+                }
+            }
         }
 
 
-        // Saves and uploads config settings to Pi
+        // Uploads config settings to Pi
         // Objective 10
         private void cmdSaveUpload_Click(object sender, EventArgs e)
         {
             try
             {
                 // Validate config settings
-                ValidateConfig(true);
+                if (ValidateConfig(true))
+                {
+                    UploadConfig(CreateConfig());
+                }
             }
             // Catch errors when uploading config to Pi
             catch (SocketException)
@@ -1244,23 +1204,36 @@ namespace SteerLoggerUser
                 MessageBox.Show("An error occured in the connection, please reconnect.");
                 return;
             }
+            catch (InvalidDataException)
+            {
+                return;
+            }
         }
 
         // Validates the config settings
-        private void ValidateConfig(bool upload)
+        private bool ValidateConfig(bool upload)
         {
             // Make sure user has given the log a name
             if (txtLogName.Text == "")
             {
                 MessageBox.Show("Please input a value for the log name.");
-                return;
+                return false;
+            }
+            char[] invalidFileChars = Path.GetInvalidFileNameChars();
+            foreach (char invalid in invalidFileChars)
+            {
+                if (txtLogName.Text.Contains(invalid))
+                {
+                    MessageBox.Show(String.Format("The log name contains invalid character: {0}",invalid));
+                    return false;
+                }
             }
             // If user hasn't added description, ask if they want to add one
             if (txtDescription.Text == "")
             {
                 if (MessageBox.Show("No description. Press OK to continue without description or cancel to cancel upload and add description.","No Description!",MessageBoxButtons.OKCancel) != DialogResult.OK)
                 {
-                    return;
+                    return false;
                 }
             }
 
@@ -1272,7 +1245,7 @@ namespace SteerLoggerUser
                 if (TCPReceive() == "Name exists")
                 {
                     MessageBox.Show("A log with that name already exists.");
-                    return;
+                    return false;
                 }
             }
           
@@ -1280,15 +1253,22 @@ namespace SteerLoggerUser
             if (nudInterval.Value < Convert.ToDecimal(0.1))
             {
                 MessageBox.Show("Time interval must be at least 0.1 seconds", "Time Interval Too Low", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
+                return false;
             }
+
+            return true;
+        }
+
+
+        private LogMeta CreateConfig()
+        {
             // Create LogMeta to store settings
             LogMeta newLog = new LogMeta();
             newLog.name = txtLogName.Text;
             newLog.time = nudInterval.Value;
             newLog.loggedBy = user;
             string description = txtDescription.Text;
-            description = string.Join(";",description.Split(new string[] { "\r\n" }, StringSplitOptions.None));
+            description = string.Join(";", description.Split(new string[] { "\r\n" }, StringSplitOptions.None));
             newLog.description = description;
 
             ConfigFile newConfig = new ConfigFile();
@@ -1311,7 +1291,7 @@ namespace SteerLoggerUser
                 else
                 {
                     MessageBox.Show("Please check that all Scale Min values are deciamls.");
-                    return;
+                    throw new InvalidDataException();
                 }
                 double scaleMax;
                 // Make sure that scaleMax is a decimal value, not a string
@@ -1322,7 +1302,7 @@ namespace SteerLoggerUser
                 else
                 {
                     MessageBox.Show("Please check that all Scale Max values are deciamls.");
-                    return;
+                    throw new InvalidDataException();
                 }
                 newPin.units = row.Cells[8].Value.ToString();
                 if (newPin.enabled == true)
@@ -1338,12 +1318,7 @@ namespace SteerLoggerUser
                 newConfig.pinList.Add(newPin);
             }
             newLog.config = newConfig;
-            sfdConfig.FileName = "logConf-" + newLog.name + ".ini";
-            // Allow user to save validated config to local machine
-            if (sfdConfig.ShowDialog() == DialogResult.OK)
-            {
-                SaveConfig(newLog, upload, sfdConfig.FileName);
-            }
+            return newLog;
         }
 
         // Calculates m and c values for a Pin using inputType, gain, scaleMin and scaleMax
@@ -1363,7 +1338,7 @@ namespace SteerLoggerUser
 
         // Writes config to specified location on users computer
         // Objective 10.1
-        private void SaveConfig(LogMeta newLog, bool upload, string path)
+        private void SaveConfig(LogMeta newLog, string path)
         {
             // Create new StreamWriter to write file
             using (StreamWriter writer = new StreamWriter(path))
@@ -1405,13 +1380,6 @@ namespace SteerLoggerUser
                     }
                     writer.WriteLine();
                 }
-            }
-
-            // If upload is true, upload config to logger
-            // Objective 10.2
-            if (upload == true)
-            {
-                UploadConfig(newLog);
             }
         }
 
@@ -1627,6 +1595,7 @@ namespace SteerLoggerUser
                     // Merge logs together
                     dgvDataProc.Columns.Clear();
                     // Update data display
+                    lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name;
                     PopulateDataViewProc(DAP.logProc);
                 }
                 else
@@ -1653,6 +1622,7 @@ namespace SteerLoggerUser
                     DAP.logsProcessing.Clear();
                     DAP.logsProcessing.Add(DAP.logsToProc.Dequeue());
                     DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].logData);
+                    lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name;
                     PopulateDataViewProc(DAP.logProc);
                     DAP.processing = true;
                 }
@@ -1732,7 +1702,7 @@ namespace SteerLoggerUser
                         try
                         {
                             // Write the config to location specified by user
-                            SaveConfig(log, false, sfdConfig.FileName);
+                            SaveConfig(log, sfdConfig.FileName);
                         }
                         // Catch any input/output errors
                         catch (IOException)
@@ -1910,7 +1880,7 @@ namespace SteerLoggerUser
                 if (log.config != null)
                 {
                     string confPath = dirPath + @"\logConf-" + log.name + ".ini";
-                    SaveConfig(log, false, confPath);
+                    SaveConfig(log, confPath);
                 }
 
                 if (log.logData.rawData[0].Count != 0)
@@ -2035,6 +2005,7 @@ namespace SteerLoggerUser
                 {
                     DAP.logProc = tempLogProc;
                 }
+                lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name;
                 PopulateDataViewProc(DAP.logProc);
                 File.Delete(dirPath + @"\temp.csv");
                 File.Delete(dirPath + @"\proc.csv");
