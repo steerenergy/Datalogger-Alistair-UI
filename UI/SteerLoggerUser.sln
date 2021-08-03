@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.30413.136
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SteerLoggerUser", "SteerLoggerUser.csproj", "{8A887A5E-FCE9-492A-9DCF-EA0E3E73657A}"
 EndProject
-Project("{840C416C-B8F3-42BC-B0DD-F6BB14C9F8CB}") = "Logger-UI-Installer", "..\Logger-UI-Installer\Logger-UI-Installer.aiproj", "{66FFE4FE-8E6E-4817-B2B4-BA7ECECD6555}"
+Project("{840C416C-B8F3-42BC-B0DD-F6BB14C9F8CB}") = "SteerLoggerInstaller", "..\SteerLoggerInstaller\SteerLoggerInstaller.aiproj", "{8DC58C6D-2F5A-419A-AC07-5B5BAD711874}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -20,9 +20,9 @@ Global
 		{8A887A5E-FCE9-492A-9DCF-EA0E3E73657A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8A887A5E-FCE9-492A-9DCF-EA0E3E73657A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8A887A5E-FCE9-492A-9DCF-EA0E3E73657A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{66FFE4FE-8E6E-4817-B2B4-BA7ECECD6555}.All|Any CPU.ActiveCfg = DefaultBuild
-		{66FFE4FE-8E6E-4817-B2B4-BA7ECECD6555}.Debug|Any CPU.ActiveCfg = DefaultBuild
-		{66FFE4FE-8E6E-4817-B2B4-BA7ECECD6555}.Release|Any CPU.ActiveCfg = DefaultBuild
+		{8DC58C6D-2F5A-419A-AC07-5B5BAD711874}.All|Any CPU.ActiveCfg = DefaultBuild
+		{8DC58C6D-2F5A-419A-AC07-5B5BAD711874}.Debug|Any CPU.ActiveCfg = DefaultBuild
+		{8DC58C6D-2F5A-419A-AC07-5B5BAD711874}.Release|Any CPU.ActiveCfg = DefaultBuild
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
