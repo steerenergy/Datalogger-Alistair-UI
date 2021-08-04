@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(mainForm));
             this.pnlCtrlConf = new System.Windows.Forms.Panel();
             this.cmdImportConfFile = new System.Windows.Forms.Button();
@@ -69,6 +69,7 @@
             this.cmdSettings = new System.Windows.Forms.Button();
             this.cmdAbt = new System.Windows.Forms.Button();
             this.pnlDataProc = new System.Windows.Forms.Panel();
+            this.lblLogDisplay = new System.Windows.Forms.Label();
             this.cmdClearData = new System.Windows.Forms.Button();
             this.cmdDwnldCsv = new System.Windows.Forms.Button();
             this.cmdExpExcel = new System.Windows.Forms.Button();
@@ -85,13 +86,21 @@
             this.ofdLog = new System.Windows.Forms.OpenFileDialog();
             this.sfdLog = new System.Windows.Forms.SaveFileDialog();
             this.ofdPythonScript = new System.Windows.Forms.OpenFileDialog();
-            this.lblLogDisplay = new System.Windows.Forms.Label();
+            this.nudJobSheet = new System.Windows.Forms.NumericUpDown();
+            this.nudWorkPack = new System.Windows.Forms.NumericUpDown();
+            this.nudProject = new System.Windows.Forms.NumericUpDown();
+            this.lblProject = new System.Windows.Forms.Label();
+            this.lblWorkPack = new System.Windows.Forms.Label();
+            this.lblJobSheet = new System.Windows.Forms.Label();
             this.pnlCtrlConf.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.nudInterval)).BeginInit();
             this.pnlSimpleConfig.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvInputSetup)).BeginInit();
             this.pnlDataProc.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvDataProc)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudJobSheet)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudWorkPack)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudProject)).BeginInit();
             this.SuspendLayout();
             // 
             // pnlCtrlConf
@@ -99,6 +108,12 @@
             this.pnlCtrlConf.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.pnlCtrlConf.Controls.Add(this.lblJobSheet);
+            this.pnlCtrlConf.Controls.Add(this.lblWorkPack);
+            this.pnlCtrlConf.Controls.Add(this.lblProject);
+            this.pnlCtrlConf.Controls.Add(this.nudProject);
+            this.pnlCtrlConf.Controls.Add(this.nudWorkPack);
+            this.pnlCtrlConf.Controls.Add(this.nudJobSheet);
             this.pnlCtrlConf.Controls.Add(this.cmdImportConfFile);
             this.pnlCtrlConf.Controls.Add(this.lblDescription);
             this.pnlCtrlConf.Controls.Add(this.txtDescription);
@@ -135,7 +150,7 @@
             // lblDescription
             // 
             this.lblDescription.AutoSize = true;
-            this.lblDescription.Location = new System.Drawing.Point(15, 61);
+            this.lblDescription.Location = new System.Drawing.Point(15, 112);
             this.lblDescription.Name = "lblDescription";
             this.lblDescription.Size = new System.Drawing.Size(63, 13);
             this.lblDescription.TabIndex = 22;
@@ -143,7 +158,7 @@
             // 
             // txtDescription
             // 
-            this.txtDescription.Location = new System.Drawing.Point(18, 77);
+            this.txtDescription.Location = new System.Drawing.Point(18, 128);
             this.txtDescription.Multiline = true;
             this.txtDescription.Name = "txtDescription";
             this.txtDescription.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
@@ -152,7 +167,7 @@
             // 
             // cmdConfigSwitch
             // 
-            this.cmdConfigSwitch.Location = new System.Drawing.Point(17, 177);
+            this.cmdConfigSwitch.Location = new System.Drawing.Point(17, 228);
             this.cmdConfigSwitch.Name = "cmdConfigSwitch";
             this.cmdConfigSwitch.Size = new System.Drawing.Size(186, 23);
             this.cmdConfigSwitch.TabIndex = 16;
@@ -163,7 +178,7 @@
             // cmdResetConfig
             // 
             this.cmdResetConfig.AutoSize = true;
-            this.cmdResetConfig.Location = new System.Drawing.Point(17, 146);
+            this.cmdResetConfig.Location = new System.Drawing.Point(17, 197);
             this.cmdResetConfig.Name = "cmdResetConfig";
             this.cmdResetConfig.Size = new System.Drawing.Size(186, 25);
             this.cmdResetConfig.TabIndex = 10;
@@ -186,7 +201,7 @@
             // 
             this.cmdStartLog.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.cmdStartLog.AutoEllipsis = true;
-            this.cmdStartLog.Location = new System.Drawing.Point(18, 257);
+            this.cmdStartLog.Location = new System.Drawing.Point(17, 257);
             this.cmdStartLog.Name = "cmdStartLog";
             this.cmdStartLog.Size = new System.Drawing.Size(94, 33);
             this.cmdStartLog.TabIndex = 8;
@@ -221,7 +236,7 @@
             // cmdSave
             // 
             this.cmdSave.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.cmdSave.Location = new System.Drawing.Point(18, 296);
+            this.cmdSave.Location = new System.Drawing.Point(17, 296);
             this.cmdSave.Name = "cmdSave";
             this.cmdSave.Size = new System.Drawing.Size(94, 33);
             this.cmdSave.TabIndex = 4;
@@ -233,7 +248,7 @@
             // 
             this.label2.AutoEllipsis = true;
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(14, 40);
+            this.label2.Location = new System.Drawing.Point(14, 89);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(71, 13);
             this.label2.TabIndex = 3;
@@ -248,7 +263,7 @@
             0,
             0,
             65536});
-            this.nudInterval.Location = new System.Drawing.Point(97, 37);
+            this.nudInterval.Location = new System.Drawing.Point(97, 87);
             this.nudInterval.Maximum = new decimal(new int[] {
             1000000,
             0,
@@ -272,7 +287,7 @@
             // 
             this.label1.AutoEllipsis = true;
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(14, 14);
+            this.label1.Location = new System.Drawing.Point(15, 65);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(59, 13);
             this.label1.TabIndex = 1;
@@ -280,7 +295,7 @@
             // 
             // txtLogName
             // 
-            this.txtLogName.Location = new System.Drawing.Point(97, 11);
+            this.txtLogName.Location = new System.Drawing.Point(97, 62);
             this.txtLogName.Name = "txtLogName";
             this.txtLogName.Size = new System.Drawing.Size(106, 20);
             this.txtLogName.TabIndex = 0;
@@ -399,9 +414,9 @@
             this.dgvInputSetup.Name = "dgvInputSetup";
             this.dgvInputSetup.RowHeadersVisible = false;
             this.dgvInputSetup.RowHeadersWidth = 51;
-            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dgvInputSetup.RowsDefaultCellStyle = dataGridViewCellStyle4;
+            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dgvInputSetup.RowsDefaultCellStyle = dataGridViewCellStyle1;
             this.dgvInputSetup.Size = new System.Drawing.Size(607, 379);
             this.dgvInputSetup.TabIndex = 5;
             this.dgvInputSetup.Visible = false;
@@ -530,6 +545,15 @@
             this.pnlDataProc.Name = "pnlDataProc";
             this.pnlDataProc.Size = new System.Drawing.Size(821, 379);
             this.pnlDataProc.TabIndex = 5;
+            // 
+            // lblLogDisplay
+            // 
+            this.lblLogDisplay.AutoSize = true;
+            this.lblLogDisplay.Location = new System.Drawing.Point(19, 14);
+            this.lblLogDisplay.Name = "lblLogDisplay";
+            this.lblLogDisplay.Size = new System.Drawing.Size(93, 13);
+            this.lblLogDisplay.TabIndex = 7;
+            this.lblLogDisplay.Text = "No Log Displaying";
             // 
             // cmdClearData
             // 
@@ -678,14 +702,68 @@
             this.ofdPythonScript.DefaultExt = "py";
             this.ofdPythonScript.Filter = "Python Files (*.py)|*.py|All files (*.*)|*.*";
             // 
-            // lblLogDisplay
+            // nudJobSheet
             // 
-            this.lblLogDisplay.AutoSize = true;
-            this.lblLogDisplay.Location = new System.Drawing.Point(19, 14);
-            this.lblLogDisplay.Name = "lblLogDisplay";
-            this.lblLogDisplay.Size = new System.Drawing.Size(93, 13);
-            this.lblLogDisplay.TabIndex = 7;
-            this.lblLogDisplay.Text = "No Log Displaying";
+            this.nudJobSheet.Location = new System.Drawing.Point(147, 31);
+            this.nudJobSheet.Maximum = new decimal(new int[] {
+            1000000,
+            0,
+            0,
+            0});
+            this.nudJobSheet.Name = "nudJobSheet";
+            this.nudJobSheet.Size = new System.Drawing.Size(56, 20);
+            this.nudJobSheet.TabIndex = 24;
+            // 
+            // nudWorkPack
+            // 
+            this.nudWorkPack.Location = new System.Drawing.Point(80, 31);
+            this.nudWorkPack.Maximum = new decimal(new int[] {
+            1000000,
+            0,
+            0,
+            0});
+            this.nudWorkPack.Name = "nudWorkPack";
+            this.nudWorkPack.Size = new System.Drawing.Size(61, 20);
+            this.nudWorkPack.TabIndex = 25;
+            // 
+            // nudProject
+            // 
+            this.nudProject.Location = new System.Drawing.Point(17, 31);
+            this.nudProject.Maximum = new decimal(new int[] {
+            1000000,
+            0,
+            0,
+            0});
+            this.nudProject.Name = "nudProject";
+            this.nudProject.Size = new System.Drawing.Size(57, 20);
+            this.nudProject.TabIndex = 26;
+            // 
+            // lblProject
+            // 
+            this.lblProject.AutoSize = true;
+            this.lblProject.Location = new System.Drawing.Point(15, 14);
+            this.lblProject.Name = "lblProject";
+            this.lblProject.Size = new System.Drawing.Size(43, 13);
+            this.lblProject.TabIndex = 27;
+            this.lblProject.Text = "Project:";
+            // 
+            // lblWorkPack
+            // 
+            this.lblWorkPack.AutoSize = true;
+            this.lblWorkPack.Location = new System.Drawing.Point(76, 14);
+            this.lblWorkPack.Name = "lblWorkPack";
+            this.lblWorkPack.Size = new System.Drawing.Size(64, 13);
+            this.lblWorkPack.TabIndex = 28;
+            this.lblWorkPack.Text = "Work Pack:";
+            // 
+            // lblJobSheet
+            // 
+            this.lblJobSheet.AutoSize = true;
+            this.lblJobSheet.Location = new System.Drawing.Point(144, 14);
+            this.lblJobSheet.Name = "lblJobSheet";
+            this.lblJobSheet.Size = new System.Drawing.Size(58, 13);
+            this.lblJobSheet.TabIndex = 29;
+            this.lblJobSheet.Text = "Job Sheet:";
             // 
             // mainForm
             // 
@@ -698,8 +776,8 @@
             this.Controls.Add(this.cmdSettings);
             this.Controls.Add(this.cmdDataProc);
             this.Controls.Add(this.cmdCtrlConf);
-            this.Controls.Add(this.pnlDataProc);
             this.Controls.Add(this.pnlCtrlConf);
+            this.Controls.Add(this.pnlDataProc);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MinimumSize = new System.Drawing.Size(871, 489);
             this.Name = "mainForm";
@@ -714,6 +792,9 @@
             this.pnlDataProc.ResumeLayout(false);
             this.pnlDataProc.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvDataProc)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudJobSheet)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudWorkPack)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudProject)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -777,5 +858,11 @@
         private System.Windows.Forms.TextBox txtDescription;
         private System.Windows.Forms.Button cmdImportConfFile;
         private System.Windows.Forms.Label lblLogDisplay;
+        private System.Windows.Forms.Label lblJobSheet;
+        private System.Windows.Forms.Label lblWorkPack;
+        private System.Windows.Forms.Label lblProject;
+        private System.Windows.Forms.NumericUpDown nudProject;
+        private System.Windows.Forms.NumericUpDown nudWorkPack;
+        private System.Windows.Forms.NumericUpDown nudJobSheet;
     }
 }

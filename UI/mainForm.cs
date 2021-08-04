@@ -355,8 +355,12 @@ namespace SteerLoggerUser
                 {
                     id = Convert.ToInt32(data[0]),
                     name = data[1],
-                    date = data[2],
-                    size = (data[3] == "None") ? 0 : Convert.ToInt32(data[3])
+                    testNumber = Convert.ToInt32(data[2]),
+                    date = data[3],
+                    project = Convert.ToInt32(data[4]),
+                    workPack = Convert.ToInt32(data[5]),
+                    jobSheet = Convert.ToInt32(data[6]),
+                    size = (data[7] == "None") ? 0 : Convert.ToInt32(data[7])
                 };
                 logsAvailable.Add(newLog);
                 response = TCPReceive();
@@ -407,12 +411,16 @@ namespace SteerLoggerUser
                     {
                         string[] metaData = received.Split(',');
                         tempLog.id = int.Parse(metaData[0]);
-                        tempLog.name = metaData[1];
-                        tempLog.date = metaData[2];
-                        tempLog.time = decimal.Parse(metaData[3]);
-                        tempLog.loggedBy = metaData[4];
-                        tempLog.downloadedBy = metaData[5];
-                        tempLog.description = metaData[6];
+                        tempLog.project = int.Parse(metaData[1]);
+                        tempLog.workPack = int.Parse(metaData[2]);
+                        tempLog.jobSheet = int.Parse(metaData[3]);
+                        tempLog.name = metaData[4];
+                        tempLog.testNumber = int.Parse(metaData[5]);
+                        tempLog.date = metaData[6];
+                        tempLog.time = decimal.Parse(metaData[7]);
+                        tempLog.loggedBy = metaData[8];
+                        tempLog.downloadedBy = metaData[9];
+                        tempLog.description = metaData[10];
                         received = TCPReceive();
                     }
                     worker.ReportProgress(10);
@@ -583,7 +591,7 @@ namespace SteerLoggerUser
                             LogProc tempProc = new LogProc();
                             tempProc.CreateProcFromConv(tempLog.conv);
                             DAP.MergeLogs(tempProc);
-                            this.Invoke(new Action(() => { lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name; }));
+                            this.Invoke(new Action(() => { lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name + " " + DAP.logsProcessing[0].testNumber; }));
                             this.Invoke(new Action(() => { PopulateDataViewProc(DAP.logProc); }));
                         }
                         else
@@ -604,7 +612,7 @@ namespace SteerLoggerUser
                             DAP.logsProcessing.Clear();
                             DAP.logsProcessing.Add(DAP.logsToProc.Dequeue());
                             DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].conv);
-                            this.Invoke(new Action(() => { lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name; }));
+                            this.Invoke(new Action(() => { lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name + " " + DAP.logsProcessing[0].testNumber; }));
                             this.Invoke(new Action(() => { PopulateDataViewProc(DAP.logProc); }));
                             DAP.processing = true;
                         }
@@ -733,8 +741,18 @@ namespace SteerLoggerUser
                 MessageBox.Show("No recent config found, loading a default config.");
                 return;
             }
-            // Receive time interval
-            nudInterval.Value = decimal.Parse(received);
+            // Receive metadata
+            nudInterval.Value = Convert.ToDecimal(received);
+            received = TCPReceive();
+            txtDescription.Text = received.Replace(";", "\r\n");
+            received = TCPReceive();
+            txtLogName.Text = received;
+            received = TCPReceive();
+            nudProject.Value = Convert.ToInt32(received);
+            received = TCPReceive();
+            nudWorkPack.Value = Convert.ToInt32(received);
+            received = TCPReceive();
+            nudJobSheet.Value = Convert.ToInt32(received);
             received = TCPReceive();
             // Receive pin data until all data has been sent
             while (received != "EoConfig")
@@ -768,6 +786,9 @@ namespace SteerLoggerUser
         {
             nudInterval.Value = 1.0M;
             txtDescription.Text = "";
+            nudProject.Value = 0;
+            nudWorkPack.Value = 0;
+            nudJobSheet.Value = 0;
             int number = 1;
             for (int i = 0; i <= 3; i++)
             {
@@ -964,29 +985,6 @@ namespace SteerLoggerUser
         // Used to receive data from the logger sent using TCP
         public string TCPReceive()
         {
-            //try
-            //{
-            // Receive data and decode using UTF-8 
-            //Byte[] data = new Byte[2048];
-            //Int32 bytes = stream.Read(data, 0, data.Length);
-            //string response = Encoding.UTF8.GetString(data, 0, bytes);
-            //data = Encoding.UTF8.GetBytes("Received");
-            //stream.Write(data, 0, data.Length);
-            //return response;
-
-            //Byte[] data = new Byte[2048];
-            //Int32 bytes = stream.Read(data, 0, data.Length);
-            //string response = Encoding.UTF8.GetString(data, 0, bytes);
-            //return response;
-            //}
-            // If there is an error, IOException is thrown
-            // Close connection and then throw SocketException which is caught by code calling TCPReceive
-            //catch (IOException)
-            //{
-            //    stream.Close();
-            //    client.Close();
-            //    throw new SocketException();
-            //}
             if (!IsConnected)
             {
                 listener.Abort();
@@ -1051,7 +1049,7 @@ namespace SteerLoggerUser
                 DAP.logsProcessing.Clear();
                 DAP.logsProcessing.Add(DAP.logsToProc.Dequeue());
                 DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].conv);
-                lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name;
+                lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name + " " + DAP.logsProcessing[0].testNumber;
                 PopulateDataViewProc(DAP.logProc);
                 DAP.processing = true;
             }
@@ -1110,11 +1108,17 @@ namespace SteerLoggerUser
             while (response != "EoT")
             {
                 string[] data = response.Split(',');
-                LogMeta newLog = new LogMeta();
-                newLog.id = Convert.ToInt32(data[0]);
-                newLog.name = data[1];
-                newLog.date = data[2];
-                newLog.size = (data[3] == "None") ? 0 : Convert.ToInt32(data[3]);
+                LogMeta newLog = new LogMeta
+                {
+                    id = Convert.ToInt32(data[0]),
+                    name = data[1],
+                    testNumber = Convert.ToInt32(data[2]),
+                    date = data[3],
+                    project = Convert.ToInt32(data[4]),
+                    workPack = Convert.ToInt32(data[5]),
+                    jobSheet = Convert.ToInt32(data[6]),
+                    size = (data[7] == "None") ? 0 : Convert.ToInt32(data[7])
+                };
                 logsAvailable.Add(newLog);
                 response = TCPReceive();
             }
@@ -1135,6 +1139,14 @@ namespace SteerLoggerUser
             nudInterval.Value = Convert.ToDecimal(response);
             response = TCPReceive();
             txtDescription.Text = response.Replace(";","\r\n");
+            response = TCPReceive();
+            txtLogName.Text = response;
+            response = TCPReceive();
+            nudProject.Value = Convert.ToInt32(response);
+            response = TCPReceive();
+            nudWorkPack.Value = Convert.ToInt32(response);
+            response = TCPReceive();
+            nudJobSheet.Value = Convert.ToInt32(response);
             response = TCPReceive();
 
             // Recevie data for each pin until all pins have been received
@@ -1213,13 +1225,26 @@ namespace SteerLoggerUser
                             {
                                 string[] data = line.Split(new string[] { " = " }, StringSplitOptions.RemoveEmptyEntries);
                                 // Only time interval is imported from general settings
-                                if (data[0] == "timeinterval")
+                                switch (data[0])
                                 {
-                                    nudInterval.Value = Convert.ToDecimal(data[1]);
-                                }
-                                if (data[0] == "description")
-                                {
-                                    txtDescription.Text = data[1].Replace(";","\r\n");
+                                    case "name":
+                                        txtLogName.Text = data[1];
+                                        break;
+                                    case "timeinterval":
+                                        nudInterval.Value = Convert.ToDecimal(data[1]);
+                                        break;
+                                    case "description":
+                                        txtDescription.Text = data[1].Replace(";", "\r\n");
+                                        break;
+                                    case "project":
+                                        nudProject.Value = Convert.ToInt16(data[1]);
+                                        break;
+                                    case "workpack":
+                                        nudWorkPack.Value = Convert.ToInt16(data[1]);
+                                        break;
+                                    case "jobsheet":
+                                        nudJobSheet.Value = Convert.ToInt16(data[1]);
+                                        break;
                                 }
                             }
                             else
@@ -1259,7 +1284,7 @@ namespace SteerLoggerUser
         private void cmdSave_Click(object sender, EventArgs e)
         {
             // Validate config settings
-            if (ValidateConfig(false))
+            if (ValidateConfig())
             {
                 try
                 {
@@ -1287,7 +1312,7 @@ namespace SteerLoggerUser
             try
             {
                 // Validate config settings
-                if (ValidateConfig(true))
+                if (ValidateConfig())
                 {
                     UploadConfig(CreateConfig());
                 }
@@ -1305,7 +1330,7 @@ namespace SteerLoggerUser
         }
 
         // Validates the config settings
-        private bool ValidateConfig(bool upload)
+        private bool ValidateConfig()
         {
             // Make sure user has given the log a name
             if (txtLogName.Text == "")
@@ -1330,7 +1355,7 @@ namespace SteerLoggerUser
                     return false;
                 }
             }
-
+            /*
             if (upload)
             {
                 // Check with Pi that the name is unique
@@ -1342,11 +1367,30 @@ namespace SteerLoggerUser
                     return false;
                 }
             }
+            */
           
             // Make sure time interval is > 0.1 seconds
             if (nudInterval.Value < Convert.ToDecimal(0.1))
             {
                 MessageBox.Show("Time interval must be at least 0.1 seconds", "Time Interval Too Low", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+
+            if (!(nudProject.Value % 1 == 0))
+            {
+                MessageBox.Show("Project number must be a whole number.");
+                return false;
+            }
+
+            if (!(nudWorkPack.Value % 1 == 0))
+            {
+                MessageBox.Show("Work pack number must be a whole number.");
+                return false;
+            }
+
+            if (!(nudJobSheet.Value % 1 == 0))
+            {
+                MessageBox.Show("Job sheet number must be a whole number.");
                 return false;
             }
 
@@ -1358,6 +1402,9 @@ namespace SteerLoggerUser
         {
             // Create LogMeta to store settings
             LogMeta newLog = new LogMeta();
+            newLog.project = Convert.ToInt32(nudProject.Value);
+            newLog.workPack = Convert.ToInt32(nudWorkPack.Value);
+            newLog.jobSheet = Convert.ToInt32(nudJobSheet.Value);
             newLog.name = txtLogName.Text;
             newLog.time = nudInterval.Value;
             newLog.loggedBy = user;
@@ -1442,6 +1489,9 @@ namespace SteerLoggerUser
                 writer.WriteLine("timeinterval = " + newLog.time);
                 writer.WriteLine("name = " + newLog.name);
                 writer.WriteLine("description = " + newLog.description);
+                writer.WriteLine("project = " + newLog.project);
+                writer.WriteLine("workpack = " + newLog.workPack);
+                writer.WriteLine("jobsheet = " + newLog.jobSheet);
                 writer.WriteLine();
 
                 // Enumerate through Pins and write each one to file
@@ -1485,6 +1535,9 @@ namespace SteerLoggerUser
             TCPSend("Upload_Config");
             // Send metadata to the logger
             string metadata = "";
+            metadata += newLog.project + ",";
+            metadata += newLog.workPack + ",";
+            metadata += newLog.jobSheet + ",";
             metadata += newLog.name + ",";
             metadata += newLog.date + ",";
             metadata += newLog.time + ",";
@@ -1633,6 +1686,22 @@ namespace SteerLoggerUser
                     tcpQueue.TryDequeue(out string result);
                 }
             }
+
+            string[] filePaths = Directory.GetFiles(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger");
+            foreach (string filename in filePaths)
+            {
+                if (filename.Contains("raw") || filename.Contains("converted"))
+                {
+                    try
+                    {
+                        File.Delete(filename);
+                    }
+                    catch
+                    {
+                        // Ignore errors
+                    }
+                }
+            }
         }
 
         // Imports log data from a csv file
@@ -1685,7 +1754,7 @@ namespace SteerLoggerUser
                         DAP.MergeLogs(tempProc);
                         //dgvDataProc.Columns.Clear();
                         // Update data display
-                        lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name;
+                        lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name + " " + DAP.logsProcessing[0].testNumber;
                         PopulateDataViewProc(DAP.logProc);
                     }
                     else
@@ -1712,7 +1781,7 @@ namespace SteerLoggerUser
                         DAP.logsProcessing.Clear();
                         DAP.logsProcessing.Add(DAP.logsToProc.Dequeue());
                         DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].conv);
-                        lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name;
+                        lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name + " " + DAP.logsProcessing[0].testNumber;
                         PopulateDataViewProc(DAP.logProc);
                         DAP.processing = true;
                     }
@@ -1751,11 +1820,17 @@ namespace SteerLoggerUser
                 while (response != "EoT")
                 {
                     string[] data = response.Split(',');
-                    LogMeta newLog = new LogMeta();
-                    newLog.id = Convert.ToInt32(data[0]);
-                    newLog.name = data[1];
-                    newLog.date = data[2];
-                    newLog.size = (data[3] == "None") ? 0 : Convert.ToInt32(data[3]);
+                    LogMeta newLog = new LogMeta
+                    {
+                        id = Convert.ToInt32(data[0]),
+                        name = data[1],
+                        testNumber = Convert.ToInt32(data[2]),
+                        date = data[3],
+                        project = Convert.ToInt32(data[4]),
+                        workPack = Convert.ToInt32(data[5]),
+                        jobSheet = Convert.ToInt32(data[6]),
+                        size = (data[7] == "None") ? 0 : Convert.ToInt32(data[7])
+                    };
                     logsAvailable.Add(newLog);
                     response = TCPReceive();
                 }
@@ -1792,7 +1867,7 @@ namespace SteerLoggerUser
                 // If a log config exists, allow user to save it on local machine
                 if (log.config != null)
                 {
-                    sfdConfig.FileName = "logConf-" + log.name + "-" + log.date + ".ini";
+                    sfdConfig.FileName = "logConf-" + log.name + "-" + log.testNumber + "-" + log.date + ".ini";
                     sfdConfig.DefaultExt = "ini";
                     if (sfdConfig.ShowDialog() == DialogResult.OK)
                     {
@@ -1812,7 +1887,7 @@ namespace SteerLoggerUser
                 // If a log has raw data, allow user to save raw data csv on local machine
                 if (log.raw != null || log.raw != "")
                 {
-                    sfdLog.FileName = "raw-" + log.name + "-" + log.date + ".csv";
+                    sfdLog.FileName = "raw-" + log.name + "-" + log.testNumber + "-" + log.date + ".csv";
                     sfdLog.DefaultExt = "csv";
                     if (sfdLog.ShowDialog() == DialogResult.OK)
                     {
@@ -1837,7 +1912,7 @@ namespace SteerLoggerUser
                 // If a log has converted data, allow user to save conv data csv on local machine
                 if (log.conv != null || log.conv != "")
                 {
-                    sfdLog.FileName = "converted-" + log.name + "-" + log.date + ".csv";
+                    sfdLog.FileName = "converted-" + log.name + "-" + log.testNumber + "-" + log.date + ".csv";
                     sfdLog.DefaultExt = "csv";
                     if (sfdLog.ShowDialog() == DialogResult.OK)
                     {
@@ -1863,7 +1938,7 @@ namespace SteerLoggerUser
             // If the log is being processed, allow user to save processed data (data in data display)
             if (DAP.processing == true)
             {
-                sfdLog.FileName = "processed-" + DAP.logsProcessing[0].name + "-" + DAP.logsProcessing[0].date + ".csv";
+                sfdLog.FileName = "processed-" + DAP.logsProcessing[0].name + "-" + DAP.logsProcessing[0].testNumber + "-" + DAP.logsProcessing[0].date + ".csv";
                 sfdLog.DefaultExt = "csv";
                 if (sfdLog.ShowDialog() == DialogResult.OK)
                 {
@@ -2140,7 +2215,7 @@ namespace SteerLoggerUser
                 {
                     DAP.logProc = tempLogProc;
                 }
-                lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name;
+                lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name + " " + DAP.logsProcessing[0].testNumber;
                 PopulateDataViewProc(DAP.logProc);
                 File.Delete(dirPath + @"\temp.csv");
                 File.Delete(dirPath + @"\proc.csv");

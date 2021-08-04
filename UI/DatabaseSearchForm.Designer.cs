@@ -38,6 +38,15 @@ namespace SteerLoggerUser
             this.txtLoggedBy = new System.Windows.Forms.TextBox();
             this.cmdSearch = new System.Windows.Forms.Button();
             this.cmbIgnoreDate = new System.Windows.Forms.CheckBox();
+            this.lblProject = new System.Windows.Forms.Label();
+            this.nudProject = new System.Windows.Forms.NumericUpDown();
+            this.nudWorkPack = new System.Windows.Forms.NumericUpDown();
+            this.lblWorkPack = new System.Windows.Forms.Label();
+            this.nudJobSheet = new System.Windows.Forms.NumericUpDown();
+            this.lblJobSheet = new System.Windows.Forms.Label();
+            ((System.ComponentModel.ISupportInitialize)(this.nudProject)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudWorkPack)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudJobSheet)).BeginInit();
             this.SuspendLayout();
             // 
             // label1
@@ -99,7 +108,7 @@ namespace SteerLoggerUser
             // 
             // cmdSearch
             // 
-            this.cmdSearch.Location = new System.Drawing.Point(16, 183);
+            this.cmdSearch.Location = new System.Drawing.Point(16, 232);
             this.cmdSearch.Name = "cmdSearch";
             this.cmdSearch.Size = new System.Drawing.Size(259, 23);
             this.cmdSearch.TabIndex = 7;
@@ -117,11 +126,80 @@ namespace SteerLoggerUser
             this.cmbIgnoreDate.Text = "Ignore Date?";
             this.cmbIgnoreDate.UseVisualStyleBackColor = true;
             // 
+            // lblProject
+            // 
+            this.lblProject.AutoSize = true;
+            this.lblProject.Location = new System.Drawing.Point(13, 154);
+            this.lblProject.Name = "lblProject";
+            this.lblProject.Size = new System.Drawing.Size(43, 13);
+            this.lblProject.TabIndex = 9;
+            this.lblProject.Text = "Project:";
+            // 
+            // nudProject
+            // 
+            this.nudProject.Location = new System.Drawing.Point(85, 152);
+            this.nudProject.Maximum = new decimal(new int[] {
+            1000000,
+            0,
+            0,
+            0});
+            this.nudProject.Name = "nudProject";
+            this.nudProject.Size = new System.Drawing.Size(187, 20);
+            this.nudProject.TabIndex = 10;
+            // 
+            // nudWorkPack
+            // 
+            this.nudWorkPack.Location = new System.Drawing.Point(85, 179);
+            this.nudWorkPack.Maximum = new decimal(new int[] {
+            1000000,
+            0,
+            0,
+            0});
+            this.nudWorkPack.Name = "nudWorkPack";
+            this.nudWorkPack.Size = new System.Drawing.Size(187, 20);
+            this.nudWorkPack.TabIndex = 11;
+            // 
+            // lblWorkPack
+            // 
+            this.lblWorkPack.AutoSize = true;
+            this.lblWorkPack.Location = new System.Drawing.Point(13, 181);
+            this.lblWorkPack.Name = "lblWorkPack";
+            this.lblWorkPack.Size = new System.Drawing.Size(64, 13);
+            this.lblWorkPack.TabIndex = 12;
+            this.lblWorkPack.Text = "Work Pack:";
+            // 
+            // nudJobSheet
+            // 
+            this.nudJobSheet.Location = new System.Drawing.Point(85, 206);
+            this.nudJobSheet.Maximum = new decimal(new int[] {
+            1000000,
+            0,
+            0,
+            0});
+            this.nudJobSheet.Name = "nudJobSheet";
+            this.nudJobSheet.Size = new System.Drawing.Size(187, 20);
+            this.nudJobSheet.TabIndex = 13;
+            // 
+            // lblJobSheet
+            // 
+            this.lblJobSheet.AutoSize = true;
+            this.lblJobSheet.Location = new System.Drawing.Point(13, 208);
+            this.lblJobSheet.Name = "lblJobSheet";
+            this.lblJobSheet.Size = new System.Drawing.Size(58, 13);
+            this.lblJobSheet.TabIndex = 14;
+            this.lblJobSheet.Text = "Job Sheet:";
+            // 
             // DatabaseSearchForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(284, 218);
+            this.ClientSize = new System.Drawing.Size(284, 268);
+            this.Controls.Add(this.lblJobSheet);
+            this.Controls.Add(this.nudJobSheet);
+            this.Controls.Add(this.lblWorkPack);
+            this.Controls.Add(this.nudWorkPack);
+            this.Controls.Add(this.nudProject);
+            this.Controls.Add(this.lblProject);
             this.Controls.Add(this.cmbIgnoreDate);
             this.Controls.Add(this.cmdSearch);
             this.Controls.Add(this.txtLoggedBy);
@@ -133,6 +211,9 @@ namespace SteerLoggerUser
             this.Controls.Add(this.label1);
             this.Name = "DatabaseSearchForm";
             this.Text = "Search Pi Database";
+            ((System.ComponentModel.ISupportInitialize)(this.nudProject)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudWorkPack)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudJobSheet)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -149,5 +230,11 @@ namespace SteerLoggerUser
         private System.Windows.Forms.TextBox txtLoggedBy;
         private System.Windows.Forms.Button cmdSearch;
         private System.Windows.Forms.CheckBox cmbIgnoreDate;
+        private System.Windows.Forms.Label lblProject;
+        private System.Windows.Forms.NumericUpDown nudProject;
+        private System.Windows.Forms.NumericUpDown nudWorkPack;
+        private System.Windows.Forms.Label lblWorkPack;
+        private System.Windows.Forms.NumericUpDown nudJobSheet;
+        private System.Windows.Forms.Label lblJobSheet;
     }
 }

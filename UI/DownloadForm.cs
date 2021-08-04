@@ -66,7 +66,11 @@ namespace SteerLoggerUser
                     false,
                     log.id,
                     log.name,
+                    log.testNumber,
                     log.date,
+                    log.project,
+                    log.workPack,
+                    log.jobSheet,
                     log.size
                 };
                 dgvDownload.Rows.Add(rowData);
@@ -96,8 +100,6 @@ namespace SteerLoggerUser
                 if (Convert.ToBoolean(row.Cells[0].Value) == true)
                 {
                     logNames += row.Cells[1].Value + ",";
-                    num += 1;
-                    max += Convert.ToInt32(row.Cells[4].Value);
                 }
             }
             // If no logs selected, let logger know
@@ -129,7 +131,6 @@ namespace SteerLoggerUser
                 main.TCPSend(item);
                 main.TCPSend("No_Logs_Requested");
             }
-            main.pbValue = max;
         }
     }
 }

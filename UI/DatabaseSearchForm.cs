@@ -32,7 +32,10 @@ namespace SteerLoggerUser
                     date = "";
                 }
                 string loggedBy = txtLoggedBy.Text;
-                string values = name + ',' + date + ',' + loggedBy;
+                string project = nudProject.Value.ToString();
+                string workPack = nudWorkPack.Value.ToString();
+                string jobSheet = nudJobSheet.Value.ToString();
+                string values = name + ',' + date + ',' + loggedBy + ',' + project + ',' + workPack + ',' + jobSheet;
                 // Send values to logger
                 main.TCPSend(values);
             }

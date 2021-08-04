@@ -9,7 +9,11 @@ namespace SteerLoggerUser
     public class LogMeta
     {
         public int id;
+        public int project;
+        public int workPack;
+        public int jobSheet;
         public string name;
+        public int testNumber;
         public string date;
         public decimal time;
         public string loggedBy;
