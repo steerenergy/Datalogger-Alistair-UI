@@ -49,6 +49,38 @@ namespace SteerLoggerUser
                 cmbLoggers.Items.Add(logger);
             }
             cmbLoggers.SelectedIndex = 0;
+
+            // Use progConfig to populate the InputSetup grid view correctly
+            foreach (string key in config.inputTypes.Keys)
+            {
+                ((DataGridViewComboBoxColumn)dgvPresets.Columns["inputType"]).Items.Add(key);
+            }
+
+            foreach (int gain in config.gains.Keys)
+            {
+                ((DataGridViewComboBoxColumn)dgvPresets.Columns["gain"]).Items.Add(gain.ToString());
+            }
+
+            foreach (string value in config.units)
+            {
+                ((DataGridViewComboBoxColumn)dgvPresets.Columns["units"]).Items.Add(value);
+            }
+
+            foreach (string pin in config.configPins.Keys)
+            {
+                object[] row =
+                {
+                    pin.Split(',')[0],
+                    (pin.Split(',')[1] == "") ? "N/A" : pin.Split(',')[1],
+                    config.configPins[pin].fName,
+                    config.configPins[pin].inputType,
+                    config.configPins[pin].gain.ToString(),
+                    config.configPins[pin].scaleMin,
+                    config.configPins[pin].scaleMax,
+                    config.configPins[pin].units
+                };
+                dgvPresets.Rows.Add(row);
+            }
         }
 
         private void cmdFindActivate_Click(object sender, EventArgs e)
@@ -187,6 +219,38 @@ namespace SteerLoggerUser
                         default:
                             break;
                     }
+                }
+            }
+
+            using (StreamWriter writer = new StreamWriter(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger\configPresets.csv"))
+            {
+                string line = "";
+                foreach (DataGridViewColumn col in dgvPresets.Columns)
+                {
+                    line += col.HeaderText + ',';
+                }
+                writer.WriteLine(line.TrimEnd(','));
+                for (int i = 0; i < dgvPresets.Rows.Count - 1; i ++)
+                {
+                    line = "";
+                    foreach (DataGridViewCell cell in dgvPresets.Rows[i].Cells)
+                    {
+                        if (cell.Value == null)
+                        {
+                            MessageBox.Show("Make sure all preset cells have values filled in.\n" +
+                                            "If there is no variation, please put N/A in the variation cell.");
+                            return;
+                        }
+                        if (cell.Value.ToString() == "N/A")
+                        {
+                            line += ',';
+                        }
+                        else
+                        {
+                            line += cell.Value.ToString() + ',';
+                        }
+                    }
+                    writer.WriteLine(line.TrimEnd(','));
                 }
             }
             this.Close();

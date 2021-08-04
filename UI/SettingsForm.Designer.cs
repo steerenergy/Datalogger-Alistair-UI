@@ -54,6 +54,17 @@ namespace SteerLoggerUser
             this.txtName = new System.Windows.Forms.TextBox();
             this.lblName = new System.Windows.Forms.Label();
             this.txtActivateLocation = new System.Windows.Forms.TextBox();
+            this.label1 = new System.Windows.Forms.Label();
+            this.dgvPresets = new System.Windows.Forms.DataGridView();
+            this.Sensor = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Variation = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.FName = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.InputType = new System.Windows.Forms.DataGridViewComboBoxColumn();
+            this.Gain = new System.Windows.Forms.DataGridViewComboBoxColumn();
+            this.ScaleMin = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ScaleMax = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Units = new System.Windows.Forms.DataGridViewComboBoxColumn();
+            ((System.ComponentModel.ISupportInitialize)(this.dgvPresets)).BeginInit();
             this.SuspendLayout();
             // 
             // lblActivate
@@ -225,7 +236,7 @@ namespace SteerLoggerUser
             // 
             // cmdSave
             // 
-            this.cmdSave.Location = new System.Drawing.Point(12, 371);
+            this.cmdSave.Location = new System.Drawing.Point(12, 515);
             this.cmdSave.Name = "cmdSave";
             this.cmdSave.Size = new System.Drawing.Size(143, 23);
             this.cmdSave.TabIndex = 20;
@@ -235,7 +246,7 @@ namespace SteerLoggerUser
             // 
             // cmdCancel
             // 
-            this.cmdCancel.Location = new System.Drawing.Point(173, 371);
+            this.cmdCancel.Location = new System.Drawing.Point(172, 515);
             this.cmdCancel.Name = "cmdCancel";
             this.cmdCancel.Size = new System.Drawing.Size(133, 23);
             this.cmdCancel.TabIndex = 21;
@@ -267,11 +278,79 @@ namespace SteerLoggerUser
             this.txtActivateLocation.Size = new System.Drawing.Size(290, 20);
             this.txtActivateLocation.TabIndex = 24;
             // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(12, 341);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(45, 13);
+            this.label1.TabIndex = 25;
+            this.label1.Text = "Presets:";
+            // 
+            // dgvPresets
+            // 
+            this.dgvPresets.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dgvPresets.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.Sensor,
+            this.Variation,
+            this.FName,
+            this.InputType,
+            this.Gain,
+            this.ScaleMin,
+            this.ScaleMax,
+            this.Units});
+            this.dgvPresets.Location = new System.Drawing.Point(12, 357);
+            this.dgvPresets.Name = "dgvPresets";
+            this.dgvPresets.Size = new System.Drawing.Size(293, 150);
+            this.dgvPresets.TabIndex = 26;
+            // 
+            // Sensor
+            // 
+            this.Sensor.HeaderText = "Sensor";
+            this.Sensor.Name = "Sensor";
+            // 
+            // Variation
+            // 
+            this.Variation.HeaderText = "Variation";
+            this.Variation.Name = "Variation";
+            // 
+            // FName
+            // 
+            this.FName.HeaderText = "FName";
+            this.FName.Name = "FName";
+            // 
+            // InputType
+            // 
+            this.InputType.HeaderText = "InputType";
+            this.InputType.Name = "InputType";
+            // 
+            // Gain
+            // 
+            this.Gain.HeaderText = "Gain";
+            this.Gain.Name = "Gain";
+            // 
+            // ScaleMin
+            // 
+            this.ScaleMin.HeaderText = "ScaleMin";
+            this.ScaleMin.Name = "ScaleMin";
+            // 
+            // ScaleMax
+            // 
+            this.ScaleMax.HeaderText = "ScaleMax";
+            this.ScaleMax.Name = "ScaleMax";
+            // 
+            // Units
+            // 
+            this.Units.HeaderText = "Units";
+            this.Units.Name = "Units";
+            // 
             // SettingsForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(318, 406);
+            this.ClientSize = new System.Drawing.Size(318, 550);
+            this.Controls.Add(this.dgvPresets);
+            this.Controls.Add(this.label1);
             this.Controls.Add(this.txtActivateLocation);
             this.Controls.Add(this.lblName);
             this.Controls.Add(this.txtName);
@@ -299,6 +378,7 @@ namespace SteerLoggerUser
             this.Name = "SettingsForm";
             this.Text = "SettingsForm";
             this.Load += new System.EventHandler(this.SettingsForm_Load);
+            ((System.ComponentModel.ISupportInitialize)(this.dgvPresets)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -331,5 +411,15 @@ namespace SteerLoggerUser
         private System.Windows.Forms.TextBox txtName;
         private System.Windows.Forms.Label lblName;
         private System.Windows.Forms.TextBox txtActivateLocation;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.DataGridView dgvPresets;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Sensor;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Variation;
+        private System.Windows.Forms.DataGridViewTextBoxColumn FName;
+        private System.Windows.Forms.DataGridViewComboBoxColumn InputType;
+        private System.Windows.Forms.DataGridViewComboBoxColumn Gain;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ScaleMin;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ScaleMax;
+        private System.Windows.Forms.DataGridViewComboBoxColumn Units;
     }
 }

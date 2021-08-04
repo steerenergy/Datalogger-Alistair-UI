@@ -92,6 +92,7 @@
             this.lblProject = new System.Windows.Forms.Label();
             this.lblWorkPack = new System.Windows.Forms.Label();
             this.lblJobSheet = new System.Windows.Forms.Label();
+            this.cmdRemovePin = new System.Windows.Forms.Button();
             this.pnlCtrlConf.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.nudInterval)).BeginInit();
             this.pnlSimpleConfig.SuspendLayout();
@@ -302,6 +303,7 @@
             // 
             // pnlSimpleConfig
             // 
+            this.pnlSimpleConfig.Controls.Add(this.cmdRemovePin);
             this.pnlSimpleConfig.Controls.Add(this.cmbSensor);
             this.pnlSimpleConfig.Controls.Add(this.lblVar);
             this.pnlSimpleConfig.Controls.Add(this.cmdAddPin);
@@ -319,7 +321,7 @@
             // 
             this.cmbSensor.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbSensor.FormattingEnabled = true;
-            this.cmbSensor.Location = new System.Drawing.Point(192, 35);
+            this.cmbSensor.Location = new System.Drawing.Point(130, 48);
             this.cmbSensor.Name = "cmbSensor";
             this.cmbSensor.Size = new System.Drawing.Size(121, 21);
             this.cmbSensor.TabIndex = 12;
@@ -328,7 +330,7 @@
             // lblVar
             // 
             this.lblVar.AutoSize = true;
-            this.lblVar.Location = new System.Drawing.Point(316, 14);
+            this.lblVar.Location = new System.Drawing.Point(254, 31);
             this.lblVar.Name = "lblVar";
             this.lblVar.Size = new System.Drawing.Size(51, 13);
             this.lblVar.TabIndex = 19;
@@ -336,9 +338,9 @@
             // 
             // cmdAddPin
             // 
-            this.cmdAddPin.Location = new System.Drawing.Point(471, 35);
+            this.cmdAddPin.Location = new System.Drawing.Point(384, 47);
             this.cmdAddPin.Name = "cmdAddPin";
-            this.cmdAddPin.Size = new System.Drawing.Size(120, 23);
+            this.cmdAddPin.Size = new System.Drawing.Size(120, 22);
             this.cmdAddPin.TabIndex = 14;
             this.cmdAddPin.Text = "Add To Log";
             this.cmdAddPin.UseVisualStyleBackColor = true;
@@ -347,7 +349,7 @@
             // lblPin
             // 
             this.lblPin.AutoSize = true;
-            this.lblPin.Location = new System.Drawing.Point(62, 14);
+            this.lblPin.Location = new System.Drawing.Point(3, 31);
             this.lblPin.Name = "lblPin";
             this.lblPin.Size = new System.Drawing.Size(25, 13);
             this.lblPin.TabIndex = 17;
@@ -357,7 +359,7 @@
             // 
             this.cmbVar.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbVar.FormattingEnabled = true;
-            this.cmbVar.Location = new System.Drawing.Point(319, 35);
+            this.cmbVar.Location = new System.Drawing.Point(257, 48);
             this.cmbVar.Name = "cmbVar";
             this.cmbVar.Size = new System.Drawing.Size(121, 21);
             this.cmbVar.TabIndex = 13;
@@ -365,7 +367,7 @@
             // lblSensor
             // 
             this.lblSensor.AutoSize = true;
-            this.lblSensor.Location = new System.Drawing.Point(189, 14);
+            this.lblSensor.Location = new System.Drawing.Point(127, 32);
             this.lblSensor.Name = "lblSensor";
             this.lblSensor.Size = new System.Drawing.Size(43, 13);
             this.lblSensor.TabIndex = 18;
@@ -373,18 +375,18 @@
             // 
             // txtLogPins
             // 
-            this.txtLogPins.Location = new System.Drawing.Point(65, 75);
+            this.txtLogPins.Location = new System.Drawing.Point(3, 75);
             this.txtLogPins.Multiline = true;
             this.txtLogPins.Name = "txtLogPins";
             this.txtLogPins.ReadOnly = true;
-            this.txtLogPins.Size = new System.Drawing.Size(526, 301);
+            this.txtLogPins.Size = new System.Drawing.Size(600, 301);
             this.txtLogPins.TabIndex = 15;
             // 
             // cmbPin
             // 
             this.cmbPin.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbPin.FormattingEnabled = true;
-            this.cmbPin.Location = new System.Drawing.Point(65, 35);
+            this.cmbPin.Location = new System.Drawing.Point(3, 48);
             this.cmbPin.Name = "cmbPin";
             this.cmbPin.Size = new System.Drawing.Size(121, 21);
             this.cmbPin.TabIndex = 11;
@@ -765,6 +767,16 @@
             this.lblJobSheet.TabIndex = 29;
             this.lblJobSheet.Text = "Job Sheet:";
             // 
+            // cmdRemovePin
+            // 
+            this.cmdRemovePin.Location = new System.Drawing.Point(510, 47);
+            this.cmdRemovePin.Name = "cmdRemovePin";
+            this.cmdRemovePin.Size = new System.Drawing.Size(93, 22);
+            this.cmdRemovePin.TabIndex = 20;
+            this.cmdRemovePin.Text = "Remove";
+            this.cmdRemovePin.UseVisualStyleBackColor = true;
+            this.cmdRemovePin.Click += new System.EventHandler(this.cmdRemovePin_Click);
+            // 
             // mainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
@@ -864,5 +876,6 @@
         private System.Windows.Forms.NumericUpDown nudProject;
         private System.Windows.Forms.NumericUpDown nudWorkPack;
         private System.Windows.Forms.NumericUpDown nudJobSheet;
+        private System.Windows.Forms.Button cmdRemovePin;
     }
 }

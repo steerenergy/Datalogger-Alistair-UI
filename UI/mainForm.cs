@@ -158,7 +158,7 @@ namespace SteerLoggerUser
                     }
 
                     // Add preset to dict of preset pins
-                    string presetName = pinData[0] + pinData[1];
+                    string presetName = pinData[0] + ',' + pinData[1];
                     Pin tempPin = new Pin();
                     tempPin.fName = pinData[2];
                     tempPin.inputType = pinData[3];
@@ -171,7 +171,14 @@ namespace SteerLoggerUser
                     prevSensor = pinData[0];
                 }
             }
-            SetupSimpleConf();
+
+            // If configPresets have been deleted, retrieve version from programFiles
+            if (progConfig.configPins.Count == 0)
+            {
+                File.Delete(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger\configPresets.csv");
+                InitialiseAppData();
+                ReadProgConfig();
+            }
         }
 
 
@@ -228,6 +235,7 @@ namespace SteerLoggerUser
             // Reads the program config file
             // Objective 1
             ReadProgConfig();
+            SetupSimpleConf();
             // Starts the connect form, which searches for loggers and allows user to connect to one
             // Objective 2 and 3
             ConnectForm connectForm = new ConnectForm(progConfig.loggers.ToArray());
@@ -2420,7 +2428,7 @@ namespace SteerLoggerUser
 
         private void cmdAddPin_Click(object sender, EventArgs e)
         {
-            string preset = cmbSensor.SelectedItem.ToString();
+            string preset = cmbSensor.SelectedItem.ToString() + ',';
             if (cmbVar.Enabled)
             {
                 preset += cmbVar.SelectedItem.ToString();
@@ -2438,6 +2446,14 @@ namespace SteerLoggerUser
             txtLogPins.Text += "Added " + cmbSensor.SelectedItem.ToString() +
                                " " + (cmbVar.SelectedItem.ToString() == "N/A" ? "" : cmbVar.SelectedItem.ToString()) + 
                                " to log." + Environment.NewLine;
+        }
+
+        private void cmdRemovePin_Click(object sender, EventArgs e)
+        {
+            int row = cmbPin.SelectedIndex;
+            dgvInputSetup.Rows[row].Cells[2].Value = false;
+            txtLogPins.Text += "Removed pin " + (row + 1).ToString() + ": " 
+                + dgvInputSetup.Rows[row].Cells[3].Value + " from log." + Environment.NewLine;
         }
     }
 }
