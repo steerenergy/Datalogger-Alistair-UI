@@ -44,6 +44,188 @@ namespace SteerLoggerUser
             InitializeComponent();
         }
 
+        // Used to send a command/data to the logger using TCP
+        public void TCPSend(string command)
+        {
+            // Make sure connected to logger before trying to send
+            if (logger == "")
+            {
+                MessageBox.Show("You need to be connected to a logger to do that!");
+                // Maybe change this to InvalidDataException to differentiate from connection error
+                throw new SocketException();
+            }
+            try
+            {
+                // Send data to logger
+                Byte[] data = Encoding.UTF8.GetBytes(command + "\u0004");
+                stream.Write(data, 0, data.Length);
+            }
+            // If there is an error, IOException is thrown
+            // Close connection and then throw SocketException which is caught by code calling TCPSend
+            catch (IOException)
+            {
+                stream.Close();
+                client.Close();
+                listener.Abort();
+                while (tcpQueue.IsEmpty == false)
+                {
+                    tcpQueue.TryDequeue(out string result);
+                }
+                throw new SocketException();
+            }
+        }
+
+        private bool IsConnected
+        {
+            get
+            {
+                try
+                {
+                    if (client != null && client.Client != null && client.Client.Connected)
+                    {
+                        /* pear to the documentation on Poll:
+                         * When passing SelectMode.SelectRead as a parameter to the Poll method it will return 
+                         * -either- true if Socket.Listen(Int32) has been called and a connection is pending;
+                         * -or- true if data is available for reading; 
+                         * -or- true if the connection has been closed, reset, or terminated; 
+                         * otherwise, returns false
+                         */
+
+                        // Detect if client disconnected
+                        if (client.Client.Poll(0, SelectMode.SelectRead))
+                        {
+                            byte[] buff = new byte[1];
+                            if (client.Client.Receive(buff, SocketFlags.Peek) == 0)
+                            {
+                                // Client disconnected
+                                return false;
+                            }
+                            else
+                            {
+                                return true;
+                            }
+                        }
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+        }
+
+
+        public void TCPListen()
+        {
+            try
+            {
+                string buffer = "";
+                while (true)
+                {
+                    if (!IsConnected)
+                    {
+                        throw new SocketException();
+                    }
+                    List<string> data = new List<string>();
+                    Byte[] byteData = new Byte[2048];
+                    Int32 bytes = stream.Read(byteData, 0, byteData.Length);
+                    string response = Encoding.UTF8.GetString(byteData, 0, bytes);
+                    foreach (string line in response.Split('\u0004'))
+                    {
+                        data.Add(line);
+                    }
+                    if (buffer != "")
+                    {
+                        data[0] = buffer + data[0];
+                        buffer = "";
+                    }
+                    for (int i = 0; i < data.Count - 1; i++)
+                    {
+                        string line = data[i].TrimEnd('\u0004');
+                        if (line == null)
+                        {
+                            throw new Exception();
+                        }
+                        else if (line == "Close")
+                        {
+                            throw new IOException();
+                        }
+                        tcpQueue.Enqueue(line);
+                    }
+                    if (data.Last() != "")
+                    {
+                        buffer = data.Last();
+                    }
+                }
+            }
+            catch (IOException)
+            {
+                MessageBox.Show("An error occured in the connection, please reconnect.");
+                stream.Close();
+                client.Close();
+                while (tcpQueue.IsEmpty == false)
+                {
+                    tcpQueue.TryDequeue(out string result);
+                }
+                logger = "";
+                try
+                {
+                    this.Invoke(new Action(() => { lblConnection.Text = "You're not connected to a logger."; }));
+                }
+                catch (InvalidOperationException)
+                {
+                    // This occurs if the main form is closed by user while message box is showing
+                }
+            }
+            catch (SocketException)
+            {
+                MessageBox.Show("An error occured in the connection, please reconnect.");
+                stream.Close();
+                client.Close();
+                while (tcpQueue.IsEmpty == false)
+                {
+                    tcpQueue.TryDequeue(out string result);
+                }
+                logger = "";
+                try
+                {
+                    this.Invoke(new Action(() => { lblConnection.Text = "You're not connected to a logger."; }));
+                }
+                catch (InvalidOperationException)
+                {
+                    // This occurs if the main form is closed by user while message box is showing
+                }
+            }
+            return;
+        }
+
+        // Used to receive data from the logger sent using TCP
+        public string TCPReceive()
+        {
+            if (!IsConnected)
+            {
+                listener.Abort();
+                stream.Close();
+                client.Close();
+                while (tcpQueue.IsEmpty == false)
+                {
+                    tcpQueue.TryDequeue(out string result);
+                }
+                logger = "";
+                lblConnection.Text = "You're not connected to a logger.";
+                throw new SocketException();
+            }
+            string response;
+            while (tcpQueue.TryDequeue(out response) == false) { }
+            return response;
+
+        }
+
         // Reads program config
         // Test commit
         // Objective 1
@@ -291,6 +473,7 @@ namespace SteerLoggerUser
 
                     listener = new Thread(TCPListen);
                     listener.Start();
+                    TCPSend(user);
                     // Get the most recently used config settings from the logger
                     // Objective 5
                     GetRecentConfig();
@@ -340,13 +523,6 @@ namespace SteerLoggerUser
         {
             // Send command and username to logger
             TCPSend("Recent_Logs_To_Download");
-            string received = TCPReceive();
-            while (received != "Send_User")
-            {
-                TCPSend("Recent_Logs_To_Download");
-                received = TCPReceive();
-            }
-            TCPSend(user);
             List<LogMeta> logsAvailable = new List<LogMeta>();
             string response = TCPReceive();
             // If no logs to download, exit
@@ -358,7 +534,7 @@ namespace SteerLoggerUser
             // Add available logs to list
             while (response != "EoT")
             {
-                string[] data = response.Split(',');
+                string[] data = response.Split('\u001f');
                 LogMeta newLog = new LogMeta
                 {
                     id = Convert.ToInt32(data[0]),
@@ -417,7 +593,7 @@ namespace SteerLoggerUser
                     // Receive meta data of log and set LogMeta variables 
                     while (received != "EoMeta")
                     {
-                        string[] metaData = received.Split(',');
+                        string[] metaData = received.Split('\u001f');
                         tempLog.id = int.Parse(metaData[0]);
                         tempLog.project = int.Parse(metaData[1]);
                         tempLog.workPack = int.Parse(metaData[2]);
@@ -439,7 +615,7 @@ namespace SteerLoggerUser
                     tempLog.config = new ConfigFile();
                     while (received != "EoConfig")
                     {
-                        string[] pinData = received.Split(',');
+                        string[] pinData = received.Split('\u001f');
                         Pin tempPin = new Pin
                         {
                             id = int.Parse(pinData[0]),
@@ -765,7 +941,7 @@ namespace SteerLoggerUser
             // Receive pin data until all data has been sent
             while (received != "EoConfig")
             {
-                string[] pinData = received.Split(',');
+                string[] pinData = received.Split('\u001f');
                 // Create new row from pin data and add to InputSetup grid
                 object[] rowData = new object[]
                 {
@@ -792,6 +968,7 @@ namespace SteerLoggerUser
         // Populates InputSetup grid with default values if recent config can't be gotten
         private void LoadDefaultConfig()
         {
+            txtLogName.Text = "";
             nudInterval.Value = 1.0M;
             txtDescription.Text = "";
             nudProject.Value = 0;
@@ -820,197 +997,6 @@ namespace SteerLoggerUser
             }
         }
 
-        // Used to send a command/data to the logger using TCP
-        public void TCPSend(string command)
-        {
-            // Make sure connected to logger before trying to send
-            if (logger == "")
-            {
-                MessageBox.Show("You need to be connected to a logger to do that!");
-                throw new SocketException();
-            }
-            //string response = "";
-            try
-            {
-                ////Send data until logger confirms it was received
-                //while (response != "Received")
-                //{
-                //    Encode data using UTF-8
-                //    Byte[] data = Encoding.UTF8.GetBytes(command);
-                //    stream.Write(data, 0, data.Length);
-                //    data = new Byte[2048];
-                //    Int32 bytes = stream.Read(data, 0, data.Length);
-                //    response = Encoding.UTF8.GetString(data, 0, bytes);
-                //}
-
-                Byte[] data = Encoding.UTF8.GetBytes(command + "\n");
-                stream.Write(data, 0, data.Length);
-            }
-            // If there is an error, IOException is thrown
-            // Close connection and then throw SocketException which is caught by code calling TCPSend
-            catch (IOException)
-            {
-                stream.Close();
-                client.Close();
-                while (tcpQueue.IsEmpty == false)
-                {
-                    tcpQueue.TryDequeue(out string result);
-                }
-                throw new SocketException();
-            }
-        }
-
-        private bool IsConnected
-        {
-            get
-            {
-                try
-                {
-                    if (client != null && client.Client != null && client.Client.Connected)
-                    {
-                        /* pear to the documentation on Poll:
-                         * When passing SelectMode.SelectRead as a parameter to the Poll method it will return 
-                         * -either- true if Socket.Listen(Int32) has been called and a connection is pending;
-                         * -or- true if data is available for reading; 
-                         * -or- true if the connection has been closed, reset, or terminated; 
-                         * otherwise, returns false
-                         */
-
-                        // Detect if client disconnected
-                        if (client.Client.Poll(0, SelectMode.SelectRead))
-                        {
-                            byte[] buff = new byte[1];
-                            if (client.Client.Receive(buff, SocketFlags.Peek) == 0)
-                            {
-                                // Client disconnected
-                                return false;
-                            }
-                            else
-                            {
-                                return true;
-                            }
-                        }
-
-                        return true;
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-                catch
-                {
-                    return false;
-                }
-            }
-        }
-
-
-        public void TCPListen()
-        {
-            try
-            {
-                string buffer = "";
-                while (true)
-                {
-                    if (!IsConnected)
-                    {
-                        throw new SocketException();
-                    }
-                    List<string> data = new List<string>();
-                    Byte[] byteData = new Byte[2048];
-                    Int32 bytes = stream.Read(byteData, 0, byteData.Length);
-                    string response = Encoding.UTF8.GetString(byteData, 0, bytes);
-                    foreach (string line in response.Split('\n'))
-                    {
-                        data.Add(line);
-                    }
-                    if (buffer != "")
-                    {
-                        data[0] = buffer + data[0];
-                        buffer = "";
-                    }
-                    for (int i = 0; i < data.Count - 1; i++)
-                    {
-                        string line = data[i].TrimEnd('\n');
-                        if (line == null)
-                        {
-                            throw new Exception();
-                        }
-                        else if (line == "Close")
-                        {
-                            throw new IOException();
-                        }
-                        tcpQueue.Enqueue(line);
-                    }
-                    if (data.Last() != "")
-                    {
-                        buffer = data.Last();
-                    }
-                }
-            }
-            catch (IOException)
-            {
-                MessageBox.Show("An error occured in the connection, please reconnect.");
-                stream.Close();
-                client.Close();
-                while (tcpQueue.IsEmpty == false)
-                {
-                    tcpQueue.TryDequeue(out string result);
-                }
-                logger = "";
-                try
-                {
-                    this.Invoke(new Action(() => { lblConnection.Text = "You're not connected to a logger."; }));
-                }
-                catch (InvalidOperationException)
-                {
-                    // This occurs if the main form is closed by user while message box is showing
-                }
-            }
-            catch (SocketException)
-            {
-                MessageBox.Show("An error occured in the connection, please reconnect.");
-                stream.Close();
-                client.Close();
-                while (tcpQueue.IsEmpty == false)
-                {
-                    tcpQueue.TryDequeue(out string result);
-                }
-                logger = "";
-                try
-                {
-                    this.Invoke(new Action(() => { lblConnection.Text = "You're not connected to a logger."; }));
-                }
-                catch (InvalidOperationException)
-                {
-                    // This occurs if the main form is closed by user while message box is showing
-                }
-            }
-            return;
-        }
-
-        // Used to receive data from the logger sent using TCP
-        public string TCPReceive()
-        {
-            if (!IsConnected)
-            {
-                listener.Abort();
-                stream.Close();
-                client.Close();
-                while (tcpQueue.IsEmpty == false)
-                {
-                    tcpQueue.TryDequeue(out string result);
-                }
-                logger = "";
-                lblConnection.Text = "You're not connected to a logger.";
-                throw new SocketException();
-            }
-            string response;
-            while (tcpQueue.TryDequeue(out response) == false) { }
-            return response;
-
-        }
 
         // Switch from DataProc panel to ControlConfig panel
         private void cmdCtrlConf_Click(object sender, EventArgs e)
@@ -1051,6 +1037,12 @@ namespace SteerLoggerUser
                 return;
             }
 
+            foreach (LogMeta log in DAP.logsProcessing)
+            {
+                File.Delete(log.raw);
+                File.Delete(log.conv);
+            }
+
             // If there is a log in the processing queue, display that log
             if (DAP.logsToProc.Count > 0)
             {
@@ -1072,7 +1064,7 @@ namespace SteerLoggerUser
             }
         }
 
-        // Import config from Pi or from file
+        // Import config from Pi
         // Objective 8
         private void cmdImportConf_Click(object sender, EventArgs e)
         {
@@ -1115,7 +1107,7 @@ namespace SteerLoggerUser
             // Receive the logs that match the search criteria 
             while (response != "EoT")
             {
-                string[] data = response.Split(',');
+                string[] data = response.Split('\u001f');
                 LogMeta newLog = new LogMeta
                 {
                     id = Convert.ToInt32(data[0]),
@@ -1161,7 +1153,7 @@ namespace SteerLoggerUser
             // Objective 8.4
             while (response != "Config_Sent")
             {
-                string[] pinData = response.Split(',');
+                string[] pinData = response.Split('\u001f');
                 // Create row from pin data and add to InputSetup grid
                 object[] rowData = new object[]
                 {
@@ -1363,19 +1355,6 @@ namespace SteerLoggerUser
                     return false;
                 }
             }
-            /*
-            if (upload)
-            {
-                // Check with Pi that the name is unique
-                TCPSend("Check_Name");
-                TCPSend(txtLogName.Text);
-                if (TCPReceive() == "Name exists")
-                {
-                    MessageBox.Show("A log with that name already exists.");
-                    return false;
-                }
-            }
-            */
           
             // Make sure time interval is > 0.1 seconds
             if (nudInterval.Value < Convert.ToDecimal(0.1))
@@ -1420,6 +1399,7 @@ namespace SteerLoggerUser
             description = string.Join(";", description.Split(new string[] { "\r\n" }, StringSplitOptions.None));
             newLog.description = description;
 
+            int enabled = 0;
             ConfigFile newConfig = new ConfigFile();
             foreach (DataGridViewRow row in dgvInputSetup.Rows)
             {
@@ -1458,6 +1438,7 @@ namespace SteerLoggerUser
                 {
                     // If pin is enabled, calculate m and c values for pin
                     newPin = CalculateMandC(newPin);
+                    enabled += 1;
                 }
                 else
                 {
@@ -1465,6 +1446,11 @@ namespace SteerLoggerUser
                     newPin.c = 0;
                 }
                 newConfig.pinList.Add(newPin);
+            }
+            if (enabled == 0)
+            {
+                MessageBox.Show("Please set at least one pin to enabled.", "No Pins Enabled!");
+                throw new InvalidDataException();
             }
             newLog.config = newConfig;
             return newLog;
@@ -1543,30 +1529,30 @@ namespace SteerLoggerUser
             TCPSend("Upload_Config");
             // Send metadata to the logger
             string metadata = "";
-            metadata += newLog.project + ",";
-            metadata += newLog.workPack + ",";
-            metadata += newLog.jobSheet + ",";
-            metadata += newLog.name + ",";
-            metadata += newLog.date + ",";
-            metadata += newLog.time + ",";
-            metadata += newLog.loggedBy + ",";
-            metadata += newLog.downloadedBy + ",";
+            metadata += newLog.project + "\u001f";
+            metadata += newLog.workPack + "\u001f";
+            metadata += newLog.jobSheet + "\u001f";
+            metadata += newLog.name + "\u001f";
+            metadata += newLog.date + "\u001f";
+            metadata += newLog.time + "\u001f";
+            metadata += newLog.loggedBy + "\u001f";
+            metadata += newLog.downloadedBy + "\u001f";
             metadata += newLog.description;
             TCPSend(metadata);
             // Enumerate through pinList and send settings for each Pin to logger
             foreach (Pin pin in newLog.config.pinList)
             {
                 string pindata = "";
-                pindata += pin.id + ",";
-                pindata += pin.name + ",";
-                pindata += pin.enabled + ",";
-                pindata += pin.fName + ",";
-                pindata += pin.inputType + ",";
-                pindata += pin.gain + ",";
-                pindata += pin.scaleMin + ",";
-                pindata += pin.scaleMax + ",";
-                pindata += pin.units + ",";
-                pindata += pin.m + ",";
+                pindata += pin.id + "\u001f";
+                pindata += pin.name + "\u001f";
+                pindata += pin.enabled + "\u001f";
+                pindata += pin.fName + "\u001f";
+                pindata += pin.inputType + "\u001f";
+                pindata += pin.gain + "\u001f";
+                pindata += pin.scaleMin + "\u001f";
+                pindata += pin.scaleMax + "\u001f";
+                pindata += pin.units + "\u001f";
+                pindata += pin.m + "\u001f";
                 pindata += pin.c;
                 TCPSend(pindata);
             }
@@ -1649,6 +1635,7 @@ namespace SteerLoggerUser
                     stream = client.GetStream();
                     listener = new Thread(TCPListen);
                     listener.Start();
+                    TCPSend(user);
                 }
                 catch (SocketException)
                 {
@@ -1827,7 +1814,7 @@ namespace SteerLoggerUser
                 // Receive list of logs the meet the search criteria.
                 while (response != "EoT")
                 {
-                    string[] data = response.Split(',');
+                    string[] data = response.Split('\u001f');
                     LogMeta newLog = new LogMeta
                     {
                         id = Convert.ToInt32(data[0]),
@@ -1971,14 +1958,13 @@ namespace SteerLoggerUser
             if (File.Exists(temp))
             {
                 File.Copy(temp, output);
-                File.Delete(temp);
             }
             else
             {
                 throw new FileNotFoundException();
             }
         }
-
+        /*
         // Write raw csv to location on local machine
         private void SaveRawCsv(LogData log, string path)
         {
@@ -2006,7 +1992,9 @@ namespace SteerLoggerUser
                 }
             }
         }
+        */
 
+        /*
         // Write conv csv to location on local machine
         private void SaveConvCsv(LogData log, string path)
         {
@@ -2034,6 +2022,7 @@ namespace SteerLoggerUser
                 }
             }
         }
+        */
 
         // Write processed csv to location on local machine
         private void SaveProcCsv(LogProc logProc, string path)
@@ -2336,6 +2325,7 @@ namespace SteerLoggerUser
             SettingsForm settings = new SettingsForm(progConfig);
             settings.ShowDialog();
             ReadProgConfig();
+            SetupSimpleConf();
         }
 
         private void cmdAbt_Click(object sender, EventArgs e)

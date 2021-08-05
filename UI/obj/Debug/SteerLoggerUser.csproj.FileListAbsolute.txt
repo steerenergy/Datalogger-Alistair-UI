@@ -107,3 +107,4 @@ C:\Users\aryan\OneDrive\Documents\GitHub\Datalogger-Alistair-UI\UI\obj\Debug\Ste
 C:\Users\aryan\OneDrive\Documents\GitHub\Datalogger-Alistair-UI\UI\obj\Debug\SteerLoggerUser.exe
 C:\Users\aryan\OneDrive\Documents\GitHub\Datalogger-Alistair-UI\UI\obj\Debug\SteerLoggerUser.pdb
 C:\Users\aryan\OneDrive\Documents\GitHub\Datalogger-Alistair-UI\UI\bin\Debug\configPresets.csv
+C:\Users\aryan\OneDrive\Documents\GitHub\Datalogger-Alistair-UI\UI\obj\Debug\SteerLoggerUser.csproj.AssemblyReference.cache
