@@ -11,11 +11,13 @@ namespace SteerLoggerUser
         private string[] loggers;
         public string logger;
         public string user;
+        BackgroundWorker worker;
 
         // Array of logger names passed as parameter to form
         public ConnectForm(string[] logger_arr)
         {
             loggers = logger_arr;
+            this.FormClosed += new FormClosedEventHandler(ConnectFormClosed);
             InitializeComponent();
         }
 
@@ -44,7 +46,7 @@ namespace SteerLoggerUser
                     // If a logger can be connected to, add its name to the drop down menu
                     NetworkStream stream = client.GetStream();
                     // Quit connection so other loggers can be connected to
-                    string command = "Quit\n";
+                    string command = "Quit\u0004";
                     Byte[] data = System.Text.Encoding.UTF8.GetBytes(command);
                     stream.Write(data, 0, data.Length);
                     stream.Close();
@@ -68,14 +70,17 @@ namespace SteerLoggerUser
         private void cmdScan_Click(object sender, EventArgs e)
         {
             pbScan.Value = 0;
-            pbScan.MarqueeAnimationSpeed = 100;
-            pbScan.Style = ProgressBarStyle.Marquee;
+            //pbScan.MarqueeAnimationSpeed = 100;
+            pbScan.Style = ProgressBarStyle.Continuous;
             cmdScan.Enabled = false;
             cmdSelect.Enabled = false;
             cmbLogger.Enabled = false;
 
-            BackgroundWorker worker = new BackgroundWorker();
+            worker = new BackgroundWorker();
             worker.DoWork += Scan;
+            worker.WorkerSupportsCancellation = true;
+            worker.WorkerReportsProgress = true;
+            worker.ProgressChanged += worker_ProgressChanged;
             worker.RunWorkerCompleted += ScanComplete;
             worker.RunWorkerAsync();
 
@@ -87,6 +92,7 @@ namespace SteerLoggerUser
             Int32 port = 13000;
             // Enumerate through known logger names (stored in the program config)
             // Objective 2
+            int num = 0;
             foreach (string logger in loggers)
             {
                 try
@@ -99,11 +105,13 @@ namespace SteerLoggerUser
                     //cmbLogger.Items.Add(logger);
                     NetworkStream stream = client.GetStream();
                     // Quit connection so other loggers can be connected to
-                    string command = "Quit\n";
+                    string command = "Quit\u0004";
                     Byte[] data = System.Text.Encoding.UTF8.GetBytes(command);
                     stream.Write(data, 0, data.Length);
                     stream.Close();
                     client.Close();
+                    num += 1;
+                    worker.ReportProgress((num / loggers.Length) * 100);
 
                 }
                 // Catch exception if logger cannot be accessed
@@ -112,6 +120,7 @@ namespace SteerLoggerUser
                     //Logger not online
                 }
             }
+            worker.ReportProgress(100);
         }
 
         private void ScanComplete(object sender, RunWorkerCompletedEventArgs e)
@@ -137,6 +146,19 @@ namespace SteerLoggerUser
             cmdScan.Enabled = true;
             cmdSelect.Enabled = true;
             cmbLogger.Enabled = true;
+        }
+
+        private void worker_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            pbScan.Value = e.ProgressPercentage;
+        }
+
+        private void ConnectFormClosed(object sender, FormClosedEventArgs e)
+        {
+            if (worker != null && worker.IsBusy)
+            {
+                worker.CancelAsync();
+            }   
         }
     }
 }

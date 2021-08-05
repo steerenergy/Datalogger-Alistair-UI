@@ -31,6 +31,12 @@
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(mainForm));
             this.pnlCtrlConf = new System.Windows.Forms.Panel();
+            this.lblJobSheet = new System.Windows.Forms.Label();
+            this.lblWorkPack = new System.Windows.Forms.Label();
+            this.lblProject = new System.Windows.Forms.Label();
+            this.nudProject = new System.Windows.Forms.NumericUpDown();
+            this.nudWorkPack = new System.Windows.Forms.NumericUpDown();
+            this.nudJobSheet = new System.Windows.Forms.NumericUpDown();
             this.cmdImportConfFile = new System.Windows.Forms.Button();
             this.lblDescription = new System.Windows.Forms.Label();
             this.txtDescription = new System.Windows.Forms.TextBox();
@@ -46,6 +52,7 @@
             this.label1 = new System.Windows.Forms.Label();
             this.txtLogName = new System.Windows.Forms.TextBox();
             this.pnlSimpleConfig = new System.Windows.Forms.Panel();
+            this.cmdRemovePin = new System.Windows.Forms.Button();
             this.cmbSensor = new System.Windows.Forms.ComboBox();
             this.lblVar = new System.Windows.Forms.Label();
             this.cmdAddPin = new System.Windows.Forms.Button();
@@ -86,22 +93,15 @@
             this.ofdLog = new System.Windows.Forms.OpenFileDialog();
             this.sfdLog = new System.Windows.Forms.SaveFileDialog();
             this.ofdPythonScript = new System.Windows.Forms.OpenFileDialog();
-            this.nudJobSheet = new System.Windows.Forms.NumericUpDown();
-            this.nudWorkPack = new System.Windows.Forms.NumericUpDown();
-            this.nudProject = new System.Windows.Forms.NumericUpDown();
-            this.lblProject = new System.Windows.Forms.Label();
-            this.lblWorkPack = new System.Windows.Forms.Label();
-            this.lblJobSheet = new System.Windows.Forms.Label();
-            this.cmdRemovePin = new System.Windows.Forms.Button();
             this.pnlCtrlConf.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.nudProject)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudWorkPack)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudJobSheet)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudInterval)).BeginInit();
             this.pnlSimpleConfig.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvInputSetup)).BeginInit();
             this.pnlDataProc.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvDataProc)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.nudJobSheet)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.nudWorkPack)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.nudProject)).BeginInit();
             this.SuspendLayout();
             // 
             // pnlCtrlConf
@@ -135,6 +135,69 @@
             this.pnlCtrlConf.Name = "pnlCtrlConf";
             this.pnlCtrlConf.Size = new System.Drawing.Size(821, 379);
             this.pnlCtrlConf.TabIndex = 0;
+            // 
+            // lblJobSheet
+            // 
+            this.lblJobSheet.AutoSize = true;
+            this.lblJobSheet.Location = new System.Drawing.Point(144, 14);
+            this.lblJobSheet.Name = "lblJobSheet";
+            this.lblJobSheet.Size = new System.Drawing.Size(58, 13);
+            this.lblJobSheet.TabIndex = 29;
+            this.lblJobSheet.Text = "Job Sheet:";
+            // 
+            // lblWorkPack
+            // 
+            this.lblWorkPack.AutoSize = true;
+            this.lblWorkPack.Location = new System.Drawing.Point(76, 14);
+            this.lblWorkPack.Name = "lblWorkPack";
+            this.lblWorkPack.Size = new System.Drawing.Size(64, 13);
+            this.lblWorkPack.TabIndex = 28;
+            this.lblWorkPack.Text = "Work Pack:";
+            // 
+            // lblProject
+            // 
+            this.lblProject.AutoSize = true;
+            this.lblProject.Location = new System.Drawing.Point(15, 14);
+            this.lblProject.Name = "lblProject";
+            this.lblProject.Size = new System.Drawing.Size(43, 13);
+            this.lblProject.TabIndex = 27;
+            this.lblProject.Text = "Project:";
+            // 
+            // nudProject
+            // 
+            this.nudProject.Location = new System.Drawing.Point(17, 31);
+            this.nudProject.Maximum = new decimal(new int[] {
+            1000000,
+            0,
+            0,
+            0});
+            this.nudProject.Name = "nudProject";
+            this.nudProject.Size = new System.Drawing.Size(57, 20);
+            this.nudProject.TabIndex = 26;
+            // 
+            // nudWorkPack
+            // 
+            this.nudWorkPack.Location = new System.Drawing.Point(80, 31);
+            this.nudWorkPack.Maximum = new decimal(new int[] {
+            1000000,
+            0,
+            0,
+            0});
+            this.nudWorkPack.Name = "nudWorkPack";
+            this.nudWorkPack.Size = new System.Drawing.Size(61, 20);
+            this.nudWorkPack.TabIndex = 25;
+            // 
+            // nudJobSheet
+            // 
+            this.nudJobSheet.Location = new System.Drawing.Point(147, 31);
+            this.nudJobSheet.Maximum = new decimal(new int[] {
+            1000000,
+            0,
+            0,
+            0});
+            this.nudJobSheet.Name = "nudJobSheet";
+            this.nudJobSheet.Size = new System.Drawing.Size(56, 20);
+            this.nudJobSheet.TabIndex = 24;
             // 
             // cmdImportConfFile
             // 
@@ -317,11 +380,21 @@
             this.pnlSimpleConfig.Size = new System.Drawing.Size(607, 379);
             this.pnlSimpleConfig.TabIndex = 20;
             // 
+            // cmdRemovePin
+            // 
+            this.cmdRemovePin.Location = new System.Drawing.Point(510, 31);
+            this.cmdRemovePin.Name = "cmdRemovePin";
+            this.cmdRemovePin.Size = new System.Drawing.Size(93, 22);
+            this.cmdRemovePin.TabIndex = 20;
+            this.cmdRemovePin.Text = "Remove";
+            this.cmdRemovePin.UseVisualStyleBackColor = true;
+            this.cmdRemovePin.Click += new System.EventHandler(this.cmdRemovePin_Click);
+            // 
             // cmbSensor
             // 
             this.cmbSensor.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbSensor.FormattingEnabled = true;
-            this.cmbSensor.Location = new System.Drawing.Point(130, 48);
+            this.cmbSensor.Location = new System.Drawing.Point(130, 32);
             this.cmbSensor.Name = "cmbSensor";
             this.cmbSensor.Size = new System.Drawing.Size(121, 21);
             this.cmbSensor.TabIndex = 12;
@@ -330,7 +403,7 @@
             // lblVar
             // 
             this.lblVar.AutoSize = true;
-            this.lblVar.Location = new System.Drawing.Point(254, 31);
+            this.lblVar.Location = new System.Drawing.Point(254, 14);
             this.lblVar.Name = "lblVar";
             this.lblVar.Size = new System.Drawing.Size(51, 13);
             this.lblVar.TabIndex = 19;
@@ -338,7 +411,7 @@
             // 
             // cmdAddPin
             // 
-            this.cmdAddPin.Location = new System.Drawing.Point(384, 47);
+            this.cmdAddPin.Location = new System.Drawing.Point(384, 31);
             this.cmdAddPin.Name = "cmdAddPin";
             this.cmdAddPin.Size = new System.Drawing.Size(120, 22);
             this.cmdAddPin.TabIndex = 14;
@@ -349,7 +422,7 @@
             // lblPin
             // 
             this.lblPin.AutoSize = true;
-            this.lblPin.Location = new System.Drawing.Point(3, 31);
+            this.lblPin.Location = new System.Drawing.Point(3, 14);
             this.lblPin.Name = "lblPin";
             this.lblPin.Size = new System.Drawing.Size(25, 13);
             this.lblPin.TabIndex = 17;
@@ -359,7 +432,7 @@
             // 
             this.cmbVar.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbVar.FormattingEnabled = true;
-            this.cmbVar.Location = new System.Drawing.Point(257, 48);
+            this.cmbVar.Location = new System.Drawing.Point(257, 32);
             this.cmbVar.Name = "cmbVar";
             this.cmbVar.Size = new System.Drawing.Size(121, 21);
             this.cmbVar.TabIndex = 13;
@@ -367,7 +440,7 @@
             // lblSensor
             // 
             this.lblSensor.AutoSize = true;
-            this.lblSensor.Location = new System.Drawing.Point(127, 32);
+            this.lblSensor.Location = new System.Drawing.Point(127, 14);
             this.lblSensor.Name = "lblSensor";
             this.lblSensor.Size = new System.Drawing.Size(43, 13);
             this.lblSensor.TabIndex = 18;
@@ -375,18 +448,18 @@
             // 
             // txtLogPins
             // 
-            this.txtLogPins.Location = new System.Drawing.Point(3, 75);
+            this.txtLogPins.Location = new System.Drawing.Point(3, 59);
             this.txtLogPins.Multiline = true;
             this.txtLogPins.Name = "txtLogPins";
             this.txtLogPins.ReadOnly = true;
-            this.txtLogPins.Size = new System.Drawing.Size(600, 301);
+            this.txtLogPins.Size = new System.Drawing.Size(600, 317);
             this.txtLogPins.TabIndex = 15;
             // 
             // cmbPin
             // 
             this.cmbPin.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbPin.FormattingEnabled = true;
-            this.cmbPin.Location = new System.Drawing.Point(3, 48);
+            this.cmbPin.Location = new System.Drawing.Point(3, 32);
             this.cmbPin.Name = "cmbPin";
             this.cmbPin.Size = new System.Drawing.Size(121, 21);
             this.cmbPin.TabIndex = 11;
@@ -704,79 +777,6 @@
             this.ofdPythonScript.DefaultExt = "py";
             this.ofdPythonScript.Filter = "Python Files (*.py)|*.py|All files (*.*)|*.*";
             // 
-            // nudJobSheet
-            // 
-            this.nudJobSheet.Location = new System.Drawing.Point(147, 31);
-            this.nudJobSheet.Maximum = new decimal(new int[] {
-            1000000,
-            0,
-            0,
-            0});
-            this.nudJobSheet.Name = "nudJobSheet";
-            this.nudJobSheet.Size = new System.Drawing.Size(56, 20);
-            this.nudJobSheet.TabIndex = 24;
-            // 
-            // nudWorkPack
-            // 
-            this.nudWorkPack.Location = new System.Drawing.Point(80, 31);
-            this.nudWorkPack.Maximum = new decimal(new int[] {
-            1000000,
-            0,
-            0,
-            0});
-            this.nudWorkPack.Name = "nudWorkPack";
-            this.nudWorkPack.Size = new System.Drawing.Size(61, 20);
-            this.nudWorkPack.TabIndex = 25;
-            // 
-            // nudProject
-            // 
-            this.nudProject.Location = new System.Drawing.Point(17, 31);
-            this.nudProject.Maximum = new decimal(new int[] {
-            1000000,
-            0,
-            0,
-            0});
-            this.nudProject.Name = "nudProject";
-            this.nudProject.Size = new System.Drawing.Size(57, 20);
-            this.nudProject.TabIndex = 26;
-            // 
-            // lblProject
-            // 
-            this.lblProject.AutoSize = true;
-            this.lblProject.Location = new System.Drawing.Point(15, 14);
-            this.lblProject.Name = "lblProject";
-            this.lblProject.Size = new System.Drawing.Size(43, 13);
-            this.lblProject.TabIndex = 27;
-            this.lblProject.Text = "Project:";
-            // 
-            // lblWorkPack
-            // 
-            this.lblWorkPack.AutoSize = true;
-            this.lblWorkPack.Location = new System.Drawing.Point(76, 14);
-            this.lblWorkPack.Name = "lblWorkPack";
-            this.lblWorkPack.Size = new System.Drawing.Size(64, 13);
-            this.lblWorkPack.TabIndex = 28;
-            this.lblWorkPack.Text = "Work Pack:";
-            // 
-            // lblJobSheet
-            // 
-            this.lblJobSheet.AutoSize = true;
-            this.lblJobSheet.Location = new System.Drawing.Point(144, 14);
-            this.lblJobSheet.Name = "lblJobSheet";
-            this.lblJobSheet.Size = new System.Drawing.Size(58, 13);
-            this.lblJobSheet.TabIndex = 29;
-            this.lblJobSheet.Text = "Job Sheet:";
-            // 
-            // cmdRemovePin
-            // 
-            this.cmdRemovePin.Location = new System.Drawing.Point(510, 47);
-            this.cmdRemovePin.Name = "cmdRemovePin";
-            this.cmdRemovePin.Size = new System.Drawing.Size(93, 22);
-            this.cmdRemovePin.TabIndex = 20;
-            this.cmdRemovePin.Text = "Remove";
-            this.cmdRemovePin.UseVisualStyleBackColor = true;
-            this.cmdRemovePin.Click += new System.EventHandler(this.cmdRemovePin_Click);
-            // 
             // mainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
@@ -797,6 +797,9 @@
             this.Load += new System.EventHandler(this.mainForm_Load);
             this.pnlCtrlConf.ResumeLayout(false);
             this.pnlCtrlConf.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.nudProject)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudWorkPack)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudJobSheet)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudInterval)).EndInit();
             this.pnlSimpleConfig.ResumeLayout(false);
             this.pnlSimpleConfig.PerformLayout();
@@ -804,9 +807,6 @@
             this.pnlDataProc.ResumeLayout(false);
             this.pnlDataProc.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvDataProc)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.nudJobSheet)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.nudWorkPack)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.nudProject)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
