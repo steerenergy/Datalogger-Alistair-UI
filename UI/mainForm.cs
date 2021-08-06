@@ -442,7 +442,7 @@ namespace SteerLoggerUser
             }
             else
             {
-                lblConnection.Text += logger;
+                lblConnection.Text = String.Format("You are connected to {0} as {1}", logger, user);
             }
 
             // Use progConfig to populate the InputSetup grid view correctly
@@ -1655,7 +1655,7 @@ namespace SteerLoggerUser
                     return;
                 }
                 // Update display to show user is connected
-                lblConnection.Text = "You are connected to: " + logger;
+                lblConnection.Text = String.Format("You are connected to: {0} as {1}",logger,user);
             }
             else
             {

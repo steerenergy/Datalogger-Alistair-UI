@@ -53,10 +53,10 @@
   <COMPONENT cid="caphyon.advinst.msicomp.MsiCompsComponent">
     <ROW Component="APPDIR" ComponentId="{47B8B400-2DFC-4E07-B10A-D90E619F54A8}" Directory_="APPDIR" Attributes="0"/>
     <ROW Component="ProductInformation" ComponentId="{7C6230CF-FF86-4E22-BCC6-F518910CEF5E}" Directory_="APPDIR" Attributes="4" KeyPath="Version"/>
-    <ROW Component="SHORTCUTDIR" ComponentId="{1BD51A3A-6756-4060-B856-2E10BDEDA8CE}" Directory_="SHORTCUTDIR" Attributes="0"/>
+    <ROW Component="SHORTCUTDIR" ComponentId="{1B5FE2EC-F650-4C77-A9C9-0C064D73ECA5}" Directory_="SHORTCUTDIR" Attributes="0"/>
     <ROW Component="SteerLoggerUser_ContentOutput" ComponentId="{8801C8F9-8544-4EAF-908B-1BA5A90062AA}" Directory_="SteerLoggerUser_Dir" Attributes="0" KeyPath="steer.ico" Type="0"/>
     <ROW Component="SteerLoggerUser_ContentOutput_pythonScripts" ComponentId="{C9E5D472-1304-46E0-9FDA-633E3EB66B57}" Directory_="pythonScripts_Dir" Attributes="0" KeyPath="compression.py" Type="0"/>
-    <ROW Component="SteerLoggerUser_PrimaryOutput" ComponentId="{4DB96732-2A3E-4B01-9D8C-A1F7FE3E82D7}" Directory_="SteerLoggerUser_Dir" Attributes="0" KeyPath="SteerLoggerUser.exe"/>
+    <ROW Component="SteerLoggerUser_PrimaryOutput" ComponentId="{4A738B7E-DB22-4FC4-8BDC-3D558C30D995}" Directory_="SteerLoggerUser_Dir" Attributes="0" KeyPath="SteerLoggerUser.exe"/>
     <ROW Component="SteerLoggerUser_References" ComponentId="{73C9E25A-5ABD-4C6C-A12D-7A3013123692}" Directory_="SteerLoggerUser_Dir" Attributes="0" KeyPath="Renci.SshNet.dll"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFeatsComponent">
