@@ -31,17 +31,36 @@
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(mainForm));
             this.pnlCtrlConf = new System.Windows.Forms.Panel();
+            this.lblJobSheet = new System.Windows.Forms.Label();
+            this.lblWorkPack = new System.Windows.Forms.Label();
+            this.lblProject = new System.Windows.Forms.Label();
+            this.nudProject = new System.Windows.Forms.NumericUpDown();
+            this.nudWorkPack = new System.Windows.Forms.NumericUpDown();
+            this.nudJobSheet = new System.Windows.Forms.NumericUpDown();
+            this.cmdImportConfFile = new System.Windows.Forms.Button();
+            this.lblDescription = new System.Windows.Forms.Label();
+            this.txtDescription = new System.Windows.Forms.TextBox();
             this.cmdConfigSwitch = new System.Windows.Forms.Button();
             this.cmdResetConfig = new System.Windows.Forms.Button();
             this.cmdStopLog = new System.Windows.Forms.Button();
             this.cmdStartLog = new System.Windows.Forms.Button();
             this.cmdImportConfPi = new System.Windows.Forms.Button();
-            this.cmdSaveUpload = new System.Windows.Forms.Button();
+            this.cmdUpload = new System.Windows.Forms.Button();
             this.cmdSave = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
             this.nudInterval = new System.Windows.Forms.NumericUpDown();
             this.label1 = new System.Windows.Forms.Label();
             this.txtLogName = new System.Windows.Forms.TextBox();
+            this.pnlSimpleConfig = new System.Windows.Forms.Panel();
+            this.cmdRemovePin = new System.Windows.Forms.Button();
+            this.cmbSensor = new System.Windows.Forms.ComboBox();
+            this.lblVar = new System.Windows.Forms.Label();
+            this.cmdAddPin = new System.Windows.Forms.Button();
+            this.lblPin = new System.Windows.Forms.Label();
+            this.cmbVar = new System.Windows.Forms.ComboBox();
+            this.lblSensor = new System.Windows.Forms.Label();
+            this.txtLogPins = new System.Windows.Forms.TextBox();
+            this.cmbPin = new System.Windows.Forms.ComboBox();
             this.dgvInputSetup = new System.Windows.Forms.DataGridView();
             this.id = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.name = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -52,20 +71,12 @@
             this.scaleMin = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.scaleMax = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.units = new System.Windows.Forms.DataGridViewComboBoxColumn();
-            this.pnlSimpleConfig = new System.Windows.Forms.Panel();
-            this.cmbSensor = new System.Windows.Forms.ComboBox();
-            this.lblVar = new System.Windows.Forms.Label();
-            this.cmdAddPin = new System.Windows.Forms.Button();
-            this.lblPin = new System.Windows.Forms.Label();
-            this.cmbVar = new System.Windows.Forms.ComboBox();
-            this.lblSensor = new System.Windows.Forms.Label();
-            this.txtLogPins = new System.Windows.Forms.TextBox();
-            this.cmbPin = new System.Windows.Forms.ComboBox();
             this.cmdCtrlConf = new System.Windows.Forms.Button();
             this.cmdDataProc = new System.Windows.Forms.Button();
             this.cmdSettings = new System.Windows.Forms.Button();
             this.cmdAbt = new System.Windows.Forms.Button();
             this.pnlDataProc = new System.Windows.Forms.Panel();
+            this.lblLogDisplay = new System.Windows.Forms.Label();
             this.cmdClearData = new System.Windows.Forms.Button();
             this.cmdDwnldCsv = new System.Windows.Forms.Button();
             this.cmdExpExcel = new System.Windows.Forms.Button();
@@ -82,13 +93,13 @@
             this.ofdLog = new System.Windows.Forms.OpenFileDialog();
             this.sfdLog = new System.Windows.Forms.SaveFileDialog();
             this.ofdPythonScript = new System.Windows.Forms.OpenFileDialog();
-            this.txtDescription = new System.Windows.Forms.TextBox();
-            this.lblDescription = new System.Windows.Forms.Label();
-            this.cmdImportConfFile = new System.Windows.Forms.Button();
             this.pnlCtrlConf.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.nudProject)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudWorkPack)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudJobSheet)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudInterval)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.dgvInputSetup)).BeginInit();
             this.pnlSimpleConfig.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dgvInputSetup)).BeginInit();
             this.pnlDataProc.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvDataProc)).BeginInit();
             this.SuspendLayout();
@@ -98,6 +109,12 @@
             this.pnlCtrlConf.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.pnlCtrlConf.Controls.Add(this.lblJobSheet);
+            this.pnlCtrlConf.Controls.Add(this.lblWorkPack);
+            this.pnlCtrlConf.Controls.Add(this.lblProject);
+            this.pnlCtrlConf.Controls.Add(this.nudProject);
+            this.pnlCtrlConf.Controls.Add(this.nudWorkPack);
+            this.pnlCtrlConf.Controls.Add(this.nudJobSheet);
             this.pnlCtrlConf.Controls.Add(this.cmdImportConfFile);
             this.pnlCtrlConf.Controls.Add(this.lblDescription);
             this.pnlCtrlConf.Controls.Add(this.txtDescription);
@@ -106,7 +123,7 @@
             this.pnlCtrlConf.Controls.Add(this.cmdStopLog);
             this.pnlCtrlConf.Controls.Add(this.cmdStartLog);
             this.pnlCtrlConf.Controls.Add(this.cmdImportConfPi);
-            this.pnlCtrlConf.Controls.Add(this.cmdSaveUpload);
+            this.pnlCtrlConf.Controls.Add(this.cmdUpload);
             this.pnlCtrlConf.Controls.Add(this.cmdSave);
             this.pnlCtrlConf.Controls.Add(this.label2);
             this.pnlCtrlConf.Controls.Add(this.nudInterval);
@@ -119,9 +136,102 @@
             this.pnlCtrlConf.Size = new System.Drawing.Size(821, 379);
             this.pnlCtrlConf.TabIndex = 0;
             // 
+            // lblJobSheet
+            // 
+            this.lblJobSheet.AutoSize = true;
+            this.lblJobSheet.Location = new System.Drawing.Point(144, 14);
+            this.lblJobSheet.Name = "lblJobSheet";
+            this.lblJobSheet.Size = new System.Drawing.Size(58, 13);
+            this.lblJobSheet.TabIndex = 29;
+            this.lblJobSheet.Text = "Job Sheet:";
+            // 
+            // lblWorkPack
+            // 
+            this.lblWorkPack.AutoSize = true;
+            this.lblWorkPack.Location = new System.Drawing.Point(76, 14);
+            this.lblWorkPack.Name = "lblWorkPack";
+            this.lblWorkPack.Size = new System.Drawing.Size(64, 13);
+            this.lblWorkPack.TabIndex = 28;
+            this.lblWorkPack.Text = "Work Pack:";
+            // 
+            // lblProject
+            // 
+            this.lblProject.AutoSize = true;
+            this.lblProject.Location = new System.Drawing.Point(15, 14);
+            this.lblProject.Name = "lblProject";
+            this.lblProject.Size = new System.Drawing.Size(43, 13);
+            this.lblProject.TabIndex = 27;
+            this.lblProject.Text = "Project:";
+            // 
+            // nudProject
+            // 
+            this.nudProject.Location = new System.Drawing.Point(17, 31);
+            this.nudProject.Maximum = new decimal(new int[] {
+            1000000,
+            0,
+            0,
+            0});
+            this.nudProject.Name = "nudProject";
+            this.nudProject.Size = new System.Drawing.Size(57, 20);
+            this.nudProject.TabIndex = 26;
+            // 
+            // nudWorkPack
+            // 
+            this.nudWorkPack.Location = new System.Drawing.Point(80, 31);
+            this.nudWorkPack.Maximum = new decimal(new int[] {
+            1000000,
+            0,
+            0,
+            0});
+            this.nudWorkPack.Name = "nudWorkPack";
+            this.nudWorkPack.Size = new System.Drawing.Size(61, 20);
+            this.nudWorkPack.TabIndex = 25;
+            // 
+            // nudJobSheet
+            // 
+            this.nudJobSheet.Location = new System.Drawing.Point(147, 31);
+            this.nudJobSheet.Maximum = new decimal(new int[] {
+            1000000,
+            0,
+            0,
+            0});
+            this.nudJobSheet.Name = "nudJobSheet";
+            this.nudJobSheet.Size = new System.Drawing.Size(56, 20);
+            this.nudJobSheet.TabIndex = 24;
+            // 
+            // cmdImportConfFile
+            // 
+            this.cmdImportConfFile.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.cmdImportConfFile.AutoEllipsis = true;
+            this.cmdImportConfFile.Location = new System.Drawing.Point(18, 336);
+            this.cmdImportConfFile.Name = "cmdImportConfFile";
+            this.cmdImportConfFile.Size = new System.Drawing.Size(94, 33);
+            this.cmdImportConfFile.TabIndex = 23;
+            this.cmdImportConfFile.Text = "Import From File";
+            this.cmdImportConfFile.UseVisualStyleBackColor = true;
+            this.cmdImportConfFile.Click += new System.EventHandler(this.cmdImportConfFile_Click);
+            // 
+            // lblDescription
+            // 
+            this.lblDescription.AutoSize = true;
+            this.lblDescription.Location = new System.Drawing.Point(15, 112);
+            this.lblDescription.Name = "lblDescription";
+            this.lblDescription.Size = new System.Drawing.Size(63, 13);
+            this.lblDescription.TabIndex = 22;
+            this.lblDescription.Text = "Description:";
+            // 
+            // txtDescription
+            // 
+            this.txtDescription.Location = new System.Drawing.Point(18, 128);
+            this.txtDescription.Multiline = true;
+            this.txtDescription.Name = "txtDescription";
+            this.txtDescription.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.txtDescription.Size = new System.Drawing.Size(185, 63);
+            this.txtDescription.TabIndex = 21;
+            // 
             // cmdConfigSwitch
             // 
-            this.cmdConfigSwitch.Location = new System.Drawing.Point(17, 177);
+            this.cmdConfigSwitch.Location = new System.Drawing.Point(17, 228);
             this.cmdConfigSwitch.Name = "cmdConfigSwitch";
             this.cmdConfigSwitch.Size = new System.Drawing.Size(186, 23);
             this.cmdConfigSwitch.TabIndex = 16;
@@ -132,7 +242,7 @@
             // cmdResetConfig
             // 
             this.cmdResetConfig.AutoSize = true;
-            this.cmdResetConfig.Location = new System.Drawing.Point(17, 146);
+            this.cmdResetConfig.Location = new System.Drawing.Point(17, 197);
             this.cmdResetConfig.Name = "cmdResetConfig";
             this.cmdResetConfig.Size = new System.Drawing.Size(186, 25);
             this.cmdResetConfig.TabIndex = 10;
@@ -143,7 +253,7 @@
             // cmdStopLog
             // 
             this.cmdStopLog.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.cmdStopLog.Location = new System.Drawing.Point(118, 219);
+            this.cmdStopLog.Location = new System.Drawing.Point(118, 257);
             this.cmdStopLog.Name = "cmdStopLog";
             this.cmdStopLog.Size = new System.Drawing.Size(86, 33);
             this.cmdStopLog.TabIndex = 9;
@@ -155,7 +265,7 @@
             // 
             this.cmdStartLog.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.cmdStartLog.AutoEllipsis = true;
-            this.cmdStartLog.Location = new System.Drawing.Point(18, 219);
+            this.cmdStartLog.Location = new System.Drawing.Point(17, 257);
             this.cmdStartLog.Name = "cmdStartLog";
             this.cmdStartLog.Size = new System.Drawing.Size(94, 33);
             this.cmdStartLog.TabIndex = 8;
@@ -175,26 +285,26 @@
             this.cmdImportConfPi.UseVisualStyleBackColor = true;
             this.cmdImportConfPi.Click += new System.EventHandler(this.cmdImportConf_Click);
             // 
-            // cmdSaveUpload
+            // cmdUpload
             // 
-            this.cmdSaveUpload.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.cmdSaveUpload.AutoEllipsis = true;
-            this.cmdSaveUpload.Location = new System.Drawing.Point(18, 296);
-            this.cmdSaveUpload.Name = "cmdSaveUpload";
-            this.cmdSaveUpload.Size = new System.Drawing.Size(186, 33);
-            this.cmdSaveUpload.TabIndex = 6;
-            this.cmdSaveUpload.Text = "Save and Upload";
-            this.cmdSaveUpload.UseVisualStyleBackColor = true;
-            this.cmdSaveUpload.Click += new System.EventHandler(this.cmdSaveUpload_Click);
+            this.cmdUpload.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.cmdUpload.AutoEllipsis = true;
+            this.cmdUpload.Location = new System.Drawing.Point(118, 296);
+            this.cmdUpload.Name = "cmdUpload";
+            this.cmdUpload.Size = new System.Drawing.Size(86, 33);
+            this.cmdUpload.TabIndex = 6;
+            this.cmdUpload.Text = "Upload";
+            this.cmdUpload.UseVisualStyleBackColor = true;
+            this.cmdUpload.Click += new System.EventHandler(this.cmdSaveUpload_Click);
             // 
             // cmdSave
             // 
             this.cmdSave.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.cmdSave.Location = new System.Drawing.Point(18, 258);
+            this.cmdSave.Location = new System.Drawing.Point(17, 296);
             this.cmdSave.Name = "cmdSave";
-            this.cmdSave.Size = new System.Drawing.Size(186, 33);
+            this.cmdSave.Size = new System.Drawing.Size(94, 33);
             this.cmdSave.TabIndex = 4;
-            this.cmdSave.Text = "Save and Don\'t Upload";
+            this.cmdSave.Text = "Save";
             this.cmdSave.UseVisualStyleBackColor = true;
             this.cmdSave.Click += new System.EventHandler(this.cmdSave_Click);
             // 
@@ -202,7 +312,7 @@
             // 
             this.label2.AutoEllipsis = true;
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(14, 40);
+            this.label2.Location = new System.Drawing.Point(14, 89);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(71, 13);
             this.label2.TabIndex = 3;
@@ -217,7 +327,7 @@
             0,
             0,
             65536});
-            this.nudInterval.Location = new System.Drawing.Point(97, 37);
+            this.nudInterval.Location = new System.Drawing.Point(97, 87);
             this.nudInterval.Maximum = new decimal(new int[] {
             1000000,
             0,
@@ -241,7 +351,7 @@
             // 
             this.label1.AutoEllipsis = true;
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(14, 14);
+            this.label1.Location = new System.Drawing.Point(15, 65);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(59, 13);
             this.label1.TabIndex = 1;
@@ -249,10 +359,110 @@
             // 
             // txtLogName
             // 
-            this.txtLogName.Location = new System.Drawing.Point(97, 11);
+            this.txtLogName.Location = new System.Drawing.Point(97, 62);
             this.txtLogName.Name = "txtLogName";
             this.txtLogName.Size = new System.Drawing.Size(106, 20);
             this.txtLogName.TabIndex = 0;
+            // 
+            // pnlSimpleConfig
+            // 
+            this.pnlSimpleConfig.Controls.Add(this.cmdRemovePin);
+            this.pnlSimpleConfig.Controls.Add(this.cmbSensor);
+            this.pnlSimpleConfig.Controls.Add(this.lblVar);
+            this.pnlSimpleConfig.Controls.Add(this.cmdAddPin);
+            this.pnlSimpleConfig.Controls.Add(this.lblPin);
+            this.pnlSimpleConfig.Controls.Add(this.cmbVar);
+            this.pnlSimpleConfig.Controls.Add(this.lblSensor);
+            this.pnlSimpleConfig.Controls.Add(this.txtLogPins);
+            this.pnlSimpleConfig.Controls.Add(this.cmbPin);
+            this.pnlSimpleConfig.Location = new System.Drawing.Point(214, 0);
+            this.pnlSimpleConfig.Name = "pnlSimpleConfig";
+            this.pnlSimpleConfig.Size = new System.Drawing.Size(607, 379);
+            this.pnlSimpleConfig.TabIndex = 20;
+            // 
+            // cmdRemovePin
+            // 
+            this.cmdRemovePin.Location = new System.Drawing.Point(510, 31);
+            this.cmdRemovePin.Name = "cmdRemovePin";
+            this.cmdRemovePin.Size = new System.Drawing.Size(93, 22);
+            this.cmdRemovePin.TabIndex = 20;
+            this.cmdRemovePin.Text = "Remove";
+            this.cmdRemovePin.UseVisualStyleBackColor = true;
+            this.cmdRemovePin.Click += new System.EventHandler(this.cmdRemovePin_Click);
+            // 
+            // cmbSensor
+            // 
+            this.cmbSensor.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbSensor.FormattingEnabled = true;
+            this.cmbSensor.Location = new System.Drawing.Point(130, 32);
+            this.cmbSensor.Name = "cmbSensor";
+            this.cmbSensor.Size = new System.Drawing.Size(121, 21);
+            this.cmbSensor.TabIndex = 12;
+            this.cmbSensor.SelectedIndexChanged += new System.EventHandler(this.cmbSensor_SelectedIndexChanged);
+            // 
+            // lblVar
+            // 
+            this.lblVar.AutoSize = true;
+            this.lblVar.Location = new System.Drawing.Point(254, 14);
+            this.lblVar.Name = "lblVar";
+            this.lblVar.Size = new System.Drawing.Size(51, 13);
+            this.lblVar.TabIndex = 19;
+            this.lblVar.Text = "Variation:";
+            // 
+            // cmdAddPin
+            // 
+            this.cmdAddPin.Location = new System.Drawing.Point(384, 31);
+            this.cmdAddPin.Name = "cmdAddPin";
+            this.cmdAddPin.Size = new System.Drawing.Size(120, 22);
+            this.cmdAddPin.TabIndex = 14;
+            this.cmdAddPin.Text = "Add To Log";
+            this.cmdAddPin.UseVisualStyleBackColor = true;
+            this.cmdAddPin.Click += new System.EventHandler(this.cmdAddPin_Click);
+            // 
+            // lblPin
+            // 
+            this.lblPin.AutoSize = true;
+            this.lblPin.Location = new System.Drawing.Point(3, 14);
+            this.lblPin.Name = "lblPin";
+            this.lblPin.Size = new System.Drawing.Size(25, 13);
+            this.lblPin.TabIndex = 17;
+            this.lblPin.Text = "Pin:";
+            // 
+            // cmbVar
+            // 
+            this.cmbVar.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbVar.FormattingEnabled = true;
+            this.cmbVar.Location = new System.Drawing.Point(257, 32);
+            this.cmbVar.Name = "cmbVar";
+            this.cmbVar.Size = new System.Drawing.Size(121, 21);
+            this.cmbVar.TabIndex = 13;
+            // 
+            // lblSensor
+            // 
+            this.lblSensor.AutoSize = true;
+            this.lblSensor.Location = new System.Drawing.Point(127, 14);
+            this.lblSensor.Name = "lblSensor";
+            this.lblSensor.Size = new System.Drawing.Size(43, 13);
+            this.lblSensor.TabIndex = 18;
+            this.lblSensor.Text = "Sensor:";
+            // 
+            // txtLogPins
+            // 
+            this.txtLogPins.Location = new System.Drawing.Point(3, 59);
+            this.txtLogPins.Multiline = true;
+            this.txtLogPins.Name = "txtLogPins";
+            this.txtLogPins.ReadOnly = true;
+            this.txtLogPins.Size = new System.Drawing.Size(600, 317);
+            this.txtLogPins.TabIndex = 15;
+            // 
+            // cmbPin
+            // 
+            this.cmbPin.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbPin.FormattingEnabled = true;
+            this.cmbPin.Location = new System.Drawing.Point(3, 32);
+            this.cmbPin.Name = "cmbPin";
+            this.cmbPin.Size = new System.Drawing.Size(121, 21);
+            this.cmbPin.TabIndex = 11;
             // 
             // dgvInputSetup
             // 
@@ -351,95 +561,6 @@
             this.units.Resizable = System.Windows.Forms.DataGridViewTriState.True;
             this.units.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
             // 
-            // pnlSimpleConfig
-            // 
-            this.pnlSimpleConfig.Controls.Add(this.cmbSensor);
-            this.pnlSimpleConfig.Controls.Add(this.lblVar);
-            this.pnlSimpleConfig.Controls.Add(this.cmdAddPin);
-            this.pnlSimpleConfig.Controls.Add(this.lblPin);
-            this.pnlSimpleConfig.Controls.Add(this.cmbVar);
-            this.pnlSimpleConfig.Controls.Add(this.lblSensor);
-            this.pnlSimpleConfig.Controls.Add(this.txtLogPins);
-            this.pnlSimpleConfig.Controls.Add(this.cmbPin);
-            this.pnlSimpleConfig.Location = new System.Drawing.Point(214, 0);
-            this.pnlSimpleConfig.Name = "pnlSimpleConfig";
-            this.pnlSimpleConfig.Size = new System.Drawing.Size(607, 379);
-            this.pnlSimpleConfig.TabIndex = 20;
-            // 
-            // cmbSensor
-            // 
-            this.cmbSensor.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cmbSensor.FormattingEnabled = true;
-            this.cmbSensor.Location = new System.Drawing.Point(192, 35);
-            this.cmbSensor.Name = "cmbSensor";
-            this.cmbSensor.Size = new System.Drawing.Size(121, 21);
-            this.cmbSensor.TabIndex = 12;
-            this.cmbSensor.SelectedIndexChanged += new System.EventHandler(this.cmbSensor_SelectedIndexChanged);
-            // 
-            // lblVar
-            // 
-            this.lblVar.AutoSize = true;
-            this.lblVar.Location = new System.Drawing.Point(316, 14);
-            this.lblVar.Name = "lblVar";
-            this.lblVar.Size = new System.Drawing.Size(51, 13);
-            this.lblVar.TabIndex = 19;
-            this.lblVar.Text = "Variation:";
-            // 
-            // cmdAddPin
-            // 
-            this.cmdAddPin.Location = new System.Drawing.Point(471, 35);
-            this.cmdAddPin.Name = "cmdAddPin";
-            this.cmdAddPin.Size = new System.Drawing.Size(120, 23);
-            this.cmdAddPin.TabIndex = 14;
-            this.cmdAddPin.Text = "Add To Log";
-            this.cmdAddPin.UseVisualStyleBackColor = true;
-            this.cmdAddPin.Click += new System.EventHandler(this.cmdAddPin_Click);
-            // 
-            // lblPin
-            // 
-            this.lblPin.AutoSize = true;
-            this.lblPin.Location = new System.Drawing.Point(62, 14);
-            this.lblPin.Name = "lblPin";
-            this.lblPin.Size = new System.Drawing.Size(25, 13);
-            this.lblPin.TabIndex = 17;
-            this.lblPin.Text = "Pin:";
-            // 
-            // cmbVar
-            // 
-            this.cmbVar.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cmbVar.FormattingEnabled = true;
-            this.cmbVar.Location = new System.Drawing.Point(319, 35);
-            this.cmbVar.Name = "cmbVar";
-            this.cmbVar.Size = new System.Drawing.Size(121, 21);
-            this.cmbVar.TabIndex = 13;
-            // 
-            // lblSensor
-            // 
-            this.lblSensor.AutoSize = true;
-            this.lblSensor.Location = new System.Drawing.Point(189, 14);
-            this.lblSensor.Name = "lblSensor";
-            this.lblSensor.Size = new System.Drawing.Size(43, 13);
-            this.lblSensor.TabIndex = 18;
-            this.lblSensor.Text = "Sensor:";
-            // 
-            // txtLogPins
-            // 
-            this.txtLogPins.Location = new System.Drawing.Point(65, 75);
-            this.txtLogPins.Multiline = true;
-            this.txtLogPins.Name = "txtLogPins";
-            this.txtLogPins.ReadOnly = true;
-            this.txtLogPins.Size = new System.Drawing.Size(526, 301);
-            this.txtLogPins.TabIndex = 15;
-            // 
-            // cmbPin
-            // 
-            this.cmbPin.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cmbPin.FormattingEnabled = true;
-            this.cmbPin.Location = new System.Drawing.Point(65, 35);
-            this.cmbPin.Name = "cmbPin";
-            this.cmbPin.Size = new System.Drawing.Size(121, 21);
-            this.cmbPin.TabIndex = 11;
-            // 
             // cmdCtrlConf
             // 
             this.cmdCtrlConf.Location = new System.Drawing.Point(13, 12);
@@ -485,6 +606,7 @@
             this.pnlDataProc.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.pnlDataProc.Controls.Add(this.lblLogDisplay);
             this.pnlDataProc.Controls.Add(this.cmdClearData);
             this.pnlDataProc.Controls.Add(this.cmdDwnldCsv);
             this.pnlDataProc.Controls.Add(this.cmdExpExcel);
@@ -498,6 +620,15 @@
             this.pnlDataProc.Name = "pnlDataProc";
             this.pnlDataProc.Size = new System.Drawing.Size(821, 379);
             this.pnlDataProc.TabIndex = 5;
+            // 
+            // lblLogDisplay
+            // 
+            this.lblLogDisplay.AutoSize = true;
+            this.lblLogDisplay.Location = new System.Drawing.Point(19, 14);
+            this.lblLogDisplay.Name = "lblLogDisplay";
+            this.lblLogDisplay.Size = new System.Drawing.Size(93, 13);
+            this.lblLogDisplay.TabIndex = 7;
+            this.lblLogDisplay.Text = "No Log Displaying";
             // 
             // cmdClearData
             // 
@@ -567,7 +698,7 @@
             // 
             // cmdPythonGraph
             // 
-            this.cmdPythonGraph.Location = new System.Drawing.Point(17, 42);
+            this.cmdPythonGraph.Location = new System.Drawing.Point(17, 66);
             this.cmdPythonGraph.Name = "cmdPythonGraph";
             this.cmdPythonGraph.Size = new System.Drawing.Size(186, 29);
             this.cmdPythonGraph.TabIndex = 3;
@@ -577,7 +708,7 @@
             // 
             // cmdPythonScript
             // 
-            this.cmdPythonScript.Location = new System.Drawing.Point(17, 6);
+            this.cmdPythonScript.Location = new System.Drawing.Point(17, 31);
             this.cmdPythonScript.Name = "cmdPythonScript";
             this.cmdPythonScript.Size = new System.Drawing.Size(186, 29);
             this.cmdPythonScript.TabIndex = 2;
@@ -644,37 +775,7 @@
             // ofdPythonScript
             // 
             this.ofdPythonScript.DefaultExt = "py";
-            this.ofdPythonScript.InitialDirectory = "..\\..\\pythonScripts";
-            // 
-            // txtDescription
-            // 
-            this.txtDescription.Location = new System.Drawing.Point(18, 77);
-            this.txtDescription.Multiline = true;
-            this.txtDescription.Name = "txtDescription";
-            this.txtDescription.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtDescription.Size = new System.Drawing.Size(185, 63);
-            this.txtDescription.TabIndex = 21;
-            // 
-            // lblDescription
-            // 
-            this.lblDescription.AutoSize = true;
-            this.lblDescription.Location = new System.Drawing.Point(15, 61);
-            this.lblDescription.Name = "lblDescription";
-            this.lblDescription.Size = new System.Drawing.Size(63, 13);
-            this.lblDescription.TabIndex = 22;
-            this.lblDescription.Text = "Description:";
-            // 
-            // cmdImportConfFile
-            // 
-            this.cmdImportConfFile.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.cmdImportConfFile.AutoEllipsis = true;
-            this.cmdImportConfFile.Location = new System.Drawing.Point(18, 336);
-            this.cmdImportConfFile.Name = "cmdImportConfFile";
-            this.cmdImportConfFile.Size = new System.Drawing.Size(94, 33);
-            this.cmdImportConfFile.TabIndex = 23;
-            this.cmdImportConfFile.Text = "Import From File";
-            this.cmdImportConfFile.UseVisualStyleBackColor = true;
-            this.cmdImportConfFile.Click += new System.EventHandler(this.cmdImportConfFile_Click);
+            this.ofdPythonScript.Filter = "Python Files (*.py)|*.py|All files (*.*)|*.*";
             // 
             // mainForm
             // 
@@ -696,11 +797,15 @@
             this.Load += new System.EventHandler(this.mainForm_Load);
             this.pnlCtrlConf.ResumeLayout(false);
             this.pnlCtrlConf.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.nudProject)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudWorkPack)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudJobSheet)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudInterval)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.dgvInputSetup)).EndInit();
             this.pnlSimpleConfig.ResumeLayout(false);
             this.pnlSimpleConfig.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dgvInputSetup)).EndInit();
             this.pnlDataProc.ResumeLayout(false);
+            this.pnlDataProc.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvDataProc)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -716,7 +821,7 @@
         private System.Windows.Forms.Button cmdSettings;
         private System.Windows.Forms.Button cmdAbt;
         private System.Windows.Forms.Button cmdImportConfPi;
-        private System.Windows.Forms.Button cmdSaveUpload;
+        private System.Windows.Forms.Button cmdUpload;
         private System.Windows.Forms.DataGridView dgvInputSetup;
         private System.Windows.Forms.Button cmdSave;
         private System.Windows.Forms.Label label2;
@@ -764,5 +869,13 @@
         private System.Windows.Forms.Label lblDescription;
         private System.Windows.Forms.TextBox txtDescription;
         private System.Windows.Forms.Button cmdImportConfFile;
+        private System.Windows.Forms.Label lblLogDisplay;
+        private System.Windows.Forms.Label lblJobSheet;
+        private System.Windows.Forms.Label lblWorkPack;
+        private System.Windows.Forms.Label lblProject;
+        private System.Windows.Forms.NumericUpDown nudProject;
+        private System.Windows.Forms.NumericUpDown nudWorkPack;
+        private System.Windows.Forms.NumericUpDown nudJobSheet;
+        private System.Windows.Forms.Button cmdRemovePin;
     }
 }

@@ -11,18 +11,18 @@ namespace SteerLoggerUser
         private string[] loggers;
         public string logger;
         public string user;
+        BackgroundWorker worker;
 
         // Array of logger names passed as parameter to form
         public ConnectForm(string[] logger_arr)
         {
             loggers = logger_arr;
+            this.FormClosed += new FormClosedEventHandler(ConnectFormClosed);
             InitializeComponent();
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            int loggernum = loggers.Length;
-            //pbScan.Maximum = loggernum + 1;
             pbScan.Value = 0;
         }
 
@@ -44,7 +44,7 @@ namespace SteerLoggerUser
                     // If a logger can be connected to, add its name to the drop down menu
                     NetworkStream stream = client.GetStream();
                     // Quit connection so other loggers can be connected to
-                    string command = "Quit\n";
+                    string command = "Quit\u0004";
                     Byte[] data = System.Text.Encoding.UTF8.GetBytes(command);
                     stream.Write(data, 0, data.Length);
                     stream.Close();
@@ -68,14 +68,19 @@ namespace SteerLoggerUser
         private void cmdScan_Click(object sender, EventArgs e)
         {
             pbScan.Value = 0;
-            pbScan.MarqueeAnimationSpeed = 100;
-            pbScan.Style = ProgressBarStyle.Marquee;
+            pbScan.Enabled = true;
+            //pbScan.MarqueeAnimationSpeed = 100;
+            pbScan.Style = ProgressBarStyle.Continuous;
             cmdScan.Enabled = false;
             cmdSelect.Enabled = false;
             cmbLogger.Enabled = false;
+            cmbLogger.Items.Clear();
 
-            BackgroundWorker worker = new BackgroundWorker();
+            worker = new BackgroundWorker();
             worker.DoWork += Scan;
+            worker.WorkerSupportsCancellation = true;
+            worker.WorkerReportsProgress = true;
+            worker.ProgressChanged += worker_ProgressChanged;
             worker.RunWorkerCompleted += ScanComplete;
             worker.RunWorkerAsync();
 
@@ -87,8 +92,10 @@ namespace SteerLoggerUser
             Int32 port = 13000;
             // Enumerate through known logger names (stored in the program config)
             // Objective 2
+            int num = 0;
             foreach (string logger in loggers)
             {
+                num += 1;
                 try
                 {
                     // Attempt to connect to logger
@@ -99,19 +106,20 @@ namespace SteerLoggerUser
                     //cmbLogger.Items.Add(logger);
                     NetworkStream stream = client.GetStream();
                     // Quit connection so other loggers can be connected to
-                    string command = "Quit\n";
+                    string command = "Quit\u0004";
                     Byte[] data = System.Text.Encoding.UTF8.GetBytes(command);
                     stream.Write(data, 0, data.Length);
                     stream.Close();
                     client.Close();
-
                 }
                 // Catch exception if logger cannot be accessed
                 catch (SocketException)
                 {
                     //Logger not online
                 }
+                worker.ReportProgress(num * 100 / loggers.Length);
             }
+            worker.ReportProgress(100);
         }
 
         private void ScanComplete(object sender, RunWorkerCompletedEventArgs e)
@@ -130,13 +138,27 @@ namespace SteerLoggerUser
             {
                 this.Invoke(new Action(() => { txtUser.Text = user; }));
             }
-            this.Invoke(new Action(() => { pbScan.Enabled = false; }));
-            pbScan.MarqueeAnimationSpeed = 0;
-            pbScan.Style = ProgressBarStyle.Blocks;
+
+
+            pbScan.Enabled = false;
+            pbScan.Style = ProgressBarStyle.Continuous;
             pbScan.Value = pbScan.Minimum;
             cmdScan.Enabled = true;
             cmdSelect.Enabled = true;
             cmbLogger.Enabled = true;
+        }
+
+        private void worker_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            pbScan.Value = e.ProgressPercentage;
+        }
+
+        private void ConnectFormClosed(object sender, FormClosedEventArgs e)
+        {
+            if (worker != null && worker.IsBusy)
+            {
+                worker.CancelAsync();
+            }   
         }
     }
 }

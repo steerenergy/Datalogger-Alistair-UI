@@ -1,7 +1,7 @@
 ﻿
 namespace SteerLoggerUser
 {
-    partial class ReceiveProgessFrom
+    partial class ReceiveProgressForm
     {
         /// <summary>
         /// Required designer variable.

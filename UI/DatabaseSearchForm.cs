@@ -26,13 +26,29 @@ namespace SteerLoggerUser
 
                 // Get variables from Form controls
                 string name = txtName.Text;
-                string date = dtpDate.Value.ToString("yyyyMMdd");
-                if (cmbIgnoreDate.Checked == true)
+                string date = "";
+                if (ckbDate.Checked == true)
                 {
-                    date = "";
+                    date = dtpDate.Value.ToString("yyyyMMdd");
                 }
                 string loggedBy = txtLoggedBy.Text;
-                string values = name + ',' + date + ',' + loggedBy;
+                string project = "";
+                if (ckbProject.Checked == true)
+                {
+                    project = nudProject.Value.ToString();
+                }
+                string workPack = "";
+                if (ckbWorkPack.Checked == true)
+                {
+                    workPack = nudWorkPack.Value.ToString();
+                }
+                string jobSheet = "";
+                if (ckbJobSheet.Checked == true)
+                {
+                    jobSheet = nudJobSheet.Value.ToString();
+                }
+                string values = name + '\u001f' + date + '\u001f' + loggedBy + '\u001f' + 
+                                project + '\u001f' + workPack + '\u001f' + jobSheet;
                 // Send values to logger
                 main.TCPSend(values);
             }
@@ -41,6 +57,62 @@ namespace SteerLoggerUser
                 cancelled = true;
             }
             this.Close();
+        }
+
+        private void ckbProject_CheckedChanged(object sender, EventArgs e)
+        {
+            if (ckbProject.Checked)
+            {
+                nudProject.Enabled = true;
+            }
+            else
+            {
+                nudProject.Enabled = false;
+            }
+        }
+
+        private void ckbWorkPack_CheckedChanged(object sender, EventArgs e)
+        {
+            if (ckbWorkPack.Checked)
+            {
+                nudWorkPack.Enabled = true;
+            }
+            else
+            {
+                nudWorkPack.Enabled = false;
+            }
+        }
+
+        private void ckbJobSheet_CheckedChanged(object sender, EventArgs e)
+        {
+            if (ckbJobSheet.Checked)
+            {
+                nudJobSheet.Enabled = true;
+            }
+            else
+            {
+                nudJobSheet.Enabled = false;
+            }
+        }
+
+        private void ckbDate_CheckedChanged(object sender, EventArgs e)
+        {
+            if (ckbDate.Checked)
+            {
+                dtpDate.Enabled = true;
+            }
+            else
+            {
+                dtpDate.Enabled = false;
+            }
+        }
+
+        private void DatabaseSearchForm_Load(object sender, EventArgs e)
+        {
+            dtpDate.Enabled = false;
+            nudProject.Enabled = false;
+            nudWorkPack.Enabled = false;
+            nudJobSheet.Enabled = false;
         }
     }
 }

@@ -2,40 +2,33 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">All</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>66ffe4fe-8e6e-4817-b2b4-ba7ececd6555</ProjectGuid>
+    <ProjectGuid>8dc58c6d-2f5a-419a-ac07-5b5bad711874</ProjectGuid>
     <OutputType>msi</OutputType>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>Logger-UI-Installer.aip</StartupFile>
+    <StartupFile>SteerLoggerInstaller.aip</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <IsWindowsApplication>True</IsWindowsApplication>
-    <AssemblyName>Logger-UI-Installer</AssemblyName>
-    <Name>Logger-UI-Installer</Name>
-    <RootNamespace>Logger-UI-Installer</RootNamespace>
+    <AssemblyName>SteerLoggerInstaller</AssemblyName>
+    <Name>SteerLoggerInstaller</Name>
+    <RootNamespace>SteerLoggerInstaller</RootNamespace>
     <LoadFromTemplate>
     </LoadFromTemplate>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'DefaultBuild' " />
   <ItemGroup>
-    <Compile Include="Logger-UI-Installer.aip">
+    <Compile Include="SteerLoggerInstaller.aip">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SteerLoggerUser\SteerLoggerUser.csproj">
-      <Name>SteerLoggerUser</Name>
-      <Project>{8a887a5e-fce9-492a-9dcf-ea0e3e73657a}</Project>
-      <Private>True</Private>
-      <OutputsToImport>PrimaryOutput;ContentOutput</OutputsToImport>
-    </ProjectReference>
     <ProjectReference Include="..\UI\SteerLoggerUser.csproj">
       <Name>SteerLoggerUser</Name>
       <Project>{8a887a5e-fce9-492a-9dcf-ea0e3e73657a}</Project>
       <Private>True</Private>
-      <OutputsToImport>PrimaryOutput;ContentOutput;LocalizedResourcesOutput;SymbolsOutput;References;DocumentationOutput;ComTypeLibraryOutput</OutputsToImport>
+      <OutputsToImport>PrimaryOutput;References;ContentOutput</OutputsToImport>
     </ProjectReference>
-    <ProjectReference Include="..\UI\SteerLoggerUser.csproj" />
   </ItemGroup>
   <Target Name="Build">
     <Error Text="This project requires Advanced Installer tool. Please download it from https://www.advancedinstaller.com/download.html" />

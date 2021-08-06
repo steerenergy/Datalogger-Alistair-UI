@@ -11,4 +11,4 @@ Top Bronkhorst,Hydrogen,Bronk 110 H,4-20mA,1,0,110,ls/min
 Top Bronkhorst,Methane,Bronk 50 M,4-20mA,1,0,50,ls/min
 IFM Pressure Gauge,100,PG100,4-20mA,1,0,100,mbar
 IFM Pressure Gauge,1000,PG1000,4-20mA,1,0,1000,mbar
-IFM Pressure Gauge,4000,PG4000,4-20mA,1,0,4000,mbar
+IFM Pressure Gauge,10000,PG10000,4-20mA,1,0,10000,mbar

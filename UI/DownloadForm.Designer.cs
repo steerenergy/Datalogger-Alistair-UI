@@ -36,7 +36,11 @@ namespace SteerLoggerUser
             this.Download = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             this.Id = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.LogName = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.TestNumber = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Date = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Project = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.WorkPack = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.JobSheet = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.LogSize = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.dgvDownload)).BeginInit();
             this.SuspendLayout();
@@ -73,7 +77,11 @@ namespace SteerLoggerUser
             this.Download,
             this.Id,
             this.LogName,
+            this.TestNumber,
             this.Date,
+            this.Project,
+            this.WorkPack,
+            this.JobSheet,
             this.LogSize});
             this.dgvDownload.Location = new System.Drawing.Point(13, 26);
             this.dgvDownload.Name = "dgvDownload";
@@ -104,6 +112,12 @@ namespace SteerLoggerUser
             this.LogName.ReadOnly = true;
             this.LogName.Width = 60;
             // 
+            // TestNumber
+            // 
+            this.TestNumber.HeaderText = "Test Number";
+            this.TestNumber.Name = "TestNumber";
+            this.TestNumber.ReadOnly = true;
+            // 
             // Date
             // 
             this.Date.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.DisplayedCells;
@@ -111,6 +125,24 @@ namespace SteerLoggerUser
             this.Date.Name = "Date";
             this.Date.ReadOnly = true;
             this.Date.Width = 55;
+            // 
+            // Project
+            // 
+            this.Project.HeaderText = "Project";
+            this.Project.Name = "Project";
+            this.Project.ReadOnly = true;
+            // 
+            // WorkPack
+            // 
+            this.WorkPack.HeaderText = "Work Pack";
+            this.WorkPack.Name = "WorkPack";
+            this.WorkPack.ReadOnly = true;
+            // 
+            // JobSheet
+            // 
+            this.JobSheet.HeaderText = "Job Sheet";
+            this.JobSheet.Name = "JobSheet";
+            this.JobSheet.ReadOnly = true;
             // 
             // LogSize
             // 
@@ -148,7 +180,11 @@ namespace SteerLoggerUser
         private System.Windows.Forms.DataGridViewCheckBoxColumn Download;
         private System.Windows.Forms.DataGridViewTextBoxColumn Id;
         private System.Windows.Forms.DataGridViewTextBoxColumn LogName;
+        private System.Windows.Forms.DataGridViewTextBoxColumn TestNumber;
         private System.Windows.Forms.DataGridViewTextBoxColumn Date;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Project;
+        private System.Windows.Forms.DataGridViewTextBoxColumn WorkPack;
+        private System.Windows.Forms.DataGridViewTextBoxColumn JobSheet;
         private System.Windows.Forms.DataGridViewTextBoxColumn LogSize;
     }
 }

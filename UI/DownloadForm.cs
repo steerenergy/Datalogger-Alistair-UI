@@ -18,16 +18,16 @@ namespace SteerLoggerUser
         private bool one;
         // Used to tell mainForm if user exits without selecting anything
         private bool cancelled = true;
-        private int max = 0;
+        public int num = 0;
 
         public DownloadForm(mainForm mainForm, List<LogMeta> logsAvailable, string downloadItem, bool onlyOne)
         {
             InitializeComponent();
             this.FormClosed += new FormClosedEventHandler(DownloadFormClosed);
-            main = mainForm;
-            logs = logsAvailable;
-            item = downloadItem;
-            one = onlyOne;
+            this.main = mainForm;
+            this.logs = logsAvailable;
+            this.item = downloadItem;
+            this.one = onlyOne;
         }
 
         // Show logs to user and allow them to select which ones to download
@@ -58,7 +58,7 @@ namespace SteerLoggerUser
             //    pos.Y += 25;
             //}
 
-            foreach (LogMeta log in logs)
+            foreach (LogMeta log in this.logs)
             {
                 // Create new dgvRow object
                 object[] rowData = new object[]
@@ -66,7 +66,11 @@ namespace SteerLoggerUser
                     false,
                     log.id,
                     log.name,
+                    log.testNumber,
                     log.date,
+                    log.project,
+                    log.workPack,
+                    log.jobSheet,
                     log.size
                 };
                 dgvDownload.Rows.Add(rowData);
@@ -79,9 +83,9 @@ namespace SteerLoggerUser
         // Sends the selected log ids to the logger
         private void cmdDownload_Click(object sender, EventArgs e)
         {
-            cancelled = false;
+            this.cancelled = false;
             string logNames = "";
-            int num = 0;
+            num = 0;
             //foreach (CheckBox checkBox in panel.Controls.OfType<CheckBox>())
             //{
             //    //If the log's checkbox is selected, add its ID to logNames
@@ -95,9 +99,8 @@ namespace SteerLoggerUser
             {
                 if (Convert.ToBoolean(row.Cells[0].Value) == true)
                 {
-                    logNames += row.Cells[1].Value + ",";
+                    logNames += row.Cells[1].Value + "\u001f";
                     num += 1;
-                    max += Convert.ToInt32(row.Cells[4].Value);
                 }
             }
             // If no logs selected, let logger know
@@ -107,7 +110,7 @@ namespace SteerLoggerUser
                 main.TCPSend("No_Logs_Requested");
             }
             // If more than one log selected when only one can be downloaded, alert user
-            else if (one == true && num > 1)
+            else if (this.one == true && num > 1)
             {
                 MessageBox.Show("Please only select one item as only one can be downloaded in this instance.");
                 return;
@@ -129,7 +132,6 @@ namespace SteerLoggerUser
                 main.TCPSend(item);
                 main.TCPSend("No_Logs_Requested");
             }
-            main.pbValue = max;
         }
     }
 }
