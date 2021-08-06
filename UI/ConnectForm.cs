@@ -23,8 +23,6 @@ namespace SteerLoggerUser
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            int loggernum = loggers.Length;
-            //pbScan.Maximum = loggernum + 1;
             pbScan.Value = 0;
         }
 
@@ -70,11 +68,13 @@ namespace SteerLoggerUser
         private void cmdScan_Click(object sender, EventArgs e)
         {
             pbScan.Value = 0;
+            pbScan.Enabled = true;
             //pbScan.MarqueeAnimationSpeed = 100;
             pbScan.Style = ProgressBarStyle.Continuous;
             cmdScan.Enabled = false;
             cmdSelect.Enabled = false;
             cmbLogger.Enabled = false;
+            cmbLogger.Items.Clear();
 
             worker = new BackgroundWorker();
             worker.DoWork += Scan;
@@ -95,6 +95,7 @@ namespace SteerLoggerUser
             int num = 0;
             foreach (string logger in loggers)
             {
+                num += 1;
                 try
                 {
                     // Attempt to connect to logger
@@ -110,15 +111,13 @@ namespace SteerLoggerUser
                     stream.Write(data, 0, data.Length);
                     stream.Close();
                     client.Close();
-                    num += 1;
-                    worker.ReportProgress((num / loggers.Length) * 100);
-
                 }
                 // Catch exception if logger cannot be accessed
                 catch (SocketException)
                 {
                     //Logger not online
                 }
+                worker.ReportProgress(num * 100 / loggers.Length);
             }
             worker.ReportProgress(100);
         }
@@ -139,9 +138,10 @@ namespace SteerLoggerUser
             {
                 this.Invoke(new Action(() => { txtUser.Text = user; }));
             }
-            this.Invoke(new Action(() => { pbScan.Enabled = false; }));
-            pbScan.MarqueeAnimationSpeed = 0;
-            pbScan.Style = ProgressBarStyle.Blocks;
+
+
+            pbScan.Enabled = false;
+            pbScan.Style = ProgressBarStyle.Continuous;
             pbScan.Value = pbScan.Minimum;
             cmdScan.Enabled = true;
             cmdSelect.Enabled = true;

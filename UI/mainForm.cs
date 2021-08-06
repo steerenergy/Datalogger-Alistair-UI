@@ -552,10 +552,12 @@ namespace SteerLoggerUser
             // Show DownloadForm which allows user to select which logs to download
             DownloadForm download = new DownloadForm(this, logsAvailable, "Logs", false);
             download.ShowDialog();
+            int numlogs = download.num;
             // Clear up resources
             download.Dispose();
-            ReceiveProgessFrom progressForm;
-            progressForm = new ReceiveProgessFrom(this, pbValue);
+            ReceiveProgressForm progressForm;
+            dataQueue = new ConcurrentQueue<string>();
+            progressForm = new ReceiveProgressForm();
             pbValue = 0;
             progressForm.Show();
             // progressForm.Show();
@@ -565,19 +567,18 @@ namespace SteerLoggerUser
             //ReceiveLog(false);
             BackgroundWorker worker = new BackgroundWorker();
             worker.WorkerReportsProgress = true;
-            worker.DoWork += new DoWorkEventHandler(ReceiveLog);
-            worker.ProgressChanged += new ProgressChangedEventHandler(ProgressChanged);
+            worker.DoWork += (s, args) => ReceiveLog(s,args,numlogs);
+            worker.ProgressChanged += (s, e) => ProgressChanged(s,e,progressForm);
             worker.RunWorkerAsync();
-            //Task downloader = new Task(() => ReceiveLog());
-            //downloader.Start();
         }
 
         // Receive a full log from the logger
         // Objectives 4.1 and 13.3
-        private void ReceiveLog(object sender, EventArgs e)
+        private void ReceiveLog(object sender, EventArgs e, int numLogs)
         {
             try
             {
+                int current = 0;
                 BackgroundWorker worker = sender as BackgroundWorker;
 
                 //progressForm.UpdateTextBox("Converting data on Pi...");
@@ -586,9 +587,11 @@ namespace SteerLoggerUser
                 // Continue receiving logs until all have been sent
                 while (received != "All_Sent")
                 {
+                    prev = 0;
                     // Create a tempoary LogMeta to store log while its being received
                     LogMeta tempLog = new LogMeta();
-                    dataQueue.Enqueue("Receiving meta data...");
+                    current = CalcPercent(5, numLogs, current);
+                    worker.ReportProgress(current, "Receiving Metadata...");
                     //progressForm.UpdateTextBox("Receiving meta data...");
                     // Receive meta data of log and set LogMeta variables 
                     while (received != "EoMeta")
@@ -607,9 +610,11 @@ namespace SteerLoggerUser
                         tempLog.description = metaData[10];
                         received = TCPReceive();
                     }
-                    worker.ReportProgress(10);
+
+
+                    current = CalcPercent(10, numLogs, current);
+                    worker.ReportProgress(current, "Receiving Metadata...");
                     received = TCPReceive();
-                    dataQueue.Enqueue("Receiving config data...");
                     //progressForm.UpdateTextBox("Receiving config data...");
                     // Receive config settings of log and write to ConfigFile object
                     tempLog.config = new ConfigFile();
@@ -633,8 +638,9 @@ namespace SteerLoggerUser
                         tempLog.config.pinList.Add(tempPin);
                         received = TCPReceive();
                     }
-                    worker.ReportProgress(20);
-                    dataQueue.Enqueue("Receiving log data...");
+
+                    current = CalcPercent(20, numLogs, current);
+                    worker.ReportProgress(current, "Receiving log data...");
                     // progressForm.UpdateTextBox("Receiving log data...");
                     received = TCPReceive();
                     // Set up rawheaders and convheaders for LogData object
@@ -666,7 +672,6 @@ namespace SteerLoggerUser
                             pins.Add(pin);
                         }
                     }
-                    worker.ReportProgress(30);
 
                     string host = logger;
                     string user = "pi";
@@ -704,7 +709,8 @@ namespace SteerLoggerUser
                     string path = @"/home/pi/Github/Datalogger-Alistair-Pi/" + received;
                     string temp = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger\" + Path.GetFileName(received);
 
-                    dataQueue.Enqueue("Downloading raw data...");
+                    current = CalcPercent(40, numLogs, current);
+                    worker.ReportProgress(current, "Downloading raw data...");
                     using (FileStream stream = new FileStream(temp, FileMode.Create))
                     {
                         sftpclient.DownloadFile(path, stream);
@@ -713,8 +719,8 @@ namespace SteerLoggerUser
 
                     tempLog.raw = temp;
 
-                    dataQueue.Enqueue("Converting data...");
-                    worker.ReportProgress(50);
+                    current = CalcPercent(60, numLogs, current);
+                    worker.ReportProgress(current, "Converting data...");
 
 
                     // Read from the file selected
@@ -736,32 +742,14 @@ namespace SteerLoggerUser
                                     output += String.Format(",{0}", double.Parse(line[i]) * pins[i - 2].m + pins[i - 2].c);
                                 }
                                 writer.WriteLine(output);
-                                
-                                /*
-                                tempLog.logData.timestamp.Add(Convert.ToDateTime(line[0]));
-                                tempLog.logData.time.Add(Convert.ToDouble(line[1]));
-                                List<double> rawData = new List<double>();
-                                List<double> convData = new List<double>();
-                                for (int i = 2; i < line.Length; i++)
-                                {
-                                    rawData.Add(double.Parse(line[i]));
-                                }
-                                tempLog.logData.AddRawData(rawData);
-                                for (int i = 0; i < pins.Count; i++)
-                                {
-                                    double convertedValue = rawData[i] * pins[i].m + pins[i].c;
-                                    convData.Add(convertedValue);
-                                }
-                                tempLog.logData.AddConvData(convData);
-                                */
                             }
                         }
                     }
 
                     tempLog.conv = tempLog.raw.Replace("raw", "converted");
 
-                    dataQueue.Enqueue("Finalising download...");
-                    worker.ReportProgress(80);
+                    current = CalcPercent(80, numLogs, current);
+                    worker.ReportProgress(current, "Finalising download...");
                     // If there is already a log being processed, ask user if they want to merge logs
                     if (DAP.processing == true)
                     {
@@ -804,10 +792,10 @@ namespace SteerLoggerUser
                     received = TCPReceive();
 
                 }
-                worker.ReportProgress(100);
+                worker.ReportProgress(100, "Download finished...");
                 worker.Dispose();
             }
-            catch (SocketException exp)
+            catch (SocketException)
             {
                 MessageBox.Show("Error occured in connection, please reconnect.");
                 dataQueue.Enqueue("Error occurred. Aborting!");
@@ -844,17 +832,37 @@ namespace SteerLoggerUser
         }
 
 
-        private void ProgressChanged(object sender, ProgressChangedEventArgs e)
+        private void ProgressChanged(object sender, ProgressChangedEventArgs e, ReceiveProgressForm progressForm)
         {
-            pbValue = e.ProgressPercentage;
+            if (e.UserState == null)
+            {
+                progressForm.UpdateProgressBar(e.ProgressPercentage, "");
+            }
+            else
+            {
+                progressForm.UpdateProgressBar(e.ProgressPercentage, e.UserState.ToString());
+            }
+        }
+
+        int prev = 0;
+        private int CalcPercent(int value, int div, int current)
+        {
+            int percent = Convert.ToInt32(Convert.ToDouble(current) + Convert.ToDouble(value - prev) * (1d / Convert.ToDouble(div)));
+            prev = value;
+            return percent;
         }
 
 
         // Display logProc in DataProc grid
         // Objectives 4.2 and 15.2
+        DataTable table;
         private void PopulateDataViewProc(LogProc logToShow)
         {
-            DataTable table = new DataTable();
+            if (table != null)
+            {
+                table.Dispose();
+            }
+            table = new DataTable();
             foreach (string header in logToShow.procheaders)
             {
                 if (header == "Date/Time")
@@ -1062,6 +1070,9 @@ namespace SteerLoggerUser
                 dgvDataProc.Rows.Clear();
                 dgvDataProc.Columns.Clear();
             }
+
+            System.GC.Collect();
+            System.GC.WaitForPendingFinalizers();
         }
 
         // Import config from Pi
@@ -1833,18 +1844,19 @@ namespace SteerLoggerUser
                 // Objective 13.2
                 DownloadForm download = new DownloadForm(this, logsAvailable, "Logs", false);
                 download.ShowDialog();
-                ReceiveProgessFrom progressForm;
-                progressForm = new ReceiveProgessFrom(this, pbValue);
+                int numLogs = download.num;
+                download.Dispose();
+                ReceiveProgressForm progressForm;
+                progressForm = new ReceiveProgressForm();
                 progressForm.Show();
                 pbValue = 0;
 
                 BackgroundWorker worker = new BackgroundWorker();
                 worker.WorkerReportsProgress = true;
-                worker.DoWork += new DoWorkEventHandler(ReceiveLog);
-                worker.ProgressChanged += new ProgressChangedEventHandler(ProgressChanged);
+                worker.DoWork += (s,args) => ReceiveLog(s,args,numLogs);
+                worker.ProgressChanged += (s, args) => ProgressChanged(s, args, progressForm);
                 worker.RunWorkerAsync();
-                //Task downloader = new Task(() => ReceiveLog());
-                //downloader.Start();
+
             }
             catch (SocketException)
             {

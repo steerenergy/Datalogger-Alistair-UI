@@ -163,8 +163,6 @@ namespace SteerLoggerUser
             {
                 string line = "";
                 char[] trimChars = new char[] { '\n', ' ' };
-                // headerNum used to keep track of which section is being read
-                int headerNum = 0;
                 while (!reader.EndOfStream)
                 {
                     line = reader.ReadLine().Trim(trimChars);

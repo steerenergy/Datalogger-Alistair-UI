@@ -18,7 +18,7 @@ namespace SteerLoggerUser
         private bool one;
         // Used to tell mainForm if user exits without selecting anything
         private bool cancelled = true;
-        private int max = 0;
+        public int num = 0;
 
         public DownloadForm(mainForm mainForm, List<LogMeta> logsAvailable, string downloadItem, bool onlyOne)
         {
@@ -85,7 +85,7 @@ namespace SteerLoggerUser
         {
             this.cancelled = false;
             string logNames = "";
-            int num = 0;
+            num = 0;
             //foreach (CheckBox checkBox in panel.Controls.OfType<CheckBox>())
             //{
             //    //If the log's checkbox is selected, add its ID to logNames
