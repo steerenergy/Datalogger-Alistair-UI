@@ -32,7 +32,6 @@ namespace SteerLoggerUser
         DownloadAndProcess DAP = new DownloadAndProcess();
         public ConcurrentQueue<string> tcpQueue = new ConcurrentQueue<string>();
         private Thread listener;
-        public int pbValue;
         public ConcurrentQueue<string> dataQueue = new ConcurrentQueue<string>();
         public Excel.Application excel = null;
 
@@ -167,7 +166,9 @@ namespace SteerLoggerUser
             {
                 MessageBox.Show("An error occured in the connection, please reconnect.");
                 stream.Close();
+                stream.Dispose();
                 client.Close();
+                client.Dispose();
                 while (tcpQueue.IsEmpty == false)
                 {
                     tcpQueue.TryDequeue(out string result);
@@ -220,8 +221,15 @@ namespace SteerLoggerUser
                 lblConnection.Text = "You're not connected to a logger.";
                 throw new SocketException();
             }
+            DateTime start = DateTime.Now;
             string response;
-            while (tcpQueue.TryDequeue(out response) == false) { }
+            while (tcpQueue.TryDequeue(out response) == false) 
+            {
+                if (DateTime.Now.Subtract(start).TotalSeconds > 3000)
+                {
+                    throw new TimeoutException();
+                }    
+            }
             return response;
 
         }
@@ -496,6 +504,20 @@ namespace SteerLoggerUser
                     LoadDefaultConfig();
                     return;
                 }
+                catch (TimeoutException)
+                {
+                    MessageBox.Show("Connection timed out, please reconnect.");
+                    stream.Close();
+                    client.Close();
+                    while (tcpQueue.IsEmpty == false)
+                    {
+                        tcpQueue.TryDequeue(out string result);
+                    }
+                    logger = "";
+                    // Loads InputSetup grid with default values as cannot retrieve recent config
+                    LoadDefaultConfig();
+                    return;
+                }
             }
             else
             {
@@ -555,18 +577,15 @@ namespace SteerLoggerUser
             int numlogs = download.num;
             // Clear up resources
             download.Dispose();
-            ReceiveProgressForm progressForm;
-            dataQueue = new ConcurrentQueue<string>();
-            progressForm = new ReceiveProgressForm();
-            pbValue = 0;
-            progressForm.Show();
-            // progressForm.Show();
-            // Receive the selected logs using TCP
-            // Objective 4.1
-            //ReceiveLog(false, progressForm);
-            //ReceiveLog(false);
+
             BackgroundWorker worker = new BackgroundWorker();
             worker.WorkerReportsProgress = true;
+            worker.WorkerSupportsCancellation = true;
+            
+            ReceiveProgressForm progressForm;
+            progressForm = new ReceiveProgressForm(worker);
+            progressForm.Show();
+       
             worker.DoWork += (s, args) => ReceiveLog(s,args,numlogs);
             worker.ProgressChanged += (s, e) => ProgressChanged(s,e,progressForm);
             worker.RunWorkerAsync();
@@ -576,10 +595,10 @@ namespace SteerLoggerUser
         // Objectives 4.1 and 13.3
         private void ReceiveLog(object sender, EventArgs e, int numLogs)
         {
+            BackgroundWorker worker = sender as BackgroundWorker;
             try
             {
                 int current = 0;
-                BackgroundWorker worker = sender as BackgroundWorker;
 
                 //progressForm.UpdateTextBox("Converting data on Pi...");
                 //progressForm.UpdateProgressBar();
@@ -685,7 +704,7 @@ namespace SteerLoggerUser
                     }
                     catch (SocketException)
                     {
-                        dataQueue.Enqueue("Error occurred. Aborting!");
+                        worker.ReportProgress(0, "Error occurred, aborting!");
                         MessageBox.Show("Failed to download, check that Pi has FTP/SSH enabled.");
                         TCPSend("Quit");
                         stream.Close();
@@ -797,8 +816,8 @@ namespace SteerLoggerUser
             }
             catch (SocketException)
             {
-                MessageBox.Show("Error occured in connection, please reconnect.");
-                dataQueue.Enqueue("Error occurred. Aborting!");
+                MessageBox.Show("Error occurred in connection, please reconnect.");
+                worker.ReportProgress(0, "Error occurred, aborting!");
                 MessageBox.Show("Failed to download, check that Pi has FTP/SSH enabled.");
                 TCPSend("Quit");
                 stream.Close();
@@ -815,7 +834,7 @@ namespace SteerLoggerUser
             {
                 MessageBox.Show(exp.Message);
                 MessageBox.Show(exp.ToString());
-                dataQueue.Enqueue("Error occurred. Aborting!");
+                worker.ReportProgress(0, "Error occurred, aborting!");
                 MessageBox.Show("Failed to download, check that Pi has FTP/SSH enabled.");
                 TCPSend("Quit");
                 stream.Close();
@@ -891,31 +910,6 @@ namespace SteerLoggerUser
             }
             dgvDataProc.DataSource = table;
             dgvDataProc.Columns[0].DefaultCellStyle.Format = "yyyy/MM/dd HH:mm:ss.fff";
-
-
-
-            /*
-            // Create columns and set the header text to log headers
-            foreach (string header in logToShow.procheaders)
-            {
-                DataGridViewColumn tempColumn = new DataGridViewColumn();
-                tempColumn.Name = header.Split('|')[0];
-                tempColumn.HeaderText = header;
-                tempColumn.CellTemplate = new DataGridViewTextBoxCell();
-                dgvDataProc.Columns.Add(tempColumn);
-            }
-            // Enumerate through logProc and add data to grid
-            for (int i = 0; i < logToShow.timestamp.Count; i++)
-            {
-                List<string> newRow = new List<string>();
-                newRow.Add(logToShow.timestamp[i].ToString("yyyy/MM/dd HH:mm:ss.fff"));
-                newRow.Add(logToShow.time[i].ToString());
-                foreach (List<double> column in logToShow.procData)
-                {
-                    newRow.Add(column[i].ToString());
-                }
-                dgvDataProc.Rows.Add(newRow.ToArray());
-            }*/
         }
 
         // Gets the most recently used config from the logger
@@ -1676,6 +1670,9 @@ namespace SteerLoggerUser
                     TCPSend("Quit");
                     stream.Close();
                     client.Close();
+                    stream.Dispose();
+                    client.Dispose();
+
                     while (tcpQueue.IsEmpty == false)
                     {
                         tcpQueue.TryDequeue(out string result);
@@ -1846,13 +1843,16 @@ namespace SteerLoggerUser
                 download.ShowDialog();
                 int numLogs = download.num;
                 download.Dispose();
-                ReceiveProgressForm progressForm;
-                progressForm = new ReceiveProgressForm();
-                progressForm.Show();
-                pbValue = 0;
 
                 BackgroundWorker worker = new BackgroundWorker();
                 worker.WorkerReportsProgress = true;
+                worker.WorkerSupportsCancellation = true;
+
+                ReceiveProgressForm progressForm;
+                progressForm = new ReceiveProgressForm(worker);
+                progressForm.Show();
+
+
                 worker.DoWork += (s,args) => ReceiveLog(s,args,numLogs);
                 worker.ProgressChanged += (s, args) => ProgressChanged(s, args, progressForm);
                 worker.RunWorkerAsync();

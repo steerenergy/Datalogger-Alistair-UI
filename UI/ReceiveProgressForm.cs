@@ -14,9 +14,12 @@ namespace SteerLoggerUser
     public partial class ReceiveProgressForm : Form
     {
         private DateTime start;
+        private BackgroundWorker worker;
 
-        public ReceiveProgressForm()
+        public ReceiveProgressForm(BackgroundWorker worker)
         {
+            this.FormClosed += new FormClosedEventHandler(ProgressFormClosed);
+            this.worker = worker;
             InitializeComponent();
         }
 
@@ -31,7 +34,7 @@ namespace SteerLoggerUser
         {
             pbDownload.Value = value;
             txtOuput.AppendText(line + Environment.NewLine);
-            if (line == "Error occurred. Aborting!")
+            if (line == "Error occurred, aborting!")
             {
                 this.Close();
             }
@@ -49,6 +52,18 @@ namespace SteerLoggerUser
                 double timeSecs = (DateTime.Now.Subtract(start).TotalSeconds / value) * (pbDownload.Maximum - value);
                 TimeSpan estimate = TimeSpan.FromSeconds(timeSecs);
                 lblTime.Text = estimate.ToString("d'd 'h'h 'm'm 's's'");
+            }
+        }
+
+        private void ProgressFormClosed(object sender, FormClosedEventArgs e)
+        {
+            if (pbDownload.Value != pbDownload.Maximum)
+            {
+                DialogResult dialogResult = MessageBox.Show("Downloading not finished, do you want to cancel download?", "Cancel Download?", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                if (dialogResult == DialogResult.Yes)
+                {
+                    worker.CancelAsync();
+                }
             }
         }
     }
