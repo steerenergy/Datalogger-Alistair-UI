@@ -30,8 +30,9 @@ namespace SteerLoggerUser
         public TcpClient client;
         public NetworkStream stream;
         DownloadAndProcess DAP = new DownloadAndProcess();
-        public ConcurrentQueue<string> tcpQueue = new ConcurrentQueue<string>();
+        private ConcurrentQueue<string> tcpQueue = new ConcurrentQueue<string>();
         private Thread listener;
+        private bool listenerExit = false;
         public ConcurrentQueue<string> dataQueue = new ConcurrentQueue<string>();
         public Excel.Application excel = null;
 
@@ -49,9 +50,9 @@ namespace SteerLoggerUser
             // Make sure connected to logger before trying to send
             if (logger == "")
             {
-                MessageBox.Show("You need to be connected to a logger to do that!");
+                //MessageBox.Show("You need to be connected to a logger to do that!");
                 // Maybe change this to InvalidDataException to differentiate from connection error
-                throw new SocketException();
+                throw new InvalidDataException();
             }
             try
             {
@@ -63,17 +64,19 @@ namespace SteerLoggerUser
             // Close connection and then throw SocketException which is caught by code calling TCPSend
             catch (IOException)
             {
-                stream.Close();
-                client.Close();
-                listener.Abort();
-                while (tcpQueue.IsEmpty == false)
-                {
-                    tcpQueue.TryDequeue(out string result);
-                }
+                TCPTearDown();
+                throw new SocketException();
+            }
+            catch (SocketException)
+            {
+                TCPTearDown();
                 throw new SocketException();
             }
         }
 
+
+        // Returns whether TCP connection is still active
+        // Used in error handling in TCPListen and TCPReceive
         private bool IsConnected
         {
             get
@@ -119,12 +122,14 @@ namespace SteerLoggerUser
         }
 
 
+        // Receives data from logger and populates tcpQueue
+        // Allows data to be received parallel to processing in mainForm
         public void TCPListen()
         {
             try
             {
                 string buffer = "";
-                while (true)
+                while (!listenerExit)
                 {
                     if (!IsConnected)
                     {
@@ -134,6 +139,11 @@ namespace SteerLoggerUser
                     Byte[] byteData = new Byte[2048];
                     Int32 bytes = stream.Read(byteData, 0, byteData.Length);
                     string response = Encoding.UTF8.GetString(byteData, 0, bytes);
+                    if (response == "")
+                    {
+                        // Connection closed
+                        throw new SocketException();
+                    }
                     foreach (string line in response.Split('\u0004'))
                     {
                         data.Add(line);
@@ -146,12 +156,13 @@ namespace SteerLoggerUser
                     for (int i = 0; i < data.Count - 1; i++)
                     {
                         string line = data[i].TrimEnd('\u0004');
-                        if (line == null)
+                        //if (line == null)
+                        //{
+                        //    throw new Exception();
+                        //}
+                        if (line == "Close")
                         {
-                            throw new Exception();
-                        }
-                        else if (line == "Close")
-                        {
+                            listenerExit = true;
                             throw new IOException();
                         }
                         tcpQueue.Enqueue(line);
@@ -164,79 +175,123 @@ namespace SteerLoggerUser
             }
             catch (IOException)
             {
-                MessageBox.Show("An error occured in the connection, please reconnect.");
-                stream.Close();
+                // Close listener and tcp connection
+                listenerExit = true;
+                if (stream != null)
+                {
+                    stream.Close();
+                }
+                if (client != null)
+                {
+                    client.Close();
+                }
+
                 stream.Dispose();
-                client.Close();
                 client.Dispose();
-                while (tcpQueue.IsEmpty == false)
-                {
-                    tcpQueue.TryDequeue(out string result);
-                }
+
+                tcpQueue = null;
                 logger = "";
-                try
-                {
-                    this.Invoke(new Action(() => { lblConnection.Text = "You're not connected to a logger."; }));
-                }
-                catch (InvalidOperationException)
-                {
-                    // This occurs if the main form is closed by user while message box is showing
-                }
+                this.Invoke(new Action(() => { lblConnection.Text = "You're not connected to a logger."; }));
+                MessageBox.Show("An error occured in the connection, please reconnect.");
             }
             catch (SocketException)
             {
-                MessageBox.Show("An error occured in the connection, please reconnect.");
-                stream.Close();
-                client.Close();
-                while (tcpQueue.IsEmpty == false)
+                // Close listener and tcp connection
+                listenerExit = true;
+                /*
+                if (stream != null)
                 {
-                    tcpQueue.TryDequeue(out string result);
+                    stream.Close();
                 }
+                if (client != null)
+                {
+                    client.Close();
+                }
+
+                stream.Dispose();
+                client.Dispose();
+
+                tcpQueue = null;
                 logger = "";
-                try
-                {
-                    this.Invoke(new Action(() => { lblConnection.Text = "You're not connected to a logger."; }));
-                }
-                catch (InvalidOperationException)
-                {
-                    // This occurs if the main form is closed by user while message box is showing
-                }
+                //this.Invoke(new Action(() => { lblConnection.Text = "You're not connected to a logger."; }));
+                MessageBox.Show("An error occured in the connection, please reconnect.");
+                */
             }
             return;
         }
 
-        // Used to receive data from the logger sent using TCP
+        // Used to dequeue first item in tcpQueue
+        // tcpQueue contains data sent from logger in order
         public string TCPReceive()
         {
             if (!IsConnected)
             {
-                listener.Abort();
-                stream.Close();
-                client.Close();
-                while (tcpQueue.IsEmpty == false)
-                {
-                    tcpQueue.TryDequeue(out string result);
-                }
-                logger = "";
-                lblConnection.Text = "You're not connected to a logger.";
+                TCPTearDown();
                 throw new SocketException();
             }
             DateTime start = DateTime.Now;
             string response;
             while (tcpQueue.TryDequeue(out response) == false) 
             {
-                if (DateTime.Now.Subtract(start).TotalSeconds > 3000)
+                if (DateTime.Now.Subtract(start).TotalSeconds > 30)
                 {
+                    TCPTearDown();
                     throw new TimeoutException();
                 }    
             }
             return response;
-
         }
 
-        // Reads program config
-        // Test commit
-        // Objective 1
+
+        // Initiate TCP connection to logger
+        public void TCPStartUp()
+        {
+            // Setup TCP connection and stream
+            // Loggers all use port 13000
+            Int32 port = 13000;
+            client = new TcpClient(logger, port);
+            stream = client.GetStream();
+
+            tcpQueue = new ConcurrentQueue<string>();
+
+            // Start listener thread so data can be received in parallel
+            listenerExit = false;
+            listener = new Thread(TCPListen);
+            listener.Start();
+            TCPSend(user);
+
+            lblConnection.Text = String.Format("You are connected to {0} as {1}", logger, user);
+        }
+
+
+        // Close TCP connection with logger
+        public void TCPTearDown()
+        {
+            // Close listener and tcp connection
+            if (stream != null)
+            {
+                stream.Close();
+            }
+            listenerExit = true;
+            if (listener.IsAlive)
+            {
+                listener.Join();
+            }
+            if (client != null)
+            {
+                client.Close();
+            }
+
+
+            stream.Dispose();
+            client.Dispose();
+
+            tcpQueue = null;
+            logger = "";
+            lblConnection.Text = "You're not connected to a logger.";
+        }
+
+        // Reads program config and presets
         private void ReadProgConfig()
         {
             progConfig = new ProgConfig();
@@ -423,11 +478,10 @@ namespace SteerLoggerUser
             InitialiseAppData();
 
             // Reads the program config file
-            // Objective 1
             ReadProgConfig();
             SetupSimpleConf();
+
             // Starts the connect form, which searches for loggers and allows user to connect to one
-            // Objective 2 and 3
             ConnectForm connectForm = new ConnectForm(progConfig.loggers.ToArray());
             connectForm.ShowDialog();
 
@@ -474,46 +528,27 @@ namespace SteerLoggerUser
             {
                 try
                 {
-                    Int32 port = 13000;
-                    client = new TcpClient(logger, port);
-                    //client.ReceiveTimeout = 100;
-                    stream = client.GetStream();
-
-                    listener = new Thread(TCPListen);
-                    listener.Start();
-                    TCPSend(user);
+                    // Reconnect to logger
+                    TCPStartUp();
                     // Get the most recently used config settings from the logger
-                    // Objective 5
                     GetRecentConfig();
                     // Get a list of logs that user hasn't downloaded
-                    // Objective 4
                     RequestRecentLogs();
                 }
                 // If there is an issue connecting to Pi, catch error and continue without connection
                 catch (SocketException)
                 {
                     MessageBox.Show("An error occured in the connection, please reconnect.");
-                    stream.Close();
-                    client.Close();
-                    while (tcpQueue.IsEmpty == false)
-                    {
-                        tcpQueue.TryDequeue(out string result);
-                    }
-                    logger = "";
+
+                    TCPTearDown();
                     // Loads InputSetup grid with default values as cannot retrieve recent config
                     LoadDefaultConfig();
                     return;
                 }
                 catch (TimeoutException)
                 {
+                    TCPTearDown();
                     MessageBox.Show("Connection timed out, please reconnect.");
-                    stream.Close();
-                    client.Close();
-                    while (tcpQueue.IsEmpty == false)
-                    {
-                        tcpQueue.TryDequeue(out string result);
-                    }
-                    logger = "";
                     // Loads InputSetup grid with default values as cannot retrieve recent config
                     LoadDefaultConfig();
                     return;
@@ -609,6 +644,11 @@ namespace SteerLoggerUser
                     prev = 0;
                     // Create a tempoary LogMeta to store log while its being received
                     LogMeta tempLog = new LogMeta();
+                    if (worker.CancellationPending)
+                    {
+                        worker.Dispose();
+                        return;
+                    }
                     current = CalcPercent(5, numLogs, current);
                     worker.ReportProgress(current, "Receiving Metadata...");
                     //progressForm.UpdateTextBox("Receiving meta data...");
@@ -630,7 +670,11 @@ namespace SteerLoggerUser
                         received = TCPReceive();
                     }
 
-
+                    if (worker.CancellationPending)
+                    {
+                        worker.Dispose();
+                        return;
+                    }
                     current = CalcPercent(10, numLogs, current);
                     worker.ReportProgress(current, "Receiving Metadata...");
                     received = TCPReceive();
@@ -658,6 +702,11 @@ namespace SteerLoggerUser
                         received = TCPReceive();
                     }
 
+                    if (worker.CancellationPending)
+                    {
+                        worker.Dispose();
+                        return;
+                    }
                     current = CalcPercent(20, numLogs, current);
                     worker.ReportProgress(current, "Receiving log data...");
                     // progressForm.UpdateTextBox("Receiving log data...");
@@ -704,17 +753,10 @@ namespace SteerLoggerUser
                     }
                     catch (SocketException)
                     {
+                        TCPSend("Quit");
+                        TCPTearDown();
                         worker.ReportProgress(0, "Error occurred, aborting!");
                         MessageBox.Show("Failed to download, check that Pi has FTP/SSH enabled.");
-                        TCPSend("Quit");
-                        stream.Close();
-                        client.Close();
-                        while (tcpQueue.IsEmpty == false)
-                        {
-                            tcpQueue.TryDequeue(out string result);
-                        }
-                        logger = "";
-                        this.Invoke(new Action(() => { lblConnection.Text = "You're not connected to a logger."; }));
                         return;
                     }
 
@@ -728,6 +770,11 @@ namespace SteerLoggerUser
                     string path = @"/home/pi/Github/Datalogger-Alistair-Pi/" + received;
                     string temp = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger\" + Path.GetFileName(received);
 
+                    if (worker.CancellationPending)
+                    {
+                        worker.Dispose();
+                        return;
+                    }
                     current = CalcPercent(40, numLogs, current);
                     worker.ReportProgress(current, "Downloading raw data...");
                     using (FileStream stream = new FileStream(temp, FileMode.Create))
@@ -738,6 +785,11 @@ namespace SteerLoggerUser
 
                     tempLog.raw = temp;
 
+                    if (worker.CancellationPending)
+                    {
+                        worker.Dispose();
+                        return;
+                    }
                     current = CalcPercent(60, numLogs, current);
                     worker.ReportProgress(current, "Converting data...");
 
@@ -767,6 +819,11 @@ namespace SteerLoggerUser
 
                     tempLog.conv = tempLog.raw.Replace("raw", "converted");
 
+                    if (worker.CancellationPending)
+                    {
+                        worker.Dispose();
+                        return;
+                    }
                     current = CalcPercent(80, numLogs, current);
                     worker.ReportProgress(current, "Finalising download...");
                     // If there is already a log being processed, ask user if they want to merge logs
@@ -811,43 +868,31 @@ namespace SteerLoggerUser
                     received = TCPReceive();
 
                 }
+                if (worker.CancellationPending)
+                {
+                    worker.Dispose();
+                    return;
+                }
                 worker.ReportProgress(100, "Download finished...");
                 worker.Dispose();
             }
             catch (SocketException)
             {
-                MessageBox.Show("Error occurred in connection, please reconnect.");
+                TCPTearDown();
                 worker.ReportProgress(0, "Error occurred, aborting!");
+                MessageBox.Show("Error occurred in connection, please reconnect.");
                 MessageBox.Show("Failed to download, check that Pi has FTP/SSH enabled.");
-                TCPSend("Quit");
-                stream.Close();
-                client.Close();
-                while (tcpQueue.IsEmpty == false)
-                {
-                    tcpQueue.TryDequeue(out string result);
-                }
-                logger = "";
-                this.Invoke(new Action(() => { lblConnection.Text = "You're not connected to a logger."; }));
                 return;
             }
             catch (Exception exp)
             {
+                TCPTearDown();
+                worker.ReportProgress(0, "Error occurred, aborting!");
                 MessageBox.Show(exp.Message);
                 MessageBox.Show(exp.ToString());
-                worker.ReportProgress(0, "Error occurred, aborting!");
                 MessageBox.Show("Failed to download, check that Pi has FTP/SSH enabled.");
-                TCPSend("Quit");
-                stream.Close();
-                client.Close();
-                while (tcpQueue.IsEmpty == false)
-                {
-                    tcpQueue.TryDequeue(out string result);
-                }
-                logger = "";
-                this.Invoke(new Action(() => { lblConnection.Text = "You're not connected to a logger."; }));
                 return;
-            }
-            
+            }  
         }
 
 
@@ -863,7 +908,8 @@ namespace SteerLoggerUser
             }
         }
 
-        int prev = 0;
+
+        private int prev = 0;
         private int CalcPercent(int value, int div, int current)
         {
             int percent = Convert.ToInt32(Convert.ToDouble(current) + Convert.ToDouble(value - prev) * (1d / Convert.ToDouble(div)));
@@ -912,9 +958,9 @@ namespace SteerLoggerUser
             dgvDataProc.Columns[0].DefaultCellStyle.Format = "yyyy/MM/dd HH:mm:ss.fff";
         }
 
+
         // Gets the most recently used config from the logger
         // Displays config in InputSetup grid
-        // Objective 5
         private void GetRecentConfig()
         {
             // Send command to get most recent config
@@ -967,6 +1013,7 @@ namespace SteerLoggerUser
             SetupSimpleConf();
         }
 
+
         // Populates InputSetup grid with default values if recent config can't be gotten
         private void LoadDefaultConfig()
         {
@@ -1014,12 +1061,14 @@ namespace SteerLoggerUser
             }
         }
 
+
         // Switch from ControlConfig panel to DataProc panel
         private void cmdDataProc_Click(object sender, EventArgs e)
         {
             pnlCtrlConf.Hide();
             pnlDataProc.Show();
         }
+
 
         // Clear data in the DataProc view
         private void cmdClearData_Click(object sender, EventArgs e)
@@ -1064,104 +1113,78 @@ namespace SteerLoggerUser
                 dgvDataProc.Rows.Clear();
                 dgvDataProc.Columns.Clear();
             }
-
-            System.GC.Collect();
-            System.GC.WaitForPendingFinalizers();
         }
+
 
         // Import config from Pi
-        // Objective 8
         private void cmdImportConf_Click(object sender, EventArgs e)
         {
-            if (logger == "")
-            {
-                MessageBox.Show("You need to be connected to a logger to do that.");
-                return;
-            }
             try
             {
-                ImportConfigPi();
-            }
-            catch (SocketException)
-            {
-                MessageBox.Show("An error occured in the connection, please reconnect.");
-                return;
-            }
-        }
-
-
-        // Imports config from Pi
-        // Objectives 8.2, 8.3 and 8.4
-        private void ImportConfigPi()
-        {
-            // Open new DatabaseSearchForm to allow user to search for logs
-            // Objective 8.2
-            DatabaseSearchForm databaseSearch = new DatabaseSearchForm(this);
-            databaseSearch.ShowDialog();
-            if (databaseSearch.cancelled)
-            {
-                return;
-            }
-            List<LogMeta> logsAvailable = new List<LogMeta>();
-            string response = TCPReceive();
-            if (response == "No Logs Match Criteria")
-            {
-                MessageBox.Show("No logs match criteria.");
-                return;
-            }
-            // Receive the logs that match the search criteria 
-            while (response != "EoT")
-            {
-                string[] data = response.Split('\u001f');
-                LogMeta newLog = new LogMeta
+                // Open new DatabaseSearchForm to allow user to search for logs
+                DatabaseSearchForm databaseSearch = new DatabaseSearchForm(this);
+                databaseSearch.ShowDialog();
+                if (databaseSearch.cancelled)
                 {
-                    id = Convert.ToInt32(data[0]),
-                    name = data[1],
-                    testNumber = Convert.ToInt32(data[2]),
-                    date = data[3],
-                    project = Convert.ToInt32(data[4]),
-                    workPack = Convert.ToInt32(data[5]),
-                    jobSheet = Convert.ToInt32(data[6]),
-                    size = (data[7] == "None") ? 0 : Convert.ToInt32(data[7])
-                };
-                logsAvailable.Add(newLog);
+                    return;
+                }
+                List<LogMeta> logsAvailable = new List<LogMeta>();
+                string response = TCPReceive();
+                if (response == "No Logs Match Criteria")
+                {
+                    MessageBox.Show("No logs match criteria.");
+                    return;
+                }
+                // Receive the logs that match the search criteria 
+                while (response != "EoT")
+                {
+                    string[] data = response.Split('\u001f');
+                    LogMeta newLog = new LogMeta
+                    {
+                        id = Convert.ToInt32(data[0]),
+                        name = data[1],
+                        testNumber = Convert.ToInt32(data[2]),
+                        date = data[3],
+                        project = Convert.ToInt32(data[4]),
+                        workPack = Convert.ToInt32(data[5]),
+                        jobSheet = Convert.ToInt32(data[6]),
+                        size = (data[7] == "None") ? 0 : Convert.ToInt32(data[7])
+                    };
+                    logsAvailable.Add(newLog);
+                    response = TCPReceive();
+                }
+                // Open new DownloadForm to allow user to download config from available logs
+                DownloadForm download = new DownloadForm(this, logsAvailable, "Config", true);
+                download.ShowDialog();
                 response = TCPReceive();
-            }
-            // Open new DownloadForm to allow user to download config from available logs
-            // Objective 8.3
-            DownloadForm download = new DownloadForm(this, logsAvailable, "Config", true);
-            download.ShowDialog();
-            response = TCPReceive();
-            if (response == "Config_Sent")
-            {
-                return;
-            }
-
-            // Clear InputSetup grid
-            dgvInputSetup.Rows.Clear();
-            // Receive time interval and set the nudInterval control's value to the time interval
-            // Objective 8.4
-            nudInterval.Value = Convert.ToDecimal(response);
-            response = TCPReceive();
-            txtDescription.Text = response.Replace(";","\r\n");
-            response = TCPReceive();
-            txtLogName.Text = response;
-            response = TCPReceive();
-            nudProject.Value = Convert.ToInt32(response);
-            response = TCPReceive();
-            nudWorkPack.Value = Convert.ToInt32(response);
-            response = TCPReceive();
-            nudJobSheet.Value = Convert.ToInt32(response);
-            response = TCPReceive();
-
-            // Recevie data for each pin until all pins have been received
-            // Objective 8.4
-            while (response != "Config_Sent")
-            {
-                string[] pinData = response.Split('\u001f');
-                // Create row from pin data and add to InputSetup grid
-                object[] rowData = new object[]
+                if (response == "Config_Sent")
                 {
+                    return;
+                }
+
+                // Clear InputSetup grid
+                dgvInputSetup.Rows.Clear();
+                // Receive time interval and set the nudInterval control's value to the time interval
+                nudInterval.Value = Convert.ToDecimal(response);
+                response = TCPReceive();
+                txtDescription.Text = response.Replace(";", "\r\n");
+                response = TCPReceive();
+                txtLogName.Text = response;
+                response = TCPReceive();
+                nudProject.Value = Convert.ToInt32(response);
+                response = TCPReceive();
+                nudWorkPack.Value = Convert.ToInt32(response);
+                response = TCPReceive();
+                nudJobSheet.Value = Convert.ToInt32(response);
+                response = TCPReceive();
+
+                // Recevie data for each pin until all pins have been received
+                while (response != "Config_Sent")
+                {
+                    string[] pinData = response.Split('\u001f');
+                    // Create row from pin data and add to InputSetup grid
+                    object[] rowData = new object[]
+                    {
                 pinData[0],
                 pinData[1],
                 (pinData[2] == "True" ) ? true : false,
@@ -1171,20 +1194,33 @@ namespace SteerLoggerUser
                 pinData[6],
                 pinData[7],
                 pinData[8]
-                };
-                if (!((DataGridViewComboBoxColumn)dgvInputSetup.Columns["units"]).Items.Contains(pinData[8]))
-                {
-                    ((DataGridViewComboBoxColumn)dgvInputSetup.Columns["units"]).Items.Add(pinData[8]);
+                    };
+                    if (!((DataGridViewComboBoxColumn)dgvInputSetup.Columns["units"]).Items.Contains(pinData[8]))
+                    {
+                        ((DataGridViewComboBoxColumn)dgvInputSetup.Columns["units"]).Items.Add(pinData[8]);
+                    }
+                    dgvInputSetup.Rows.Add(rowData);
+                    response = TCPReceive();
                 }
-                dgvInputSetup.Rows.Add(rowData);
-                response = TCPReceive();
+                SetupSimpleConf();
             }
-            SetupSimpleConf();
+            catch (SocketException)
+            {
+                MessageBox.Show("An error occured in the connection, please reconnect.");
+                return;
+            }
+            catch (InvalidDataException)
+            {
+                MessageBox.Show("You need to be connected to a logger to do that!");
+            }
+            catch (TimeoutException)
+            {
+                MessageBox.Show("Connection timed out, please reconnect.");
+            }
         }
 
 
         // Imports a config from a config file
-        // Objective 8.1
         private void cmdImportConfFile_Click(object sender, EventArgs e)
         {
             if (ofdConfig.ShowDialog() == DialogResult.OK)
@@ -1285,6 +1321,7 @@ namespace SteerLoggerUser
             }
         }
 
+
         // Save config
         private void cmdSave_Click(object sender, EventArgs e)
         {
@@ -1311,7 +1348,6 @@ namespace SteerLoggerUser
 
 
         // Uploads config settings to Pi
-        // Objective 10
         private void cmdSaveUpload_Click(object sender, EventArgs e)
         {
             try
@@ -1328,8 +1364,16 @@ namespace SteerLoggerUser
                 MessageBox.Show("An error occured in the connection, please reconnect.");
                 return;
             }
-            catch (InvalidDataException)
+            catch (InvalidDataException exp)
             {
+                if (exp.Message != "" && exp.Message == "No pins enabled")
+                {
+                    MessageBox.Show("Please set at least one pin to enabled.", "No Pins Enabled!");
+                }
+                else
+                {
+                    MessageBox.Show("You need to be connected to a logger to do that!");
+                }
                 return;
             }
         }
@@ -1386,6 +1430,20 @@ namespace SteerLoggerUser
                 return false;
             }
 
+            foreach (DataGridViewRow row in dgvInputSetup.Rows)
+            {
+                if (!double.TryParse(row.Cells[6].Value.ToString(), out _))
+                {
+                    MessageBox.Show("Please check that all Scale Min values are deciamls.");
+                    return false;
+                }
+
+                if (!double.TryParse(row.Cells[7].Value.ToString(), out _))
+                {
+                    MessageBox.Show("Please check that all Scale Min values are deciamls.");
+                    return false;
+                }
+            }
             return true;
         }
 
@@ -1416,28 +1474,8 @@ namespace SteerLoggerUser
                 newPin.fName = row.Cells[3].Value.ToString();
                 newPin.inputType = row.Cells[4].Value.ToString();
                 newPin.gain = Convert.ToInt32(row.Cells[5].Value);
-                double scaleMin;
-                // Make sure that scaleMin is a decimal value, not a string
-                if (double.TryParse(row.Cells[6].Value.ToString(), out scaleMin))
-                {
-                    newPin.scaleMin = scaleMin;
-                }
-                else
-                {
-                    MessageBox.Show("Please check that all Scale Min values are deciamls.");
-                    throw new InvalidDataException();
-                }
-                double scaleMax;
-                // Make sure that scaleMax is a decimal value, not a string
-                if (double.TryParse(row.Cells[7].Value.ToString(), out scaleMax))
-                {
-                    newPin.scaleMax = scaleMax;
-                }
-                else
-                {
-                    MessageBox.Show("Please check that all Scale Max values are deciamls.");
-                    throw new InvalidDataException();
-                }
+                newPin.scaleMin = Convert.ToDouble(row.Cells[6].Value);
+                newPin.scaleMax = Convert.ToDouble(row.Cells[7].Value);
                 newPin.units = row.Cells[8].Value.ToString();
                 if (newPin.enabled == true)
                 {
@@ -1454,8 +1492,7 @@ namespace SteerLoggerUser
             }
             if (enabled == 0)
             {
-                MessageBox.Show("Please set at least one pin to enabled.", "No Pins Enabled!");
-                throw new InvalidDataException();
+                throw new InvalidDataException("No pins enabled");
             }
             newLog.config = newConfig;
             return newLog;
@@ -1563,8 +1600,8 @@ namespace SteerLoggerUser
             }
         }
 
+
         // Send start command to logger
-        // Objective 9
         private void cmdStartLog_Click(object sender, EventArgs e)
         {
             try
@@ -1576,11 +1613,22 @@ namespace SteerLoggerUser
             catch (SocketException)
             {
                 MessageBox.Show("An error occured in the connection, or you are not connected. Please reconnect.");
+                return;
+            }
+            catch (InvalidDataException)
+            {
+                MessageBox.Show("You need to be connected to a logger to do that!");
+                return;
+            }
+            catch (TimeoutException)
+            {
+                MessageBox.Show("Connection timed out, please reconnect.");
+                return;
             }
         }
 
+
         // Send stop command to logger
-        // Objective 9
         private void cmdStopLog_Click(object sender, EventArgs e)
         {
             try
@@ -1593,7 +1641,18 @@ namespace SteerLoggerUser
             {
                 MessageBox.Show("An error occured in the connection, or you are not connected. Please reconnect.");
             }
+            catch (InvalidDataException)
+            {
+                MessageBox.Show("You need to be connected to a logger to do that!");
+                return;
+            }
+            catch (TimeoutException)
+            {
+                MessageBox.Show("Connection timed out, please reconnect.");
+                return;
+            }
         }
+
 
         // Reset InputSetup grid to default values
         private void cmdResetConfig_Click(object sender, EventArgs e)
@@ -1604,26 +1663,16 @@ namespace SteerLoggerUser
             SetupSimpleConf();
         }
 
+
         // Allows user to reconnect to logger or connect to a different one
         private void cmdConnect_Click(object sender, EventArgs e)
         {
             if (listener != null && listener.IsAlive)
             {
                 TCPSend("Quit");
-                listener.Abort();
+                TCPTearDown();
             }
-            // Close current TCP connection
-            if (stream != null)
-            {
-                stream.Close();
-                client.Close();
-                while (tcpQueue.IsEmpty == false)
-                {
-                    tcpQueue.TryDequeue(out string result);
-                }
-            }
-            logger = "";
-            lblConnection.Text = "You're not connected to a logger.";
+
             // Create new connectForm to search for available loggers
             ConnectForm connectForm = new ConnectForm(progConfig.loggers.ToArray());
             connectForm.user = user;
@@ -1635,28 +1684,20 @@ namespace SteerLoggerUser
             {
                 try
                 {
-                    Int32 port = 13000;
-                    client = new TcpClient(logger, port);
-                    stream = client.GetStream();
-                    listener = new Thread(TCPListen);
-                    listener.Start();
-                    TCPSend(user);
+                    TCPStartUp();
                 }
                 catch (SocketException)
                 {
                     MessageBox.Show("An error occured in the connection, please reconnect.");
-                    logger = "";
                     return;
                 }
-                // Update display to show user is connected
-                lblConnection.Text = String.Format("You are connected to: {0} as {1}",logger,user);
             }
             else
             {
                 logger = "";
-                lblConnection.Text = "You're not connected to a logger.";
             }
         }
+
 
         // Close TCP connection when mainForm is closed
         void MainFormClosed(object sender, FormClosedEventArgs e)
@@ -1666,28 +1707,14 @@ namespace SteerLoggerUser
                 // If user is connected to logger, close TCP stream and client
                 if (logger != "" && logger != null)
                 {
-                    listener.Abort();
                     TCPSend("Quit");
-                    stream.Close();
-                    client.Close();
-                    stream.Dispose();
-                    client.Dispose();
-
-                    while (tcpQueue.IsEmpty == false)
-                    {
-                        tcpQueue.TryDequeue(out string result);
-                    }
+                    TCPTearDown();
                 }
             }
             // If an error occurs, close stream and client anyway as program is exiting, don't need to alert user
             catch (SocketException)
             {
-                stream.Close();
-                client.Close();
-                while (tcpQueue.IsEmpty == false)
-                {
-                    tcpQueue.TryDequeue(out string result);
-                }
+                TCPTearDown();
             }
 
             string[] filePaths = Directory.GetFiles(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger");
@@ -1707,8 +1734,8 @@ namespace SteerLoggerUser
             }
         }
 
+
         // Imports log data from a csv file
-        // Objective 12
         private void cmdImportLogFile_Click(object sender, EventArgs e)
         {
             // Create new logMeta and logData to hold log
@@ -1720,27 +1747,7 @@ namespace SteerLoggerUser
                 logMeta.name = ofdLog.SafeFileName.Replace("converted-", "");
                 logMeta.name = logMeta.name.Replace(".csv", "");
                 logMeta.conv = ofdLog.FileName;
-                //// Read from the file selected
-                //using (StreamReader reader = new StreamReader(ofdLog.OpenFile()))
-                //{
-                //    // Read the headerline and set convheaders
-                //    logMeta.logData.convheaders.AddRange(reader.ReadLine().Split(','));
-                //    // Initialise convData using the number of headers
-                //    logMeta.logData.InitRawConv(logMeta.logData.convheaders.Count - 2);
-                //    while (!reader.EndOfStream)
-                //    {
-                //        // Read each line and store the data in the logData object
-                //        string[] line = reader.ReadLine().Split(',');
-                //        logMeta.logData.timestamp.Add(Convert.ToDateTime(line[0]));
-                //        logMeta.logData.time.Add(Convert.ToDouble(line[1]));
-                //        List<double> convData = new List<double>();
-                //        for (int i = 2; i < line.Length; i++)
-                //        {
-                //            convData.Add(double.Parse(line[i]));
-                //        }
-                //        logMeta.logData.AddConvData(convData);
-                //    }
-                //}
+              
                 // If there is already a log being processed, allow user to merge logs
                 if (DAP.processing == true)
                 {
@@ -1764,14 +1771,6 @@ namespace SteerLoggerUser
                     {
                         // If not selected to merge, enqueue imported log
                         DAP.logsToProc.Enqueue(logMeta);
-                        // Dequeue next log and display it
-                        //if (DAP.logsToProc.Count > 0)
-                        //{
-                        //    DAP.logsProcessing.Clear();
-                        //    DAP.logsProcessing.Add(DAP.logsToProc.Dequeue());
-                        //    DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].logData);
-                        //    PopulateDataViewProc(DAP.logProc);
-                        //}
                     }
                 }
                 else
@@ -1798,14 +1797,13 @@ namespace SteerLoggerUser
 
         }
 
+
         // Imports log from Pi
-        // Objective 13
         private void cmdImportLogPi_Click(object sender, EventArgs e)
         {
             try
             {
                 // Create new DatabaseSearchForm so user can search for logs
-                // Objective 13.1
                 DatabaseSearchForm databaseSearch = new DatabaseSearchForm(this);
                 databaseSearch.ShowDialog();
                 if (databaseSearch.cancelled)
@@ -1862,10 +1860,18 @@ namespace SteerLoggerUser
             {
                 MessageBox.Show("An error occured in the connection, or you are not connected. Please reconnect.");
             }
+            catch (InvalidDataException)
+            {
+                MessageBox.Show("You need to be connected to a logger to do that!");
+            }
+            catch (TimeoutException)
+            {
+                MessageBox.Show("Connection timed out, please reconnect.");
+            }
         }
 
+
         // Dowload log CSV files
-        // Objective 14.1
         private void cmdDwnldCsv_Click(object sender, EventArgs e)
         {
             // Enumerate through logs that are being processed
@@ -1976,65 +1982,7 @@ namespace SteerLoggerUser
                 throw new FileNotFoundException();
             }
         }
-        /*
-        // Write raw csv to location on local machine
-        private void SaveRawCsv(LogData log, string path)
-        {
-            using (StreamWriter writer = new StreamWriter(path))
-            {
-                // Write the headers of the csv file
-                string heading = "";
-                foreach (string header in log.rawheaders)
-                {
-                    heading += header + ",";
-                }
-                writer.WriteLine(heading.Trim(','));
-
-                // Iterate through logData and write each row to the csv file
-                for (int i = 0; i < log.timestamp.Count; i++)
-                {
-                    string line = "";
-                    line += log.timestamp[i].ToString("yyyy/MM/dd HH:mm:ss.fff") + ",";
-                    line += log.time[i] + ",";
-                    foreach (List<double> column in log.rawData)
-                    {
-                        line += column[i] + ",";
-                    }
-                    writer.WriteLine(line.Trim(','));
-                }
-            }
-        }
-        */
-
-        /*
-        // Write conv csv to location on local machine
-        private void SaveConvCsv(LogData log, string path)
-        {
-            using (StreamWriter writer = new StreamWriter(path))
-            {
-                // Write headers of the csv file
-                string heading = "";
-                foreach (string header in log.convheaders)
-                {
-                    heading += header + ",";
-                }
-                writer.WriteLine(heading.Trim(','));
-
-                // Iterate through logData and write each row to the csv file
-                for (int i = 0; i < log.timestamp.Count; i++)
-                {
-                    string line = "";
-                    line += log.timestamp[i].ToString("yyyy/MM/dd HH:mm:ss.fff") + ",";
-                    line += log.time[i] + ",";
-                    foreach (List<double> column in log.convData)
-                    {
-                        line += column[i] + ",";
-                    }
-                    writer.WriteLine(line.Trim(','));
-                }
-            }
-        }
-        */
+      
 
         // Write processed csv to location on local machine
         private void SaveProcCsv(LogProc logProc, string path)
@@ -2065,8 +2013,8 @@ namespace SteerLoggerUser
 
         }
 
+
         // Download logs being processed in a zip file
-        // Objective 14.2
         private void cmdDwnldZip_Click(object sender, EventArgs e)
         {
             string dirPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger\zipDir";
@@ -2134,8 +2082,8 @@ namespace SteerLoggerUser
             }
         }
 
+
         // Import data into an Excel spreadsheet
-        // Objective 14.3
         private void cmdExpExcel_Click(object sender, EventArgs e)
         {
             // Check if there is dat to export
@@ -2157,6 +2105,7 @@ namespace SteerLoggerUser
                 MessageBox.Show("No data to export, please import data into the processing view!");
             }
         }
+
 
         // Process data in display using a python script
         private void cmdPythonScript_Click(object sender, EventArgs e)
@@ -2208,8 +2157,8 @@ namespace SteerLoggerUser
             }
             else { return; }
 
+
             // Read processed data output by python script
-            // Objectve 15.2
             try
             {
                 LogProc tempLogProc = ReadProcCsv(dirPath + @"\proc.csv");
@@ -2238,8 +2187,8 @@ namespace SteerLoggerUser
             }
         }
 
+
         // Reads processed data output from python script
-        // Objective 15.3
         private LogProc ReadProcCsv(string filepath)
         {
             LogProc tempLogProc = new LogProc();
@@ -2267,8 +2216,8 @@ namespace SteerLoggerUser
             return tempLogProc;
         }
 
+
         // Allow user to execute python graphing script
-        // Objective 16
         private void cmdPythonGraph_Click(object sender, EventArgs e)
         {
             // Make sure there is data to be graphed

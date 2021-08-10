@@ -52,9 +52,10 @@ namespace SteerLoggerUser
                 // Send values to logger
                 main.TCPSend(values);
             }
-            catch
+            catch (Exception exp)
             {
                 cancelled = true;
+                throw exp;
             }
             this.Close();
         }
