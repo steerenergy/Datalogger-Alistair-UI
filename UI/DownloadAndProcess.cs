@@ -16,8 +16,8 @@ namespace SteerLoggerUser
         // Stores whether a log is being processed or not
         public bool processing = false;
 
+
         // Used to merge two logs together
-        // Objective 17
         public void MergeLogs(LogProc logToMerge)
         {
             // Create new LogProc object to store merged logs
@@ -55,7 +55,6 @@ namespace SteerLoggerUser
             {
                 // The section below makes sure data is only added to the merged log
                 // when a timestamp is common in both logs being merged
-                // Objective 17.3
                 bool equal = true;
                 // Compare timestamp at current position of log 1 to largest
                 if (RoundDateTime(logProc.timestamp[counters[0]]) < largest)
@@ -86,7 +85,6 @@ namespace SteerLoggerUser
                 }
 
                 // If log 1 current timestamp = log 2 current timestamp = largest, add data to merged LogProc
-                // Objective 17.3
                 if (equal)
                 {
                     double timeDifference = 0;
@@ -126,6 +124,7 @@ namespace SteerLoggerUser
             // Set current logProc to the merged logs
             this.logProc = tempProcessLog;
         }
+
 
         // Used to round a date time object to the nearest 0.1 seconds (lowest time interval)
         // Means logs can be merged without being in sync to the millisecond

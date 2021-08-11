@@ -176,46 +176,48 @@ namespace SteerLoggerUser
             catch (IOException)
             {
                 // Close listener and tcp connection
-                listenerExit = true;
                 if (stream != null)
                 {
                     stream.Close();
+                    stream.Dispose();
+
                 }
                 if (client != null)
                 {
                     client.Close();
+                    client.Dispose();
                 }
-
-                stream.Dispose();
-                client.Dispose();
 
                 tcpQueue = null;
                 logger = "";
-                this.Invoke(new Action(() => { lblConnection.Text = "You're not connected to a logger."; }));
-                MessageBox.Show("An error occured in the connection, please reconnect.");
+                if (listenerExit == false)
+                {
+                    this.BeginInvoke(new Action(() => { lblConnection.Text = "You're not connected to a logger."; }));
+                    MessageBox.Show("An error occured in the connection, please reconnect.");
+                }
             }
             catch (SocketException)
             {
                 // Close listener and tcp connection
-                listenerExit = true;
-                /*
                 if (stream != null)
                 {
                     stream.Close();
+                    stream.Dispose();
+
                 }
                 if (client != null)
                 {
                     client.Close();
+                    client.Dispose();
                 }
-
-                stream.Dispose();
-                client.Dispose();
 
                 tcpQueue = null;
                 logger = "";
-                //this.Invoke(new Action(() => { lblConnection.Text = "You're not connected to a logger."; }));
-                MessageBox.Show("An error occured in the connection, please reconnect.");
-                */
+                if (listenerExit == false)
+                {
+                    this.BeginInvoke(new Action(() => { lblConnection.Text = "You're not connected to a logger."; }));
+                    MessageBox.Show("An error occured in the connection, please reconnect.");
+                }
             }
             return;
         }
@@ -268,15 +270,12 @@ namespace SteerLoggerUser
         public void TCPTearDown()
         {
             // Close listener and tcp connection
+            listenerExit = true;
             if (stream != null)
             {
                 stream.Close();
             }
-            listenerExit = true;
-            if (listener.IsAlive)
-            {
-                listener.Join();
-            }
+            listener.Join();
             if (client != null)
             {
                 client.Close();
@@ -288,7 +287,7 @@ namespace SteerLoggerUser
 
             tcpQueue = null;
             logger = "";
-            lblConnection.Text = "You're not connected to a logger.";
+            this.BeginInvoke(new Action(() => { lblConnection.Text = "You're not connected to a logger."; }));
         }
 
         // Reads program config and presets
@@ -444,7 +443,7 @@ namespace SteerLoggerUser
                 string file = Application.StartupPath + @"\" + filename;
                 if (!File.Exists(output))
                 {
-                    File.Copy(filename, output);
+                    File.Copy(file, output);
                 }
             }
 
@@ -462,10 +461,10 @@ namespace SteerLoggerUser
                 string file = filename.ToString();
 
                 //Do your job with "file"  
-                string str = dirPath + file.ToString().Replace(Application.StartupPath + @"\pythonScripts", "");
-                if (!File.Exists(str))
+                string output = dirPath + file.ToString().Replace(Application.StartupPath + @"\pythonScripts", "");
+                if (!File.Exists(output))
                 {
-                    File.Copy(file, str);
+                    File.Copy(file, output);
                 }
             }
         }
@@ -643,30 +642,34 @@ namespace SteerLoggerUser
                 {
                     prev = 0;
                     // Create a tempoary LogMeta to store log while its being received
-                    LogMeta tempLog = new LogMeta();
+                    LogMeta tempLog;
                     if (worker.CancellationPending)
                     {
                         worker.Dispose();
                         return;
                     }
                     current = CalcPercent(5, numLogs, current);
-                    worker.ReportProgress(current, "Receiving Metadata...");
+                    worker.ReportProgress(current, "Receiving metadata...");
                     //progressForm.UpdateTextBox("Receiving meta data...");
-                    // Receive meta data of log and set LogMeta variables 
+                    // Receive meta data of log and set LogMeta variables
+                    string[] metaData = received.Split('\u001f');
+                    tempLog = new LogMeta
+                    {
+                        id = int.Parse(metaData[0]),
+                        project = int.Parse(metaData[1]),
+                        workPack = int.Parse(metaData[2]),
+                        jobSheet = int.Parse(metaData[3]),
+                        name = metaData[4],
+                        testNumber = int.Parse(metaData[5]),
+                        date = metaData[6],
+                        time = decimal.Parse(metaData[7]),
+                        loggedBy = metaData[8],
+                        downloadedBy = metaData[9],
+                        description = metaData[10],
+                    };
+                    received = TCPReceive();
                     while (received != "EoMeta")
                     {
-                        string[] metaData = received.Split('\u001f');
-                        tempLog.id = int.Parse(metaData[0]);
-                        tempLog.project = int.Parse(metaData[1]);
-                        tempLog.workPack = int.Parse(metaData[2]);
-                        tempLog.jobSheet = int.Parse(metaData[3]);
-                        tempLog.name = metaData[4];
-                        tempLog.testNumber = int.Parse(metaData[5]);
-                        tempLog.date = metaData[6];
-                        tempLog.time = decimal.Parse(metaData[7]);
-                        tempLog.loggedBy = metaData[8];
-                        tempLog.downloadedBy = metaData[9];
-                        tempLog.description = metaData[10];
                         received = TCPReceive();
                     }
 
@@ -676,7 +679,7 @@ namespace SteerLoggerUser
                         return;
                     }
                     current = CalcPercent(10, numLogs, current);
-                    worker.ReportProgress(current, "Receiving Metadata...");
+                    worker.ReportProgress(current, "Receiving config data...");
                     received = TCPReceive();
                     //progressForm.UpdateTextBox("Receiving config data...");
                     // Receive config settings of log and write to ConfigFile object
@@ -755,7 +758,7 @@ namespace SteerLoggerUser
                     {
                         TCPSend("Quit");
                         TCPTearDown();
-                        worker.ReportProgress(0, "Error occurred, aborting!");
+                        worker.ReportProgress(100, "Error occurred, aborting!");
                         MessageBox.Show("Failed to download, check that Pi has FTP/SSH enabled.");
                         return;
                     }
@@ -806,13 +809,13 @@ namespace SteerLoggerUser
                             {
                                 // Read each line and store the data in the logData object
                                 string[] line = reader.ReadLine().Split(',');
-                                string output = String.Format("{0},{1}",line[0],line[1]);
+                                StringBuilder output = new StringBuilder(String.Format("{0},{1}",line[0],line[1]));
 
                                 for (int i = 2; i < line.Length; i++)
                                 {
-                                    output += String.Format(",{0}", double.Parse(line[i]) * pins[i - 2].m + pins[i - 2].c);
+                                    output.AppendFormat(",{0}", double.Parse(line[i]) * pins[i - 2].m + pins[i - 2].c);
                                 }
-                                writer.WriteLine(output);
+                                writer.WriteLine(output.ToString());
                             }
                         }
                     }
@@ -879,7 +882,7 @@ namespace SteerLoggerUser
             catch (SocketException)
             {
                 TCPTearDown();
-                worker.ReportProgress(0, "Error occurred, aborting!");
+                worker.ReportProgress(100, "Error occurred, aborting!");
                 MessageBox.Show("Error occurred in connection, please reconnect.");
                 MessageBox.Show("Failed to download, check that Pi has FTP/SSH enabled.");
                 return;
@@ -887,7 +890,7 @@ namespace SteerLoggerUser
             catch (Exception exp)
             {
                 TCPTearDown();
-                worker.ReportProgress(0, "Error occurred, aborting!");
+                worker.ReportProgress(100, "Error occurred, aborting!");
                 MessageBox.Show(exp.Message);
                 MessageBox.Show(exp.ToString());
                 MessageBox.Show("Failed to download, check that Pi has FTP/SSH enabled.");
@@ -1451,16 +1454,16 @@ namespace SteerLoggerUser
         private LogMeta CreateConfig()
         {
             // Create LogMeta to store settings
-            LogMeta newLog = new LogMeta();
-            newLog.project = Convert.ToInt32(nudProject.Value);
-            newLog.workPack = Convert.ToInt32(nudWorkPack.Value);
-            newLog.jobSheet = Convert.ToInt32(nudJobSheet.Value);
-            newLog.name = txtLogName.Text;
-            newLog.time = nudInterval.Value;
-            newLog.loggedBy = user;
-            string description = txtDescription.Text;
-            description = string.Join(";", description.Split(new string[] { "\r\n" }, StringSplitOptions.None));
-            newLog.description = description;
+            LogMeta newLog = new LogMeta
+            {
+                project = Convert.ToInt32(nudProject.Value),
+                workPack = Convert.ToInt32(nudWorkPack.Value),
+                jobSheet = Convert.ToInt32(nudJobSheet.Value),
+                name = txtLogName.Text,
+                time = nudInterval.Value,
+                loggedBy = user,
+                description = txtDescription.Text.Replace("\r\n",";")
+            };
 
             int enabled = 0;
             ConfigFile newConfig = new ConfigFile();
@@ -1570,33 +1573,33 @@ namespace SteerLoggerUser
             // Send command to logger so it can receive the config
             TCPSend("Upload_Config");
             // Send metadata to the logger
-            string metadata = "";
-            metadata += newLog.project + "\u001f";
-            metadata += newLog.workPack + "\u001f";
-            metadata += newLog.jobSheet + "\u001f";
-            metadata += newLog.name + "\u001f";
-            metadata += newLog.date + "\u001f";
-            metadata += newLog.time + "\u001f";
-            metadata += newLog.loggedBy + "\u001f";
-            metadata += newLog.downloadedBy + "\u001f";
-            metadata += newLog.description;
-            TCPSend(metadata);
+            StringBuilder metadata = new StringBuilder();
+            metadata.Append(newLog.project + "\u001f");
+            metadata.Append(newLog.workPack + "\u001f");
+            metadata.Append(newLog.jobSheet + "\u001f");
+            metadata.Append(newLog.name + "\u001f");
+            metadata.Append(newLog.date + "\u001f");
+            metadata.Append(newLog.time + "\u001f");
+            metadata.Append(newLog.loggedBy + "\u001f");
+            metadata.Append(newLog.downloadedBy + "\u001f");
+            metadata.Append(newLog.description);
+            TCPSend(metadata.ToString());
             // Enumerate through pinList and send settings for each Pin to logger
             foreach (Pin pin in newLog.config.pinList)
             {
-                string pindata = "";
-                pindata += pin.id + "\u001f";
-                pindata += pin.name + "\u001f";
-                pindata += pin.enabled + "\u001f";
-                pindata += pin.fName + "\u001f";
-                pindata += pin.inputType + "\u001f";
-                pindata += pin.gain + "\u001f";
-                pindata += pin.scaleMin + "\u001f";
-                pindata += pin.scaleMax + "\u001f";
-                pindata += pin.units + "\u001f";
-                pindata += pin.m + "\u001f";
-                pindata += pin.c;
-                TCPSend(pindata);
+                StringBuilder pindata = new StringBuilder();
+                pindata.Append(pin.id + "\u001f");
+                pindata.Append(pin.name + "\u001f");
+                pindata.Append(pin.enabled + "\u001f");
+                pindata.Append(pin.fName + "\u001f");
+                pindata.Append(pin.inputType + "\u001f");
+                pindata.Append(pin.gain + "\u001f");
+                pindata.Append(pin.scaleMin + "\u001f");
+                pindata.Append(pin.scaleMax + "\u001f");
+                pindata.Append(pin.units + "\u001f");
+                pindata.Append(pin.m + "\u001f");
+                pindata.Append(pin.c);
+                TCPSend(pindata.ToString());
             }
         }
 
@@ -1739,15 +1742,17 @@ namespace SteerLoggerUser
         private void cmdImportLogFile_Click(object sender, EventArgs e)
         {
             // Create new logMeta and logData to hold log
-            LogMeta logMeta = new LogMeta();
+            LogMeta logMeta;
             //logMeta.logData = new LogData();
             if (ofdLog.ShowDialog() == DialogResult.OK)
             {
                 // Set log name to name of file imported
-                logMeta.name = ofdLog.SafeFileName.Replace("converted-", "");
-                logMeta.name = logMeta.name.Replace(".csv", "");
-                logMeta.conv = ofdLog.FileName;
-              
+                logMeta = new LogMeta
+                {
+                    name = ofdLog.SafeFileName.Replace("converted-", "").Replace(".csv", ""),
+                    conv = ofdLog.FileName
+                };
+
                 // If there is already a log being processed, allow user to merge logs
                 if (DAP.processing == true)
                 {
@@ -1990,24 +1995,24 @@ namespace SteerLoggerUser
             using (StreamWriter writer = new StreamWriter(path))
             {
                 // Write headers of csv file
-                string heading = "";
+                StringBuilder heading = new StringBuilder();
                 foreach (string header in logProc.procheaders)
                 {
-                    heading += header + ",";
+                    heading.Append(header + ",");
                 }
-                writer.WriteLine(heading.Trim(','));
+                writer.WriteLine(heading.ToString().Trim(','));
 
                 // Iterate through logProc and write each row to csv file
                 for (int i = 0; i < logProc.timestamp.Count; i++)
                 {
-                    string line = "";
-                    line += logProc.timestamp[i].ToString("yyyy/MM/dd HH:mm:ss.fff") + ",";
-                    line += logProc.time[i] + ",";
+                    StringBuilder line = new StringBuilder();
+                    line.Append(logProc.timestamp[i].ToString("yyyy/MM/dd HH:mm:ss.fff") + ",");
+                    line.Append(logProc.time[i] + ",");
                     foreach (List<double> column in logProc.procData)
                     {
-                        line += column[i] + ",";
+                        line.Append(column[i] + ",");
                     }
-                    writer.WriteLine(line.Trim(','));
+                    writer.WriteLine(line.ToString().Trim(','));
                 }
             }
 
@@ -2124,12 +2129,10 @@ namespace SteerLoggerUser
 
             // Save data to temporary csv in appData directory
             SaveProcCsv(DAP.logProc, dirPath + @"\temp.csv");
-
-            string script = "";
             if (ofdPythonScript.ShowDialog() == DialogResult.OK)
             {
                 // Set script to user selected python script
-                script = ofdPythonScript.FileName;
+                string script = ofdPythonScript.FileName;
                 // Get path to activate.bat
                 string condaPath = progConfig.activatePath;
                 if (File.Exists(condaPath) == false)
@@ -2234,12 +2237,10 @@ namespace SteerLoggerUser
 
             // Save data to temporary csv in python script directory
             SaveProcCsv(DAP.logProc, dirPath + @"\temp.csv");
-
-            string script = "";
             if (ofdPythonScript.ShowDialog() == DialogResult.OK)
             {
                 // Set script to user selected python script
-                script = ofdPythonScript.FileName;
+                string script = ofdPythonScript.FileName;
                 // Get the path to activate .bat
                 string condaPath = progConfig.activatePath;
                 if (File.Exists(condaPath) == false)
@@ -2355,8 +2356,8 @@ namespace SteerLoggerUser
             {
                 if (Convert.ToBoolean(row.Cells[2].Value) == true)
                 {
-                    txtLogPins.Text += "Pin " + row.Cells[0].Value + " is set to log " 
-                                       + row.Cells[3].Value + "." + Environment.NewLine;
+                    txtLogPins.AppendText("Pin " + row.Cells[0].Value + " is set to log " 
+                                       + row.Cells[3].Value + "." + Environment.NewLine);
                 }
             }
         }
@@ -2379,12 +2380,12 @@ namespace SteerLoggerUser
 
         private void cmdAddPin_Click(object sender, EventArgs e)
         {
-            string preset = cmbSensor.SelectedItem.ToString() + ',';
+            StringBuilder preset = new StringBuilder(cmbSensor.SelectedItem.ToString() + ',');
             if (cmbVar.Enabled)
             {
-                preset += cmbVar.SelectedItem.ToString();
+                preset.Append(cmbVar.SelectedItem.ToString());
             }
-            Pin pin = progConfig.configPins[preset];
+            Pin pin = progConfig.configPins[preset.ToString()];
             int row = cmbPin.SelectedIndex;
             dgvInputSetup.Rows[row].Cells[2].Value = true;
             dgvInputSetup.Rows[row].Cells[3].Value = pin.fName;
@@ -2394,17 +2395,17 @@ namespace SteerLoggerUser
             dgvInputSetup.Rows[row].Cells[7].Value = pin.scaleMax.ToString();
             dgvInputSetup.Rows[row].Cells[8].Value = pin.units;
 
-            txtLogPins.Text += "Added " + cmbSensor.SelectedItem.ToString() +
-                               " " + (cmbVar.SelectedItem.ToString() == "N/A" ? "" : cmbVar.SelectedItem.ToString()) + 
-                               " to log." + Environment.NewLine;
+            txtLogPins.AppendText("Added " + cmbSensor.SelectedItem.ToString() +
+                                  " " + (cmbVar.SelectedItem.ToString() == "N/A" ? "" : cmbVar.SelectedItem.ToString()) + 
+                                  " to log." + Environment.NewLine);
         }
 
         private void cmdRemovePin_Click(object sender, EventArgs e)
         {
             int row = cmbPin.SelectedIndex;
             dgvInputSetup.Rows[row].Cells[2].Value = false;
-            txtLogPins.Text += "Removed pin " + (row + 1).ToString() + ": " 
-                + dgvInputSetup.Rows[row].Cells[3].Value + " from log." + Environment.NewLine;
+            txtLogPins.AppendText("Removed pin " + (row + 1).ToString() + ": " 
+                                  + dgvInputSetup.Rows[row].Cells[3].Value + " from log." + Environment.NewLine);
         }
     }
 }
