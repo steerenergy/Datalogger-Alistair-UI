@@ -143,5 +143,19 @@ namespace SteerLoggerUser
             // Return rounded timestamp
             return new DateTime(input.Year, input.Month, input.Day, input.Hour, input.Minute, input.Second, millisecond);
         }
+
+
+        // Test if a merge is possible
+        public bool TestMerge(DateTime start, DateTime end)
+        {
+            if (this.logProc.timestamp.First() < end && start < this.logProc.timestamp.Last())
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
     }
 }

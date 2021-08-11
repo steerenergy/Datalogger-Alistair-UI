@@ -796,7 +796,8 @@ namespace SteerLoggerUser
                     current = CalcPercent(60, numLogs, current);
                     worker.ReportProgress(current, "Converting data...");
 
-
+                    DateTime min;
+                    DateTime max;
                     // Read from the file selected
                     using (StreamReader reader = new StreamReader(temp))
                     {
@@ -805,10 +806,11 @@ namespace SteerLoggerUser
                             // Read over header line
                             reader.ReadLine();
                             writer.WriteLine(string.Join(",",convHeaders));
+                            // Read each line and store the data in the logData object
+                            string[] line = reader.ReadLine().Split(',');
+                            min = Convert.ToDateTime(line[0]);
                             while (!reader.EndOfStream)
                             {
-                                // Read each line and store the data in the logData object
-                                string[] line = reader.ReadLine().Split(',');
                                 StringBuilder output = new StringBuilder(String.Format("{0},{1}",line[0],line[1]));
 
                                 for (int i = 2; i < line.Length; i++)
@@ -816,7 +818,9 @@ namespace SteerLoggerUser
                                     output.AppendFormat(",{0}", double.Parse(line[i]) * pins[i - 2].m + pins[i - 2].c);
                                 }
                                 writer.WriteLine(output.ToString());
+                                line = reader.ReadLine().Split(',');
                             }
+                            max = Convert.ToDateTime(line[0]);
                         }
                     }
 
@@ -832,18 +836,26 @@ namespace SteerLoggerUser
                     // If there is already a log being processed, ask user if they want to merge logs
                     if (DAP.processing == true)
                     {
-                        DialogResult dialogResult = MessageBox.Show("Would you like to merge the imported log with the current log?\n" +
+                        if (DAP.TestMerge(min, max))
+                        {
+                            DialogResult dialogResult = MessageBox.Show("Would you like to merge the imported log with the current log?\n" +
                                                     "Otherwise the imported log will be added to the queue.",
                                                     "Merge Logs?", MessageBoxButtons.YesNo);
-                        if (dialogResult == DialogResult.Yes)
-                        {
-                            // If they want to merge, receive the log with merge argument set to true
-                            DAP.logsProcessing.Add(tempLog);
-                            LogProc tempProc = new LogProc();
-                            tempProc.CreateProcFromConv(tempLog.conv);
-                            DAP.MergeLogs(tempProc);
-                            this.Invoke(new Action(() => { lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name + " " + DAP.logsProcessing[0].testNumber; }));
-                            this.Invoke(new Action(() => { PopulateDataViewProc(DAP.logProc); }));
+                            if (dialogResult == DialogResult.Yes)
+                            {
+                                // If they want to merge, receive the log with merge argument set to true
+                                DAP.logsProcessing.Add(tempLog);
+                                LogProc tempProc = new LogProc();
+                                tempProc.CreateProcFromConv(tempLog.conv);
+                                DAP.MergeLogs(tempProc);
+                                this.Invoke(new Action(() => { lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name + " " + DAP.logsProcessing[0].testNumber; }));
+                                this.Invoke(new Action(() => { PopulateDataViewProc(DAP.logProc); }));
+                            }
+                            else
+                            {
+                                // Receive log with merge argument set to false
+                                DAP.logsToProc.Enqueue(tempLog);
+                            }
                         }
                         else
                         {
