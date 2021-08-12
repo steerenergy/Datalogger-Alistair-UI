@@ -93,6 +93,7 @@
             this.ofdLog = new System.Windows.Forms.OpenFileDialog();
             this.sfdLog = new System.Windows.Forms.SaveFileDialog();
             this.ofdPythonScript = new System.Windows.Forms.OpenFileDialog();
+            this.cmdChangeUser = new System.Windows.Forms.Button();
             this.pnlCtrlConf.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.nudProject)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudWorkPack)).BeginInit();
@@ -743,13 +744,13 @@
             // 
             // lblConnection
             // 
-            this.lblConnection.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.lblConnection.AutoSize = true;
+            this.lblConnection.AutoEllipsis = true;
             this.lblConnection.Location = new System.Drawing.Point(505, 17);
             this.lblConnection.Name = "lblConnection";
             this.lblConnection.Size = new System.Drawing.Size(119, 13);
             this.lblConnection.TabIndex = 6;
             this.lblConnection.Text = " You are connected to: ";
+            this.lblConnection.TextChanged += new System.EventHandler(this.lblConnection_TextChanged);
             // 
             // cmdConnect
             // 
@@ -777,11 +778,22 @@
             this.ofdPythonScript.DefaultExt = "py";
             this.ofdPythonScript.Filter = "Python Files (*.py)|*.py|All files (*.*)|*.*";
             // 
+            // cmdChangeUser
+            // 
+            this.cmdChangeUser.Location = new System.Drawing.Point(668, 12);
+            this.cmdChangeUser.Name = "cmdChangeUser";
+            this.cmdChangeUser.Size = new System.Drawing.Size(80, 22);
+            this.cmdChangeUser.TabIndex = 8;
+            this.cmdChangeUser.Text = "Change User";
+            this.cmdChangeUser.UseVisualStyleBackColor = true;
+            this.cmdChangeUser.Click += new System.EventHandler(this.cmdChangeUser_Click);
+            // 
             // mainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.ClientSize = new System.Drawing.Size(855, 450);
+            this.Controls.Add(this.cmdChangeUser);
             this.Controls.Add(this.cmdConnect);
             this.Controls.Add(this.lblConnection);
             this.Controls.Add(this.cmdAbt);
@@ -808,7 +820,6 @@
             this.pnlDataProc.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvDataProc)).EndInit();
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
@@ -877,5 +888,6 @@
         private System.Windows.Forms.NumericUpDown nudWorkPack;
         private System.Windows.Forms.NumericUpDown nudJobSheet;
         private System.Windows.Forms.Button cmdRemovePin;
+        private System.Windows.Forms.Button cmdChangeUser;
     }
 }

@@ -47,6 +47,9 @@ namespace SteerLoggerUser
             this.ckbProject = new System.Windows.Forms.CheckBox();
             this.ckbWorkPack = new System.Windows.Forms.CheckBox();
             this.ckbJobSheet = new System.Windows.Forms.CheckBox();
+            this.txtDescription = new System.Windows.Forms.TextBox();
+            this.lblDescription = new System.Windows.Forms.Label();
+            this.ckbNotDownloaded = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.nudProject)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudWorkPack)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudJobSheet)).BeginInit();
@@ -111,7 +114,7 @@ namespace SteerLoggerUser
             // 
             // cmdSearch
             // 
-            this.cmdSearch.Location = new System.Drawing.Point(16, 205);
+            this.cmdSearch.Location = new System.Drawing.Point(16, 254);
             this.cmdSearch.Name = "cmdSearch";
             this.cmdSearch.Size = new System.Drawing.Size(259, 23);
             this.cmdSearch.TabIndex = 7;
@@ -222,11 +225,41 @@ namespace SteerLoggerUser
             this.ckbJobSheet.UseVisualStyleBackColor = true;
             this.ckbJobSheet.CheckedChanged += new System.EventHandler(this.ckbJobSheet_CheckedChanged);
             // 
+            // txtDescription
+            // 
+            this.txtDescription.Location = new System.Drawing.Point(85, 205);
+            this.txtDescription.Name = "txtDescription";
+            this.txtDescription.Size = new System.Drawing.Size(187, 20);
+            this.txtDescription.TabIndex = 18;
+            // 
+            // lblDescription
+            // 
+            this.lblDescription.AutoSize = true;
+            this.lblDescription.Location = new System.Drawing.Point(13, 208);
+            this.lblDescription.Name = "lblDescription";
+            this.lblDescription.Size = new System.Drawing.Size(63, 13);
+            this.lblDescription.TabIndex = 19;
+            this.lblDescription.Text = "Description:";
+            // 
+            // ckbNotDownloaded
+            // 
+            this.ckbNotDownloaded.AutoSize = true;
+            this.ckbNotDownloaded.Location = new System.Drawing.Point(85, 231);
+            this.ckbNotDownloaded.Name = "ckbNotDownloaded";
+            this.ckbNotDownloaded.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.ckbNotDownloaded.Size = new System.Drawing.Size(145, 17);
+            this.ckbNotDownloaded.TabIndex = 20;
+            this.ckbNotDownloaded.Text = "Not Downloaded by User";
+            this.ckbNotDownloaded.UseVisualStyleBackColor = true;
+            // 
             // DatabaseSearchForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(284, 243);
+            this.ClientSize = new System.Drawing.Size(284, 292);
+            this.Controls.Add(this.ckbNotDownloaded);
+            this.Controls.Add(this.lblDescription);
+            this.Controls.Add(this.txtDescription);
             this.Controls.Add(this.ckbJobSheet);
             this.Controls.Add(this.ckbWorkPack);
             this.Controls.Add(this.ckbProject);
@@ -276,5 +309,8 @@ namespace SteerLoggerUser
         private System.Windows.Forms.CheckBox ckbProject;
         private System.Windows.Forms.CheckBox ckbWorkPack;
         private System.Windows.Forms.CheckBox ckbJobSheet;
+        private System.Windows.Forms.TextBox txtDescription;
+        private System.Windows.Forms.Label lblDescription;
+        private System.Windows.Forms.CheckBox ckbNotDownloaded;
     }
 }

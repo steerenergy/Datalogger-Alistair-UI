@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Net.Sockets;
 using System.Windows.Forms;
 using System.IO;
 
@@ -14,9 +15,16 @@ namespace SteerLoggerUser
     public partial class SettingsForm : Form
     {
         private ProgConfig config;
-        public SettingsForm(ProgConfig currentConfig)
+        private Action<string> TCPSend;
+        private Func<string> TCPReceive;
+        private string logger;
+
+        public SettingsForm(ProgConfig currentConfig, Action<string> TCPSend, Func<string> TCPReceive, string logger)
         {
             this.config = currentConfig;
+            this.TCPSend = TCPSend;
+            this.TCPReceive = TCPReceive;
+            this.logger = logger;
             InitializeComponent();
         }
 
@@ -252,6 +260,42 @@ namespace SteerLoggerUser
                 }
             }
             this.Close();
+        }
+
+        private void cmdExportDatabase_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                sfdSaveDatabase.FileName = String.Format("{0}-Database-{1}.csv", this.logger, DateTime.Now.ToString("yyyy-mm-dd-HH-mm-ss"));
+                sfdSaveDatabase.DefaultExt = "csv";
+                sfdSaveDatabase.AddExtension = true;
+                if (sfdSaveDatabase.ShowDialog() == DialogResult.OK)
+                {
+                    TCPSend("Export_Database");
+                    using (StreamWriter writer = new StreamWriter(sfdSaveDatabase.FileName))
+                    {
+                        writer.WriteLine(TCPReceive().Replace('\u001f', ','));
+                        int numRows = Convert.ToInt32(TCPReceive());
+                        for (int i = 0; i < numRows; i++)
+                        {
+                            writer.WriteLine(TCPReceive().Replace(',',';').Replace('\u001f',','));
+                        }
+                    }
+                    MessageBox.Show("Exported Successfully.");
+                }
+            }
+            catch (SocketException)
+            {
+                MessageBox.Show("An error occurred in the connection, please reconnect.");
+            }
+            catch (InvalidDataException)
+            {
+                MessageBox.Show("You need to be connected to a logger to do that!");
+            }
+            catch (TimeoutException)
+            {
+                MessageBox.Show("Connection timed out, please reconnect.");
+            }
         }
     }
 }

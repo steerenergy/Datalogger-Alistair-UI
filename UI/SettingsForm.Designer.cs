@@ -64,6 +64,8 @@ namespace SteerLoggerUser
             this.ScaleMin = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ScaleMax = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Units = new System.Windows.Forms.DataGridViewComboBoxColumn();
+            this.cmdExportDatabase = new System.Windows.Forms.Button();
+            this.sfdSaveDatabase = new System.Windows.Forms.SaveFileDialog();
             ((System.ComponentModel.ISupportInitialize)(this.dgvPresets)).BeginInit();
             this.SuspendLayout();
             // 
@@ -236,7 +238,7 @@ namespace SteerLoggerUser
             // 
             // cmdSave
             // 
-            this.cmdSave.Location = new System.Drawing.Point(12, 515);
+            this.cmdSave.Location = new System.Drawing.Point(12, 563);
             this.cmdSave.Name = "cmdSave";
             this.cmdSave.Size = new System.Drawing.Size(143, 23);
             this.cmdSave.TabIndex = 20;
@@ -246,7 +248,7 @@ namespace SteerLoggerUser
             // 
             // cmdCancel
             // 
-            this.cmdCancel.Location = new System.Drawing.Point(172, 515);
+            this.cmdCancel.Location = new System.Drawing.Point(172, 563);
             this.cmdCancel.Name = "cmdCancel";
             this.cmdCancel.Size = new System.Drawing.Size(133, 23);
             this.cmdCancel.TabIndex = 21;
@@ -344,11 +346,22 @@ namespace SteerLoggerUser
             this.Units.HeaderText = "Units";
             this.Units.Name = "Units";
             // 
+            // cmdExportDatabase
+            // 
+            this.cmdExportDatabase.Location = new System.Drawing.Point(12, 513);
+            this.cmdExportDatabase.Name = "cmdExportDatabase";
+            this.cmdExportDatabase.Size = new System.Drawing.Size(293, 23);
+            this.cmdExportDatabase.TabIndex = 27;
+            this.cmdExportDatabase.Text = "Export Copy of Database";
+            this.cmdExportDatabase.UseVisualStyleBackColor = true;
+            this.cmdExportDatabase.Click += new System.EventHandler(this.cmdExportDatabase_Click);
+            // 
             // SettingsForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(318, 550);
+            this.ClientSize = new System.Drawing.Size(318, 598);
+            this.Controls.Add(this.cmdExportDatabase);
             this.Controls.Add(this.dgvPresets);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.txtActivateLocation);
@@ -421,5 +434,7 @@ namespace SteerLoggerUser
         private System.Windows.Forms.DataGridViewTextBoxColumn ScaleMin;
         private System.Windows.Forms.DataGridViewTextBoxColumn ScaleMax;
         private System.Windows.Forms.DataGridViewComboBoxColumn Units;
+        private System.Windows.Forms.Button cmdExportDatabase;
+        private System.Windows.Forms.SaveFileDialog sfdSaveDatabase;
     }
 }

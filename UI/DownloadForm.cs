@@ -37,27 +37,6 @@ namespace SteerLoggerUser
             lblDownload.Text = "Select " + item + " to Download";
             cmdDownload.Text = "Download " + item;
 
-            //Point pos = new Point(10, 5);
-            //// Enumerate through logs available
-            //foreach (LogMeta log in logs)
-            //{
-            //    // Add new checkbox to form for log
-            //    CheckBox tempCheckBox = new CheckBox();
-            //    tempCheckBox.Location = pos;
-            //    tempCheckBox.Text = "";
-            //    tempCheckBox.Name = "ckb" + log.id;
-            //    // Add new label to form for log
-            //    Label tempLabel = new Label();
-            //    tempLabel.AutoSize = true;
-            //    tempLabel.Location = new Point(pos.X + 30, pos.Y + 5);
-            //    tempLabel.Text = log.id + " " + log.name + " " + log.date;
-            //    tempLabel.Name = "lbl" + log.name;
-            //    panel.Controls.Add(tempLabel);
-            //    panel.Controls.Add(tempCheckBox);
-            //    // Increment position of checkboexs and labels being added
-            //    pos.Y += 25;
-            //}
-
             foreach (LogMeta log in this.logs)
             {
                 // Create new dgvRow object
@@ -71,6 +50,7 @@ namespace SteerLoggerUser
                     log.project,
                     log.workPack,
                     log.jobSheet,
+                    log.description,
                     log.size
                 };
                 dgvDownload.Rows.Add(rowData);
@@ -86,15 +66,7 @@ namespace SteerLoggerUser
             this.cancelled = false;
             string logNames = "";
             num = 0;
-            //foreach (CheckBox checkBox in panel.Controls.OfType<CheckBox>())
-            //{
-            //    //If the log's checkbox is selected, add its ID to logNames
-            //    if (checkBox.Checked == true)
-            //    {
-            //        logNames += checkBox.Name.Substring(3) + ",";
-            //        num += 1;
-            //    }
-            //}
+
             foreach (DataGridViewRow row in dgvDownload.Rows)
             {
                 if (Convert.ToBoolean(row.Cells[0].Value) == true)

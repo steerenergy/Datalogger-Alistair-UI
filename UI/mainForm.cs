@@ -232,16 +232,23 @@ namespace SteerLoggerUser
                 throw new SocketException();
             }
             DateTime start = DateTime.Now;
-            string response;
-            while (tcpQueue.TryDequeue(out response) == false) 
+            try
             {
-                if (DateTime.Now.Subtract(start).TotalSeconds > 30)
+                string response;
+                while (tcpQueue.TryDequeue(out response) == false)
                 {
-                    TCPTearDown();
-                    throw new TimeoutException();
-                }    
+                    if (DateTime.Now.Subtract(start).TotalSeconds > 30)
+                    {
+                        TCPTearDown();
+                        throw new TimeoutException();
+                    }
+                }
+                return response;
             }
-            return response;
+            catch (System.NullReferenceException)
+            {
+                throw new SocketException();
+            }
         }
 
 
@@ -600,7 +607,8 @@ namespace SteerLoggerUser
                     project = Convert.ToInt32(data[4]),
                     workPack = Convert.ToInt32(data[5]),
                     jobSheet = Convert.ToInt32(data[6]),
-                    size = (data[7] == "None") ? 0 : Convert.ToInt32(data[7])
+                    description = data[7],
+                    size = (data[8] == "None") ? 0 : Convert.ToInt32(data[8])
                 };
                 logsAvailable.Add(newLog);
                 response = TCPReceive();
@@ -1163,7 +1171,8 @@ namespace SteerLoggerUser
                         project = Convert.ToInt32(data[4]),
                         workPack = Convert.ToInt32(data[5]),
                         jobSheet = Convert.ToInt32(data[6]),
-                        size = (data[7] == "None") ? 0 : Convert.ToInt32(data[7])
+                        description = data[7],
+                        size = (data[8] == "None") ? 0 : Convert.ToInt32(data[8])
                     };
                     logsAvailable.Add(newLog);
                     response = TCPReceive();
@@ -1672,10 +1681,14 @@ namespace SteerLoggerUser
         // Reset InputSetup grid to default values
         private void cmdResetConfig_Click(object sender, EventArgs e)
         {
-            txtLogPins.Text = "";
-            dgvInputSetup.Rows.Clear();
-            LoadDefaultConfig();
-            SetupSimpleConf();
+            DialogResult result = MessageBox.Show("This will clear all config data in the Simple/Advanced config menus. Continue?", "Continue?", MessageBoxButtons.OKCancel);
+            if (result == DialogResult.OK)
+            {
+                txtLogPins.Text = "";
+                dgvInputSetup.Rows.Clear();
+                LoadDefaultConfig();
+                SetupSimpleConf();
+            }
         }
 
 
@@ -1847,7 +1860,8 @@ namespace SteerLoggerUser
                         project = Convert.ToInt32(data[4]),
                         workPack = Convert.ToInt32(data[5]),
                         jobSheet = Convert.ToInt32(data[6]),
-                        size = (data[7] == "None") ? 0 : Convert.ToInt32(data[7])
+                        description = data[7],
+                        size = (data[8] == "None") ? 0 : Convert.ToInt32(data[8])
                     };
                     logsAvailable.Add(newLog);
                     response = TCPReceive();
@@ -2296,7 +2310,7 @@ namespace SteerLoggerUser
 
         private void cmdSettings_Click(object sender, EventArgs e)
         {
-            SettingsForm settings = new SettingsForm(progConfig);
+            SettingsForm settings = new SettingsForm(progConfig, TCPSend, TCPReceive, logger);
             settings.ShowDialog();
             ReadProgConfig();
             SetupSimpleConf();
@@ -2418,6 +2432,32 @@ namespace SteerLoggerUser
             dgvInputSetup.Rows[row].Cells[2].Value = false;
             txtLogPins.AppendText("Removed pin " + (row + 1).ToString() + ": " 
                                   + dgvInputSetup.Rows[row].Cells[3].Value + " from log." + Environment.NewLine);
+        }
+
+        private void cmdChangeUser_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                TCPSend("Change_User");
+                ChangeUserForm changeUserForm = new ChangeUserForm(TCPSend);
+                changeUserForm.ShowDialog();
+                user = changeUserForm.user;
+                lblConnection.Text = String.Format("You are connected to {0} as {1}", logger, user);
+                changeUserForm.Dispose();
+            }
+            catch (SocketException)
+            {
+                MessageBox.Show("An error occurred in the connection, please reconnect.");
+            }
+            catch (InvalidDataException)
+            {
+                MessageBox.Show("You need to be connected to a logger to do that!");
+            }
+        }
+
+        private void lblConnection_TextChanged(object sender, EventArgs e)
+        {
+            lblConnection.Width = cmdChangeUser.Location.X - (cmdAbt.Location.X + cmdAbt.Width) - 10;
         }
     }
 }

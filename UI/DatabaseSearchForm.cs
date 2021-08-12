@@ -47,8 +47,15 @@ namespace SteerLoggerUser
                 {
                     jobSheet = nudJobSheet.Value.ToString();
                 }
+                string description = txtDescription.Text;
+                string notDownloaded = "";
+                if (ckbNotDownloaded.Checked)
+                {
+                    notDownloaded = "true";
+                }
                 string values = name + '\u001f' + date + '\u001f' + loggedBy + '\u001f' + 
-                                project + '\u001f' + workPack + '\u001f' + jobSheet;
+                                project + '\u001f' + workPack + '\u001f' + jobSheet + 
+                                '\u001f' + description + '\u001f' + notDownloaded;
                 // Send values to logger
                 main.TCPSend(values);
             }
@@ -114,6 +121,7 @@ namespace SteerLoggerUser
             nudProject.Enabled = false;
             nudWorkPack.Enabled = false;
             nudJobSheet.Enabled = false;
+            ckbNotDownloaded.Text = String.Format("Not Downloaded by {0}", main.user);
         }
     }
 }
