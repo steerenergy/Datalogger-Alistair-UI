@@ -93,6 +93,7 @@ namespace SteerLoggerUser
             // 
             // txtName
             // 
+            this.txtName.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.txtName.Location = new System.Drawing.Point(85, 45);
             this.txtName.Name = "txtName";
             this.txtName.Size = new System.Drawing.Size(187, 20);
@@ -100,6 +101,7 @@ namespace SteerLoggerUser
             // 
             // dtpDate
             // 
+            this.dtpDate.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.dtpDate.Location = new System.Drawing.Point(112, 73);
             this.dtpDate.Name = "dtpDate";
             this.dtpDate.Size = new System.Drawing.Size(160, 20);
@@ -107,6 +109,7 @@ namespace SteerLoggerUser
             // 
             // txtLoggedBy
             // 
+            this.txtLoggedBy.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.txtLoggedBy.Location = new System.Drawing.Point(85, 99);
             this.txtLoggedBy.Name = "txtLoggedBy";
             this.txtLoggedBy.Size = new System.Drawing.Size(187, 20);
@@ -114,6 +117,7 @@ namespace SteerLoggerUser
             // 
             // cmdSearch
             // 
+            this.cmdSearch.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
             this.cmdSearch.Location = new System.Drawing.Point(16, 254);
             this.cmdSearch.Name = "cmdSearch";
             this.cmdSearch.Size = new System.Drawing.Size(259, 23);
@@ -143,6 +147,7 @@ namespace SteerLoggerUser
             // 
             // nudProject
             // 
+            this.nudProject.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.nudProject.Location = new System.Drawing.Point(112, 125);
             this.nudProject.Maximum = new decimal(new int[] {
             1000000,
@@ -155,6 +160,7 @@ namespace SteerLoggerUser
             // 
             // nudWorkPack
             // 
+            this.nudWorkPack.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.nudWorkPack.Location = new System.Drawing.Point(112, 152);
             this.nudWorkPack.Maximum = new decimal(new int[] {
             1000000,
@@ -176,6 +182,7 @@ namespace SteerLoggerUser
             // 
             // nudJobSheet
             // 
+            this.nudJobSheet.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.nudJobSheet.Location = new System.Drawing.Point(112, 179);
             this.nudJobSheet.Maximum = new decimal(new int[] {
             1000000,
@@ -227,6 +234,7 @@ namespace SteerLoggerUser
             // 
             // txtDescription
             // 
+            this.txtDescription.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.txtDescription.Location = new System.Drawing.Point(85, 205);
             this.txtDescription.Name = "txtDescription";
             this.txtDescription.Size = new System.Drawing.Size(187, 20);
@@ -243,6 +251,7 @@ namespace SteerLoggerUser
             // 
             // ckbNotDownloaded
             // 
+            this.ckbNotDownloaded.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.ckbNotDownloaded.AutoSize = true;
             this.ckbNotDownloaded.Location = new System.Drawing.Point(85, 231);
             this.ckbNotDownloaded.Name = "ckbNotDownloaded";
@@ -278,6 +287,7 @@ namespace SteerLoggerUser
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
+            this.MinimumSize = new System.Drawing.Size(300, 331);
             this.Name = "DatabaseSearchForm";
             this.Text = "Search Pi Database";
             this.Load += new System.EventHandler(this.DatabaseSearchForm_Load);

@@ -367,6 +367,9 @@
             // 
             // pnlSimpleConfig
             // 
+            this.pnlSimpleConfig.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.pnlSimpleConfig.Controls.Add(this.cmdRemovePin);
             this.pnlSimpleConfig.Controls.Add(this.cmbSensor);
             this.pnlSimpleConfig.Controls.Add(this.lblVar);
@@ -374,8 +377,8 @@
             this.pnlSimpleConfig.Controls.Add(this.lblPin);
             this.pnlSimpleConfig.Controls.Add(this.cmbVar);
             this.pnlSimpleConfig.Controls.Add(this.lblSensor);
-            this.pnlSimpleConfig.Controls.Add(this.txtLogPins);
             this.pnlSimpleConfig.Controls.Add(this.cmbPin);
+            this.pnlSimpleConfig.Controls.Add(this.txtLogPins);
             this.pnlSimpleConfig.Location = new System.Drawing.Point(214, 0);
             this.pnlSimpleConfig.Name = "pnlSimpleConfig";
             this.pnlSimpleConfig.Size = new System.Drawing.Size(607, 379);
@@ -383,6 +386,7 @@
             // 
             // cmdRemovePin
             // 
+            this.cmdRemovePin.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.cmdRemovePin.Location = new System.Drawing.Point(510, 31);
             this.cmdRemovePin.Name = "cmdRemovePin";
             this.cmdRemovePin.Size = new System.Drawing.Size(93, 22);
@@ -412,6 +416,7 @@
             // 
             // cmdAddPin
             // 
+            this.cmdAddPin.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.cmdAddPin.Location = new System.Drawing.Point(384, 31);
             this.cmdAddPin.Name = "cmdAddPin";
             this.cmdAddPin.Size = new System.Drawing.Size(120, 22);
@@ -449,6 +454,9 @@
             // 
             // txtLogPins
             // 
+            this.txtLogPins.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.txtLogPins.Location = new System.Drawing.Point(3, 59);
             this.txtLogPins.Multiline = true;
             this.txtLogPins.Name = "txtLogPins";
@@ -780,12 +788,14 @@
             // 
             // cmdChangeUser
             // 
+            this.cmdChangeUser.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.cmdChangeUser.Location = new System.Drawing.Point(668, 12);
             this.cmdChangeUser.Name = "cmdChangeUser";
             this.cmdChangeUser.Size = new System.Drawing.Size(80, 22);
             this.cmdChangeUser.TabIndex = 8;
             this.cmdChangeUser.Text = "Change User";
             this.cmdChangeUser.UseVisualStyleBackColor = true;
+            this.cmdChangeUser.LocationChanged += new System.EventHandler(this.lblConnection_TextChanged);
             this.cmdChangeUser.Click += new System.EventHandler(this.cmdChangeUser_Click);
             // 
             // mainForm

@@ -245,7 +245,7 @@ namespace SteerLoggerUser
                 }
                 return response;
             }
-            catch (System.NullReferenceException)
+            catch (NullReferenceException)
             {
                 throw new SocketException();
             }
@@ -585,38 +585,21 @@ namespace SteerLoggerUser
         private void RequestRecentLogs()
         {
             // Send command and username to logger
-            TCPSend("Recent_Logs_To_Download");
+            //TCPSend("Recent_Logs_To_Download");
+            TCPSend("Search_Log");
+            TCPSend(new string('\u001f',7) + user);
             List<LogMeta> logsAvailable = new List<LogMeta>();
             string response = TCPReceive();
             // If no logs to download, exit
-            if (response == "No Logs To Download")
+            if (response == "No Logs Match Criteria")
             {
                 MessageBox.Show("No new logs to download.");
                 return;
             }
-            // Add available logs to list
-            while (response != "EoT")
-            {
-                string[] data = response.Split('\u001f');
-                LogMeta newLog = new LogMeta
-                {
-                    id = Convert.ToInt32(data[0]),
-                    name = data[1],
-                    testNumber = Convert.ToInt32(data[2]),
-                    date = data[3],
-                    project = Convert.ToInt32(data[4]),
-                    workPack = Convert.ToInt32(data[5]),
-                    jobSheet = Convert.ToInt32(data[6]),
-                    description = data[7],
-                    size = (data[8] == "None") ? 0 : Convert.ToInt32(data[8])
-                };
-                logsAvailable.Add(newLog);
-                response = TCPReceive();
-            }
+            int numLogs = Convert.ToInt16(response);
             // Show DownloadForm which allows user to select which logs to download
-            DownloadForm download = new DownloadForm(this, logsAvailable, "Logs", false);
+            DownloadForm download = new DownloadForm("Logs", false, TCPReceive, numLogs, TCPSend);
             download.ShowDialog();
-            int numlogs = download.num;
             // Clear up resources
             download.Dispose();
 
@@ -628,26 +611,23 @@ namespace SteerLoggerUser
             progressForm = new ReceiveProgressForm(worker);
             progressForm.Show();
        
-            worker.DoWork += (s, args) => ReceiveLog(s,args,numlogs);
+            worker.DoWork += (s, args) => ReceiveLog(s,args);
             worker.ProgressChanged += (s, e) => ProgressChanged(s,e,progressForm);
             worker.RunWorkerAsync();
         }
 
         // Receive a full log from the logger
-        // Objectives 4.1 and 13.3
-        private void ReceiveLog(object sender, EventArgs e, int numLogs)
+        private void ReceiveLog(object sender, EventArgs e)
         {
             BackgroundWorker worker = sender as BackgroundWorker;
             try
             {
                 int current = 0;
-
-                //progressForm.UpdateTextBox("Converting data on Pi...");
-                //progressForm.UpdateProgressBar();
-                string received = TCPReceive();
+                int numLogs = Convert.ToInt16(TCPReceive());
                 // Continue receiving logs until all have been sent
-                while (received != "All_Sent")
+                for (int i = 0; i < numLogs; i ++)
                 {
+                    string received = TCPReceive();
                     prev = 0;
                     // Create a tempoary LogMeta to store log while its being received
                     LogMeta tempLog;
@@ -675,11 +655,6 @@ namespace SteerLoggerUser
                         downloadedBy = metaData[9],
                         description = metaData[10],
                     };
-                    received = TCPReceive();
-                    while (received != "EoMeta")
-                    {
-                        received = TCPReceive();
-                    }
 
                     if (worker.CancellationPending)
                     {
@@ -689,10 +664,10 @@ namespace SteerLoggerUser
                     current = CalcPercent(10, numLogs, current);
                     worker.ReportProgress(current, "Receiving config data...");
                     received = TCPReceive();
-                    //progressForm.UpdateTextBox("Receiving config data...");
+
                     // Receive config settings of log and write to ConfigFile object
-                    tempLog.config = new ConfigFile();
-                    while (received != "EoConfig")
+                    tempLog.config = new ConfigFile(); 
+                    for (int j = 0; j < 16; j++)
                     {
                         string[] pinData = received.Split('\u001f');
                         Pin tempPin = new Pin
@@ -720,35 +695,17 @@ namespace SteerLoggerUser
                     }
                     current = CalcPercent(20, numLogs, current);
                     worker.ReportProgress(current, "Receiving log data...");
-                    // progressForm.UpdateTextBox("Receiving log data...");
-                    received = TCPReceive();
-                    // Set up rawheaders and convheaders for LogData object
-                    //tempLog.logData = new LogData();
-                    //tempLog.logData.rawheaders = new List<string> { "Date/Time", "Time (seconds)" };
-                    //tempLog.logData.convheaders = new List<string> ();
-                    int pinNum = 0;
-                    //List<string> rawHeaders = new List<string>();
+
+                    // Set up convheaders for converted file
                     List<string> convHeaders = new List<string> { "Date/Time", "Time (seconds)" };
-                    // Use config file to write pin headers to rawheaders and convheaders
-                    foreach (Pin pin in tempLog.config.pinList)
-                    {
-                        if (pin.enabled == true)
-                        {
-                            pinNum += 1;
-                            //rawHeaders.Add(pin.name);
-                            convHeaders.Add(pin.fName + " | " + pin.units);
-                        }
-                    }
-                    //tempLog.logData.rawheaders.AddRange(rawHeaders);
-                    //tempLog.logData.convheaders.AddRange(convHeaders);
-                    //tempLog.logData.InitRawConv(pinNum);
-                    // AddHeaderDataViewProc(tempLog.logData.convheaders);
+                    // Use config file to write pin headers to convheaders
                     List<Pin> pins = new List<Pin>();
                     foreach (Pin pin in tempLog.config.pinList)
                     {
                         if (pin.enabled)
                         {
                             pins.Add(pin);
+                            convHeaders.Add(pin.fName + " | " + pin.units);
                         }
                     }
 
@@ -821,9 +778,9 @@ namespace SteerLoggerUser
                             {
                                 StringBuilder output = new StringBuilder(String.Format("{0},{1}",line[0],line[1]));
 
-                                for (int i = 2; i < line.Length; i++)
+                                for (int j = 2; j < line.Length; j++)
                                 {
-                                    output.AppendFormat(",{0}", double.Parse(line[i]) * pins[i - 2].m + pins[i - 2].c);
+                                    output.AppendFormat(",{0}", double.Parse(line[j]) * pins[j - 2].m + pins[j - 2].c);
                                 }
                                 writer.WriteLine(output.ToString());
                                 line = reader.ReadLine().Split(',');
@@ -888,8 +845,6 @@ namespace SteerLoggerUser
                             DAP.processing = true;
                         }
                     }
-                    received = TCPReceive();
-
                 }
                 if (worker.CancellationPending)
                 {
@@ -1158,28 +1113,14 @@ namespace SteerLoggerUser
                     MessageBox.Show("No logs match criteria.");
                     return;
                 }
-                // Receive the logs that match the search criteria 
-                while (response != "EoT")
-                {
-                    string[] data = response.Split('\u001f');
-                    LogMeta newLog = new LogMeta
-                    {
-                        id = Convert.ToInt32(data[0]),
-                        name = data[1],
-                        testNumber = Convert.ToInt32(data[2]),
-                        date = data[3],
-                        project = Convert.ToInt32(data[4]),
-                        workPack = Convert.ToInt32(data[5]),
-                        jobSheet = Convert.ToInt32(data[6]),
-                        description = data[7],
-                        size = (data[8] == "None") ? 0 : Convert.ToInt32(data[8])
-                    };
-                    logsAvailable.Add(newLog);
-                    response = TCPReceive();
-                }
+
+                // Receive number of logs that match criteria
+                int numLogs = Convert.ToInt16(response);
+
                 // Open new DownloadForm to allow user to download config from available logs
-                DownloadForm download = new DownloadForm(this, logsAvailable, "Config", true);
+                DownloadForm download = new DownloadForm("Config", true, TCPReceive, numLogs, TCPSend);
                 download.ShowDialog();
+                download.Dispose();
                 response = TCPReceive();
                 if (response == "Config_Sent")
                 {
@@ -1203,21 +1144,21 @@ namespace SteerLoggerUser
                 response = TCPReceive();
 
                 // Recevie data for each pin until all pins have been received
-                while (response != "Config_Sent")
+                for (int i = 0; i < 16; i++)
                 {
                     string[] pinData = response.Split('\u001f');
                     // Create row from pin data and add to InputSetup grid
                     object[] rowData = new object[]
                     {
-                pinData[0],
-                pinData[1],
-                (pinData[2] == "True" ) ? true : false,
-                pinData[3],
-                pinData[4],
-                pinData[5],
-                pinData[6],
-                pinData[7],
-                pinData[8]
+                        pinData[0],
+                        pinData[1],
+                        (pinData[2] == "True" ) ? true : false,
+                        pinData[3],
+                        pinData[4],
+                        pinData[5],
+                        pinData[6],
+                        pinData[7],
+                        pinData[8]
                     };
                     if (!((DataGridViewComboBoxColumn)dgvInputSetup.Columns["units"]).Items.Contains(pinData[8]))
                     {
@@ -1824,7 +1765,6 @@ namespace SteerLoggerUser
             {
                 return;
             }
-
         }
 
 
@@ -1847,30 +1787,12 @@ namespace SteerLoggerUser
                     MessageBox.Show("No logs match criteria.");
                     return;
                 }
-                // Receive list of logs the meet the search criteria.
-                while (response != "EoT")
-                {
-                    string[] data = response.Split('\u001f');
-                    LogMeta newLog = new LogMeta
-                    {
-                        id = Convert.ToInt32(data[0]),
-                        name = data[1],
-                        testNumber = Convert.ToInt32(data[2]),
-                        date = data[3],
-                        project = Convert.ToInt32(data[4]),
-                        workPack = Convert.ToInt32(data[5]),
-                        jobSheet = Convert.ToInt32(data[6]),
-                        description = data[7],
-                        size = (data[8] == "None") ? 0 : Convert.ToInt32(data[8])
-                    };
-                    logsAvailable.Add(newLog);
-                    response = TCPReceive();
-                }
+
+                // Get number of logs which match criteria
+                int numLogs = Convert.ToUInt16(response);
                 // Create new DownloadForm so user can select logs to download
-                // Objective 13.2
-                DownloadForm download = new DownloadForm(this, logsAvailable, "Logs", false);
+                DownloadForm download = new DownloadForm("Logs", false, TCPReceive, numLogs, TCPSend);
                 download.ShowDialog();
-                int numLogs = download.num;
                 download.Dispose();
 
                 BackgroundWorker worker = new BackgroundWorker();
@@ -1882,7 +1804,7 @@ namespace SteerLoggerUser
                 progressForm.Show();
 
 
-                worker.DoWork += (s,args) => ReceiveLog(s,args,numLogs);
+                worker.DoWork += (s,args) => ReceiveLog(s,args);
                 worker.ProgressChanged += (s, args) => ProgressChanged(s, args, progressForm);
                 worker.RunWorkerAsync();
 
@@ -1933,6 +1855,7 @@ namespace SteerLoggerUser
                 {
                     sfdLog.FileName = "raw-" + log.name + "-" + log.testNumber + "-" + log.date + ".csv";
                     sfdLog.DefaultExt = "csv";
+                    sfdLog.Filter = "Csv files (*.csv)|*.csv|All files (*.*)|*.*";
                     if (sfdLog.ShowDialog() == DialogResult.OK)
                     {
                         try
@@ -1958,6 +1881,7 @@ namespace SteerLoggerUser
                 {
                     sfdLog.FileName = "converted-" + log.name + "-" + log.testNumber + "-" + log.date + ".csv";
                     sfdLog.DefaultExt = "csv";
+                    sfdLog.Filter = "Csv files (*.csv)|*.csv|All files (*.*)|*.*";
                     if (sfdLog.ShowDialog() == DialogResult.OK)
                     {
                         try
@@ -1984,6 +1908,7 @@ namespace SteerLoggerUser
             {
                 sfdLog.FileName = "processed-" + DAP.logsProcessing[0].name + "-" + DAP.logsProcessing[0].testNumber + "-" + DAP.logsProcessing[0].date + ".csv";
                 sfdLog.DefaultExt = "csv";
+                sfdLog.Filter = "Csv files (*.csv)|*.csv|All files (*.*)|*.*";
                 if (sfdLog.ShowDialog() == DialogResult.OK)
                 {
                     try
@@ -2103,6 +2028,8 @@ namespace SteerLoggerUser
             }
 
             sfdLog.FileName = DAP.logsProcessing[0].name + ".zip";
+            sfdLog.DefaultExt = "zip";
+            sfdLog.Filter = "Zip file (*.zip)|*.zip|All files (*.*)|*.*";
 
             if (sfdLog.ShowDialog() == DialogResult.OK)
             {
@@ -2325,23 +2252,15 @@ namespace SteerLoggerUser
         {
             if (dgvInputSetup.Visible == false)
             {
-                //cmbPin.Visible = false;
-                //cmbVar.Visible = false;
-                //cmbSensor.Visible = false;
-                //cmdAddPin.Visible = false;
-                //txtLogPins.Visible = false;
+                // Hide simple config and show advanced config grid
                 pnlSimpleConfig.Visible = false;
                 cmdConfigSwitch.Text = "Simple Config";
                 dgvInputSetup.Visible = true;
             }
             else
             {
+                // Hide advanced config grid and show simple config panel
                 dgvInputSetup.Visible = false;
-                //cmbPin.Visible = true;
-                //cmbVar.Visible = true;
-                //cmbSensor.Visible = true;
-                //cmdAddPin.Visible = true;
-                //txtLogPins.Visible = true;
                 pnlSimpleConfig.Visible = true;
                 SetupSimpleConf();
                 cmdConfigSwitch.Text = "Advanced Config";

@@ -14,10 +14,13 @@ namespace SteerLoggerUser
     {
         public string user;
         private Action<string> TcpSend;
+        private bool cancelled = true;
         public ChangeUserForm(Action<string> tcpSend)
         {
             this.TcpSend = tcpSend;
+            this.FormClosed += new FormClosedEventHandler(UserFormClosed);
             InitializeComponent();
+
         }
 
         private void cmdChangeUser_Click(object sender, EventArgs e)
@@ -33,7 +36,17 @@ namespace SteerLoggerUser
             }
             user = txtUser.Text;
             this.TcpSend(user);
+            cancelled = false;
             this.Close();
+        }
+
+
+        private void UserFormClosed(object sender, FormClosedEventArgs e)
+        {
+            if (cancelled == true)
+            {
+                this.TcpSend("Closed");
+            }
         }
     }
 }

@@ -5,10 +5,15 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
+using Renci.SshNet;
+using Renci.SshNet.Sftp;
 using System.Net.Sockets;
 using System.Windows.Forms;
 using System.IO;
+using System.IO.Compression;
+using System.Security.AccessControl;
+using System.Security.Principal;
 
 namespace SteerLoggerUser
 {
@@ -236,7 +241,7 @@ namespace SteerLoggerUser
                     line += col.HeaderText + ',';
                 }
                 writer.WriteLine(line.TrimEnd(','));
-                for (int i = 0; i < dgvPresets.Rows.Count - 1; i ++)
+                for (int i = 0; i < dgvPresets.Rows.Count - 1; i++)
                 {
                     line = "";
                     foreach (DataGridViewCell cell in dgvPresets.Rows[i].Cells)
@@ -266,9 +271,10 @@ namespace SteerLoggerUser
         {
             try
             {
-                sfdSaveDatabase.FileName = String.Format("{0}-Database-{1}.csv", this.logger, DateTime.Now.ToString("yyyy-mm-dd-HH-mm-ss"));
+                sfdSaveDatabase.FileName = String.Format("{0}-Database-{1}.csv", this.logger, DateTime.Now.ToString("yyyymmdd-HHmmss"));
                 sfdSaveDatabase.DefaultExt = "csv";
                 sfdSaveDatabase.AddExtension = true;
+                sfdSaveDatabase.Filter = "Csv files (*.csv)|*.zip|All files (*.*)|*.*";
                 if (sfdSaveDatabase.ShowDialog() == DialogResult.OK)
                 {
                     TCPSend("Export_Database");
@@ -278,7 +284,7 @@ namespace SteerLoggerUser
                         int numRows = Convert.ToInt32(TCPReceive());
                         for (int i = 0; i < numRows; i++)
                         {
-                            writer.WriteLine(TCPReceive().Replace(',',';').Replace('\u001f',','));
+                            writer.WriteLine(TCPReceive().Replace(',', ';').Replace('\u001f', ','));
                         }
                     }
                     MessageBox.Show("Exported Successfully.");
@@ -296,6 +302,155 @@ namespace SteerLoggerUser
             {
                 MessageBox.Show("Connection timed out, please reconnect.");
             }
+        }
+
+        private void cmdCopyPiData_Click(object sender, EventArgs e)
+        {
+            BackgroundWorker worker = new BackgroundWorker();
+            worker.WorkerReportsProgress = true;
+            worker.WorkerSupportsCancellation = true;
+
+            ReceiveProgressForm progressForm;
+            progressForm = new ReceiveProgressForm(worker);
+            progressForm.Show();
+
+            worker.DoWork += (s, args) => DoWork(s, args);
+            worker.ProgressChanged += (s, args) => ProgressChanged(s, args, progressForm);
+            worker.RunWorkerAsync();
+        }
+
+        private void ProgressChanged(object sender, ProgressChangedEventArgs e, ReceiveProgressForm progressForm)
+        {
+            if (e.UserState == null)
+            {
+                progressForm.UpdateProgressBar(e.ProgressPercentage, "");
+            }
+            else
+            {
+                progressForm.UpdateProgressBar(e.ProgressPercentage, e.UserState.ToString());
+            }
+        }
+
+        private void DoWork(object sender, DoWorkEventArgs e)
+        {
+            BackgroundWorker worker = sender as BackgroundWorker;
+            try
+            {
+                worker.ReportProgress(0, "Starting download...");
+                string dirPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger\zipDir";
+                // If the temporary directory exists, delete it
+                if (Directory.Exists(dirPath))
+                {
+                    Directory.Delete(dirPath, true);
+                }
+                // Create temporary directory to write files to and then zip
+                Directory.CreateDirectory(dirPath);
+
+                string host = logger;
+                string user = "pi";
+                string password = "raspberry";
+
+                SftpClient sftpclient = new SftpClient(host, 22, user, password);
+                // Need to catch error when computer refuses connection
+                sftpclient.Connect();
+                int numFiles = CountFiles(sftpclient, @"/home/pi/Github/Datalogger-Alistair-Pi/");
+                numDone = 0;
+                DownloadDir(sftpclient, @"/home/pi/Github/Datalogger-Alistair-Pi/", dirPath, numFiles, worker);
+
+
+                Thread thread = new Thread((ThreadStart)(() =>
+                {
+                    sfdSaveDatabase.FileName = String.Format("{0}-Data-{1}.zip", logger, DateTime.Now.ToString("yyyymmdd-HHmmss"));
+                    sfdSaveDatabase.DefaultExt = "zip";
+                    sfdSaveDatabase.AddExtension = true;
+                    sfdSaveDatabase.Filter = "Zip files (*.zip)|*.zip|All files (*.*)|*.*";
+                    if (sfdSaveDatabase.ShowDialog() == DialogResult.OK)
+                    {
+                    // Create a zip archive from the temporary zip directory
+                    // Save zip archive to path specified by user
+                    ZipFile.CreateFromDirectory(dirPath, sfdSaveDatabase.FileName);
+                        MessageBox.Show("Files zipped successfully.");
+                    }
+                }));
+                thread.SetApartmentState(ApartmentState.STA);
+                thread.Start();
+                thread.Join();
+
+            }
+            catch (SocketException)
+            {
+                worker.ReportProgress(100, "Error occurred, aborting!");
+                MessageBox.Show("Error occurred in connection, please reconnect.");
+                MessageBox.Show("Failed to download, check that Pi has FTP/SSH enabled.");
+                return;
+            }
+            catch (Exception exp)
+            {
+                worker.ReportProgress(100, "Error occurred, aborting!");
+                MessageBox.Show(exp.Message);
+                MessageBox.Show(exp.ToString());
+                MessageBox.Show("Failed to download, check that Pi has FTP/SSH enabled.");
+                return;
+            }
+        }
+
+
+        private int numDone;
+        private void DownloadDir(SftpClient sftpclient, string filepath, string dirPath, int numFiles, BackgroundWorker worker)
+        {
+            IEnumerable<SftpFile> files = sftpclient.ListDirectory(filepath);
+
+            foreach (SftpFile file in files)
+            {
+                if (file.IsDirectory)
+                {
+                    if (file.Name != "." && file.Name != "..")
+                    {
+                        Directory.CreateDirectory(dirPath + "\\" + file.Name);
+                        DownloadDir(sftpclient, file.FullName, dirPath + "\\" + file.Name, numFiles, worker);
+                        if (worker == null)
+                        {
+                            return;
+                        }
+                    }
+                }
+                else
+                {
+                    using (FileStream stream = new FileStream(dirPath + "\\" + file.Name, FileMode.Create, FileAccess.Write))
+                    {
+                        sftpclient.DownloadFile(file.FullName, stream);
+                        numDone += 1;
+                        if (worker.CancellationPending)
+                        {
+                            worker.Dispose();
+                            return;
+                        }
+                        worker.ReportProgress(numDone * 100 / numFiles, String.Format("Downloaded {0}", file.Name));
+                    }
+                }
+            }
+        }
+
+
+        private int CountFiles(SftpClient sftpClient, string filepath)
+        {
+            int numFiles = 0;
+            IEnumerable<SftpFile> files = sftpClient.ListDirectory(filepath);
+            foreach (SftpFile file in files)
+            {
+                if (file.IsDirectory)
+                {
+                    if (file.Name != "." && file.Name != "..")
+                    {
+                        numFiles += CountFiles(sftpClient, file.FullName);
+                    }
+                }
+                else
+                {
+                    numFiles += 1;
+                }
+            }
+            return numFiles;
         }
     }
 }

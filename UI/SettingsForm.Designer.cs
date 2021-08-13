@@ -66,11 +66,13 @@ namespace SteerLoggerUser
             this.Units = new System.Windows.Forms.DataGridViewComboBoxColumn();
             this.cmdExportDatabase = new System.Windows.Forms.Button();
             this.sfdSaveDatabase = new System.Windows.Forms.SaveFileDialog();
+            this.cmdCopyPiData = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dgvPresets)).BeginInit();
             this.SuspendLayout();
             // 
             // lblActivate
             // 
+            this.lblActivate.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.lblActivate.AutoSize = true;
             this.lblActivate.Location = new System.Drawing.Point(12, 16);
             this.lblActivate.Name = "lblActivate";
@@ -80,6 +82,7 @@ namespace SteerLoggerUser
             // 
             // cmdFindActivate
             // 
+            this.cmdFindActivate.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.cmdFindActivate.Location = new System.Drawing.Point(176, 12);
             this.cmdFindActivate.Name = "cmdFindActivate";
             this.cmdFindActivate.Size = new System.Drawing.Size(130, 23);
@@ -90,6 +93,7 @@ namespace SteerLoggerUser
             // 
             // lblUnits
             // 
+            this.lblUnits.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.lblUnits.AutoSize = true;
             this.lblUnits.Location = new System.Drawing.Point(12, 71);
             this.lblUnits.Name = "lblUnits";
@@ -99,6 +103,7 @@ namespace SteerLoggerUser
             // 
             // cmbUnits
             // 
+            this.cmbUnits.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.cmbUnits.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbUnits.FormattingEnabled = true;
             this.cmbUnits.Location = new System.Drawing.Point(57, 68);
@@ -108,6 +113,7 @@ namespace SteerLoggerUser
             // 
             // cmdAddUnit
             // 
+            this.cmdAddUnit.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.cmdAddUnit.Location = new System.Drawing.Point(235, 95);
             this.cmdAddUnit.Name = "cmdAddUnit";
             this.cmdAddUnit.Size = new System.Drawing.Size(71, 23);
@@ -118,6 +124,7 @@ namespace SteerLoggerUser
             // 
             // txtAddUnit
             // 
+            this.txtAddUnit.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.txtAddUnit.Location = new System.Drawing.Point(57, 97);
             this.txtAddUnit.Name = "txtAddUnit";
             this.txtAddUnit.Size = new System.Drawing.Size(172, 20);
@@ -125,6 +132,7 @@ namespace SteerLoggerUser
             // 
             // lblInputTypes
             // 
+            this.lblInputTypes.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.lblInputTypes.AutoSize = true;
             this.lblInputTypes.Location = new System.Drawing.Point(12, 127);
             this.lblInputTypes.Name = "lblInputTypes";
@@ -134,6 +142,7 @@ namespace SteerLoggerUser
             // 
             // cmbInputTypes
             // 
+            this.cmbInputTypes.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.cmbInputTypes.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbInputTypes.FormattingEnabled = true;
             this.cmbInputTypes.Location = new System.Drawing.Point(84, 124);
@@ -143,6 +152,7 @@ namespace SteerLoggerUser
             // 
             // lblBottomVolt
             // 
+            this.lblBottomVolt.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.lblBottomVolt.AutoSize = true;
             this.lblBottomVolt.Location = new System.Drawing.Point(81, 180);
             this.lblBottomVolt.Name = "lblBottomVolt";
@@ -152,6 +162,7 @@ namespace SteerLoggerUser
             // 
             // txtBottomVolt
             // 
+            this.txtBottomVolt.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.txtBottomVolt.Location = new System.Drawing.Point(154, 177);
             this.txtBottomVolt.Name = "txtBottomVolt";
             this.txtBottomVolt.Size = new System.Drawing.Size(152, 20);
@@ -159,6 +170,7 @@ namespace SteerLoggerUser
             // 
             // lblTopVolt
             // 
+            this.lblTopVolt.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.lblTopVolt.AutoSize = true;
             this.lblTopVolt.Location = new System.Drawing.Point(81, 206);
             this.lblTopVolt.Name = "lblTopVolt";
@@ -168,6 +180,7 @@ namespace SteerLoggerUser
             // 
             // txtTopVolt
             // 
+            this.txtTopVolt.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.txtTopVolt.Location = new System.Drawing.Point(154, 203);
             this.txtTopVolt.Name = "txtTopVolt";
             this.txtTopVolt.Size = new System.Drawing.Size(152, 20);
@@ -175,6 +188,7 @@ namespace SteerLoggerUser
             // 
             // cmdAddInputType
             // 
+            this.cmdAddInputType.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.cmdAddInputType.Location = new System.Drawing.Point(84, 229);
             this.cmdAddInputType.Name = "cmdAddInputType";
             this.cmdAddInputType.Size = new System.Drawing.Size(222, 23);
@@ -185,6 +199,7 @@ namespace SteerLoggerUser
             // 
             // cmbGains
             // 
+            this.cmbGains.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.cmbGains.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbGains.FormattingEnabled = true;
             this.cmbGains.Location = new System.Drawing.Point(55, 260);
@@ -194,6 +209,7 @@ namespace SteerLoggerUser
             // 
             // lblGains
             // 
+            this.lblGains.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.lblGains.AutoSize = true;
             this.lblGains.Location = new System.Drawing.Point(12, 262);
             this.lblGains.Name = "lblGains";
@@ -203,6 +219,7 @@ namespace SteerLoggerUser
             // 
             // lblLoggers
             // 
+            this.lblLoggers.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.lblLoggers.AutoSize = true;
             this.lblLoggers.Location = new System.Drawing.Point(12, 290);
             this.lblLoggers.Name = "lblLoggers";
@@ -212,6 +229,7 @@ namespace SteerLoggerUser
             // 
             // cmbLoggers
             // 
+            this.cmbLoggers.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.cmbLoggers.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbLoggers.FormattingEnabled = true;
             this.cmbLoggers.Location = new System.Drawing.Point(66, 287);
@@ -221,6 +239,7 @@ namespace SteerLoggerUser
             // 
             // txtLogger
             // 
+            this.txtLogger.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.txtLogger.Location = new System.Drawing.Point(66, 316);
             this.txtLogger.Name = "txtLogger";
             this.txtLogger.Size = new System.Drawing.Size(159, 20);
@@ -228,6 +247,7 @@ namespace SteerLoggerUser
             // 
             // cmdAddLogger
             // 
+            this.cmdAddLogger.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.cmdAddLogger.Location = new System.Drawing.Point(231, 314);
             this.cmdAddLogger.Name = "cmdAddLogger";
             this.cmdAddLogger.Size = new System.Drawing.Size(75, 23);
@@ -238,7 +258,8 @@ namespace SteerLoggerUser
             // 
             // cmdSave
             // 
-            this.cmdSave.Location = new System.Drawing.Point(12, 563);
+            this.cmdSave.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.cmdSave.Location = new System.Drawing.Point(12, 598);
             this.cmdSave.Name = "cmdSave";
             this.cmdSave.Size = new System.Drawing.Size(143, 23);
             this.cmdSave.TabIndex = 20;
@@ -248,7 +269,8 @@ namespace SteerLoggerUser
             // 
             // cmdCancel
             // 
-            this.cmdCancel.Location = new System.Drawing.Point(172, 563);
+            this.cmdCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.cmdCancel.Location = new System.Drawing.Point(173, 598);
             this.cmdCancel.Name = "cmdCancel";
             this.cmdCancel.Size = new System.Drawing.Size(133, 23);
             this.cmdCancel.TabIndex = 21;
@@ -258,6 +280,7 @@ namespace SteerLoggerUser
             // 
             // txtName
             // 
+            this.txtName.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.txtName.Location = new System.Drawing.Point(154, 151);
             this.txtName.Name = "txtName";
             this.txtName.Size = new System.Drawing.Size(152, 20);
@@ -265,6 +288,7 @@ namespace SteerLoggerUser
             // 
             // lblName
             // 
+            this.lblName.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.lblName.AutoSize = true;
             this.lblName.Location = new System.Drawing.Point(81, 154);
             this.lblName.Name = "lblName";
@@ -274,10 +298,11 @@ namespace SteerLoggerUser
             // 
             // txtActivateLocation
             // 
+            this.txtActivateLocation.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.txtActivateLocation.Location = new System.Drawing.Point(15, 41);
             this.txtActivateLocation.Name = "txtActivateLocation";
             this.txtActivateLocation.ReadOnly = true;
-            this.txtActivateLocation.Size = new System.Drawing.Size(290, 20);
+            this.txtActivateLocation.Size = new System.Drawing.Size(291, 20);
             this.txtActivateLocation.TabIndex = 24;
             // 
             // label1
@@ -291,6 +316,9 @@ namespace SteerLoggerUser
             // 
             // dgvPresets
             // 
+            this.dgvPresets.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.dgvPresets.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgvPresets.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.Sensor,
@@ -303,7 +331,7 @@ namespace SteerLoggerUser
             this.Units});
             this.dgvPresets.Location = new System.Drawing.Point(12, 357);
             this.dgvPresets.Name = "dgvPresets";
-            this.dgvPresets.Size = new System.Drawing.Size(293, 150);
+            this.dgvPresets.Size = new System.Drawing.Size(294, 171);
             this.dgvPresets.TabIndex = 26;
             // 
             // Sensor
@@ -348,19 +376,32 @@ namespace SteerLoggerUser
             // 
             // cmdExportDatabase
             // 
-            this.cmdExportDatabase.Location = new System.Drawing.Point(12, 513);
+            this.cmdExportDatabase.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
+            this.cmdExportDatabase.Location = new System.Drawing.Point(12, 534);
             this.cmdExportDatabase.Name = "cmdExportDatabase";
-            this.cmdExportDatabase.Size = new System.Drawing.Size(293, 23);
+            this.cmdExportDatabase.Size = new System.Drawing.Size(294, 23);
             this.cmdExportDatabase.TabIndex = 27;
             this.cmdExportDatabase.Text = "Export Copy of Database";
             this.cmdExportDatabase.UseVisualStyleBackColor = true;
             this.cmdExportDatabase.Click += new System.EventHandler(this.cmdExportDatabase_Click);
             // 
+            // cmdCopyPiData
+            // 
+            this.cmdCopyPiData.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
+            this.cmdCopyPiData.Location = new System.Drawing.Point(12, 563);
+            this.cmdCopyPiData.Name = "cmdCopyPiData";
+            this.cmdCopyPiData.Size = new System.Drawing.Size(294, 23);
+            this.cmdCopyPiData.TabIndex = 28;
+            this.cmdCopyPiData.Text = "Export Copy of All Logger Data";
+            this.cmdCopyPiData.UseVisualStyleBackColor = true;
+            this.cmdCopyPiData.Click += new System.EventHandler(this.cmdCopyPiData_Click);
+            // 
             // SettingsForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(318, 598);
+            this.ClientSize = new System.Drawing.Size(318, 633);
+            this.Controls.Add(this.cmdCopyPiData);
             this.Controls.Add(this.cmdExportDatabase);
             this.Controls.Add(this.dgvPresets);
             this.Controls.Add(this.label1);
@@ -388,6 +429,7 @@ namespace SteerLoggerUser
             this.Controls.Add(this.lblUnits);
             this.Controls.Add(this.cmdFindActivate);
             this.Controls.Add(this.lblActivate);
+            this.MinimumSize = new System.Drawing.Size(334, 637);
             this.Name = "SettingsForm";
             this.Text = "SettingsForm";
             this.Load += new System.EventHandler(this.SettingsForm_Load);
@@ -436,5 +478,6 @@ namespace SteerLoggerUser
         private System.Windows.Forms.DataGridViewComboBoxColumn Units;
         private System.Windows.Forms.Button cmdExportDatabase;
         private System.Windows.Forms.SaveFileDialog sfdSaveDatabase;
+        private System.Windows.Forms.Button cmdCopyPiData;
     }
 }

@@ -19,15 +19,15 @@ namespace SteerLoggerUser
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            try
-            {
+            //try
+            //{
                 Application.Run(new mainForm());
-            }
-            catch (Exception exp)
-            {
-                MessageBox.Show(String.Format("Error occured: {0}",exp.Message),"Error!");
-                MessageBox.Show(String.Format("Full error: {0}",exp.ToString()));
-            }
+            //}
+            //catch (Exception exp)
+            //{
+            //    MessageBox.Show(String.Format("Error occured: {0}",exp.Message),"Error!");
+            //    MessageBox.Show(String.Format("Full error: {0}",exp.ToString()));
+            //}
         }
 
         [System.Runtime.InteropServices.DllImport("user32.dll")]

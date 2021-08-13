@@ -36,6 +36,8 @@ namespace SteerLoggerUser
             // 
             // txtUser
             // 
+            this.txtUser.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.txtUser.Location = new System.Drawing.Point(50, 14);
             this.txtUser.Name = "txtUser";
             this.txtUser.Size = new System.Drawing.Size(140, 20);
@@ -43,6 +45,8 @@ namespace SteerLoggerUser
             // 
             // cmdChangeUser
             // 
+            this.cmdChangeUser.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.cmdChangeUser.Location = new System.Drawing.Point(13, 40);
             this.cmdChangeUser.Name = "cmdChangeUser";
             this.cmdChangeUser.Size = new System.Drawing.Size(177, 23);
@@ -68,6 +72,7 @@ namespace SteerLoggerUser
             this.Controls.Add(this.lblUser);
             this.Controls.Add(this.cmdChangeUser);
             this.Controls.Add(this.txtUser);
+            this.MinimumSize = new System.Drawing.Size(222, 122);
             this.Name = "ChangeUserForm";
             this.Text = "Change User";
             this.ResumeLayout(false);

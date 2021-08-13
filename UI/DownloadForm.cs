@@ -8,26 +8,28 @@ namespace SteerLoggerUser
 {
     public partial class DownloadForm : Form
     {
-        // Store mainForm to use TCPSend and TCPReceive
-        private mainForm main;
-        // Stores logs available to download
-        private List<LogMeta> logs;
         // Store item being downloaded (Config or Logs)
         private string item;
         // Determines whether user can select more that one log
         private bool one;
+        // Stores TCPReceive function from mainForm
+        private Func<string> TCPReceive;
+        // Stores TCPSend function from mainForm
+        private Action<string> TCPSend;
+        // Stores number of logs that matched criteria
+        private int numLogs;
         // Used to tell mainForm if user exits without selecting anything
         private bool cancelled = true;
-        public int num = 0;
 
-        public DownloadForm(mainForm mainForm, List<LogMeta> logsAvailable, string downloadItem, bool onlyOne)
+        public DownloadForm(string item, bool one, Func<string> TCPReceive, int numLogs, Action<string> TCPSend)
         {
             InitializeComponent();
             this.FormClosed += new FormClosedEventHandler(DownloadFormClosed);
-            this.main = mainForm;
-            this.logs = logsAvailable;
-            this.item = downloadItem;
-            this.one = onlyOne;
+            this.item = item;
+            this.one = one;
+            this.TCPReceive = TCPReceive;
+            this.numLogs = numLogs;
+            this.TCPSend = TCPSend;
         }
 
         // Show logs to user and allow them to select which ones to download
@@ -37,25 +39,26 @@ namespace SteerLoggerUser
             lblDownload.Text = "Select " + item + " to Download";
             cmdDownload.Text = "Download " + item;
 
-            foreach (LogMeta log in this.logs)
+            // Add available logs to list
+
+            for (int i = 0; i < numLogs; i++)
             {
-                // Create new dgvRow object
+                string[] response = TCPReceive().Split('\u001f');
                 object[] rowData = new object[]
                 {
                     false,
-                    log.id,
-                    log.name,
-                    log.testNumber,
-                    log.date,
-                    log.project,
-                    log.workPack,
-                    log.jobSheet,
-                    log.description,
-                    log.size
+                    Convert.ToUInt16(response[0]),
+                    response[1],
+                    Convert.ToUInt16(response[2]),
+                    response[3],
+                    Convert.ToUInt16(response[4]),
+                    Convert.ToUInt16(response[5]),
+                    Convert.ToUInt16(response[6]),
+                    response[7],
+                    (response[8] == "None") ? 0 : Convert.ToUInt16(response[8])
                 };
                 dgvDownload.Rows.Add(rowData);
             }
-
 
             cmdDownload.Width = dgvDownload.Width;
         }
@@ -65,7 +68,7 @@ namespace SteerLoggerUser
         {
             this.cancelled = false;
             string logNames = "";
-            num = 0;
+            int num = 0;
 
             foreach (DataGridViewRow row in dgvDownload.Rows)
             {
@@ -78,8 +81,8 @@ namespace SteerLoggerUser
             // If no logs selected, let logger know
             if (logNames == "")
             {
-                main.TCPSend(item);
-                main.TCPSend("No_Logs_Requested");
+                TCPSend(item);
+                TCPSend("No_Logs_Requested");
             }
             // If more than one log selected when only one can be downloaded, alert user
             else if (this.one == true && num > 1)
@@ -90,8 +93,8 @@ namespace SteerLoggerUser
             else
             {
                 // Send the item being downloaded to the logger and then the IDs of the logs
-                main.TCPSend(item);
-                main.TCPSend(logNames.Substring(0, logNames.Length - 1));
+                TCPSend(item);
+                TCPSend(logNames.Substring(0, logNames.Length - 1));
             }
             this.Close();
         }
@@ -101,8 +104,8 @@ namespace SteerLoggerUser
             // If form is closed without select being pressed, act as if nothing was selected
             if (cancelled == true)
             {
-                main.TCPSend(item);
-                main.TCPSend("No_Logs_Requested");
+                TCPSend(item);
+                TCPSend("No_Logs_Requested");
             }
         }
     }
