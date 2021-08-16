@@ -44,6 +44,9 @@ namespace SteerLoggerUser
             this.txtColTitle = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
             this.pnlTemplate = new System.Windows.Forms.Panel();
+            this.cmdLoadTemplate = new System.Windows.Forms.Button();
+            this.lblSheet = new System.Windows.Forms.Label();
+            this.cmbTemplate = new System.Windows.Forms.ComboBox();
             this.cmdWriteCol = new System.Windows.Forms.Button();
             this.cmbLogCols = new System.Windows.Forms.ComboBox();
             this.txtSelectedCell = new System.Windows.Forms.TextBox();
@@ -55,9 +58,6 @@ namespace SteerLoggerUser
             this.cmdUseTemplate = new System.Windows.Forms.Button();
             this.pnlExportNew = new System.Windows.Forms.Panel();
             this.ofdTemplate = new System.Windows.Forms.OpenFileDialog();
-            this.cmbTemplate = new System.Windows.Forms.ComboBox();
-            this.lblSheet = new System.Windows.Forms.Label();
-            this.cmdLoadTemplate = new System.Windows.Forms.Button();
             this.pnlTemplate.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvTemplate)).BeginInit();
             this.pnlExportNew.SuspendLayout();
@@ -99,6 +99,8 @@ namespace SteerLoggerUser
             // 
             // cmdExport
             // 
+            this.cmdExport.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.cmdExport.Location = new System.Drawing.Point(15, 428);
             this.cmdExport.Name = "cmdExport";
             this.cmdExport.Size = new System.Drawing.Size(445, 23);
@@ -188,6 +190,9 @@ namespace SteerLoggerUser
             // 
             // pnlTemplate
             // 
+            this.pnlTemplate.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.pnlTemplate.Controls.Add(this.cmdLoadTemplate);
             this.pnlTemplate.Controls.Add(this.lblSheet);
             this.pnlTemplate.Controls.Add(this.cmbTemplate);
@@ -203,8 +208,40 @@ namespace SteerLoggerUser
             this.pnlTemplate.Size = new System.Drawing.Size(445, 380);
             this.pnlTemplate.TabIndex = 15;
             // 
+            // cmdLoadTemplate
+            // 
+            this.cmdLoadTemplate.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.cmdLoadTemplate.Location = new System.Drawing.Point(268, 39);
+            this.cmdLoadTemplate.Name = "cmdLoadTemplate";
+            this.cmdLoadTemplate.Size = new System.Drawing.Size(173, 23);
+            this.cmdLoadTemplate.TabIndex = 25;
+            this.cmdLoadTemplate.Text = "Load Template";
+            this.cmdLoadTemplate.UseVisualStyleBackColor = true;
+            this.cmdLoadTemplate.Click += new System.EventHandler(this.cmdLoadTemplate_Click);
+            // 
+            // lblSheet
+            // 
+            this.lblSheet.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.lblSheet.AutoSize = true;
+            this.lblSheet.Location = new System.Drawing.Point(224, 15);
+            this.lblSheet.Name = "lblSheet";
+            this.lblSheet.Size = new System.Drawing.Size(38, 13);
+            this.lblSheet.TabIndex = 24;
+            this.lblSheet.Text = "Sheet:";
+            // 
+            // cmbTemplate
+            // 
+            this.cmbTemplate.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.cmbTemplate.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbTemplate.FormattingEnabled = true;
+            this.cmbTemplate.Location = new System.Drawing.Point(268, 12);
+            this.cmbTemplate.Name = "cmbTemplate";
+            this.cmbTemplate.Size = new System.Drawing.Size(173, 21);
+            this.cmbTemplate.TabIndex = 23;
+            // 
             // cmdWriteCol
             // 
+            this.cmdWriteCol.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.cmdWriteCol.Location = new System.Drawing.Point(296, 352);
             this.cmdWriteCol.Name = "cmdWriteCol";
             this.cmdWriteCol.Size = new System.Drawing.Size(145, 23);
@@ -215,6 +252,7 @@ namespace SteerLoggerUser
             // 
             // cmbLogCols
             // 
+            this.cmbLogCols.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
             this.cmbLogCols.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbLogCols.FormattingEnabled = true;
             this.cmbLogCols.Location = new System.Drawing.Point(144, 354);
@@ -224,6 +262,7 @@ namespace SteerLoggerUser
             // 
             // txtSelectedCell
             // 
+            this.txtSelectedCell.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.txtSelectedCell.Location = new System.Drawing.Point(6, 354);
             this.txtSelectedCell.Name = "txtSelectedCell";
             this.txtSelectedCell.ReadOnly = true;
@@ -234,6 +273,9 @@ namespace SteerLoggerUser
             // 
             this.dgvTemplate.AllowUserToAddRows = false;
             this.dgvTemplate.AllowUserToDeleteRows = false;
+            this.dgvTemplate.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.dgvTemplate.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgvTemplate.Location = new System.Drawing.Point(6, 95);
             this.dgvTemplate.Name = "dgvTemplate";
@@ -252,6 +294,8 @@ namespace SteerLoggerUser
             // 
             // txtSheetName
             // 
+            this.txtSheetName.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.txtSheetName.Location = new System.Drawing.Point(137, 69);
             this.txtSheetName.Name = "txtSheetName";
             this.txtSheetName.Size = new System.Drawing.Size(304, 20);
@@ -311,34 +355,6 @@ namespace SteerLoggerUser
             // 
             this.ofdTemplate.Filter = "Excel files|*.xlsx|All files|*.*";
             // 
-            // cmbTemplate
-            // 
-            this.cmbTemplate.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cmbTemplate.FormattingEnabled = true;
-            this.cmbTemplate.Location = new System.Drawing.Point(268, 12);
-            this.cmbTemplate.Name = "cmbTemplate";
-            this.cmbTemplate.Size = new System.Drawing.Size(173, 21);
-            this.cmbTemplate.TabIndex = 23;
-            // 
-            // lblSheet
-            // 
-            this.lblSheet.AutoSize = true;
-            this.lblSheet.Location = new System.Drawing.Point(224, 15);
-            this.lblSheet.Name = "lblSheet";
-            this.lblSheet.Size = new System.Drawing.Size(38, 13);
-            this.lblSheet.TabIndex = 24;
-            this.lblSheet.Text = "Sheet:";
-            // 
-            // cmdLoadTemplate
-            // 
-            this.cmdLoadTemplate.Location = new System.Drawing.Point(268, 39);
-            this.cmdLoadTemplate.Name = "cmdLoadTemplate";
-            this.cmdLoadTemplate.Size = new System.Drawing.Size(173, 23);
-            this.cmdLoadTemplate.TabIndex = 25;
-            this.cmdLoadTemplate.Text = "Load Template";
-            this.cmdLoadTemplate.UseVisualStyleBackColor = true;
-            this.cmdLoadTemplate.Click += new System.EventHandler(this.cmdLoadTemplate_Click);
-            // 
             // ExcelForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
@@ -349,6 +365,7 @@ namespace SteerLoggerUser
             this.Controls.Add(this.cmdExport);
             this.Controls.Add(this.pnlTemplate);
             this.Controls.Add(this.pnlExportNew);
+            this.MinimumSize = new System.Drawing.Size(488, 502);
             this.Name = "ExcelForm";
             this.Text = "ExcelForm";
             this.Load += new System.EventHandler(this.ExcelForm_Load);

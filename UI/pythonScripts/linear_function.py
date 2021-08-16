@@ -62,4 +62,3 @@ for i in range(0,len(current_data.index)):
 
 # Write processed data to csv
 proc_data.to_csv("proc.csv",index=False)
-

@@ -65,7 +65,7 @@ namespace SteerLoggerUser
             // 
             this.timer.Tick += new System.EventHandler(this.timer_Tick);
             // 
-            // ReceiveProgessFrom
+            // ReceiveProgressForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -73,7 +73,9 @@ namespace SteerLoggerUser
             this.Controls.Add(this.lblTime);
             this.Controls.Add(this.txtOuput);
             this.Controls.Add(this.pbDownload);
-            this.Name = "ReceiveProgessFrom";
+            this.MaximumSize = new System.Drawing.Size(404, 252);
+            this.MinimumSize = new System.Drawing.Size(404, 252);
+            this.Name = "ReceiveProgressForm";
             this.Text = "ReceiveProgessFrom";
             this.Load += new System.EventHandler(this.ReceiveProgessFrom_Load);
             this.ResumeLayout(false);

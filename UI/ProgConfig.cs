@@ -18,12 +18,12 @@ namespace SteerLoggerUser
 
         public ProgConfig()
         {
-            units = new List<string>();
-            inputTypes = new Dictionary<string, double[]>();
-            gains = new Dictionary<int, double>();
-            loggers = new List<string>();
-            configPins = new Dictionary<string, Pin>();
-            variationDict = new Dictionary<string, List<string>>();
+            this.units = new List<string>();
+            this.inputTypes = new Dictionary<string, double[]>();
+            this.gains = new Dictionary<int, double>();
+            this.loggers = new List<string>();
+            this.configPins = new Dictionary<string, Pin>();
+            this.variationDict = new Dictionary<string, List<string>>();
         }
     }
 }

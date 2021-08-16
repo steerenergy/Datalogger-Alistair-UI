@@ -40,14 +40,17 @@
             // 
             // cmbLogger
             // 
+            this.cmbLogger.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.cmbLogger.FormattingEnabled = true;
-            this.cmbLogger.Location = new System.Drawing.Point(92, 41);
+            this.cmbLogger.Location = new System.Drawing.Point(92, 44);
             this.cmbLogger.Name = "cmbLogger";
             this.cmbLogger.Size = new System.Drawing.Size(109, 21);
             this.cmbLogger.TabIndex = 0;
             // 
             // cmdSelect
             // 
+            this.cmdSelect.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
             this.cmdSelect.Location = new System.Drawing.Point(12, 141);
             this.cmdSelect.Name = "cmdSelect";
             this.cmdSelect.Size = new System.Drawing.Size(189, 23);
@@ -58,6 +61,8 @@
             // 
             // txtUser
             // 
+            this.txtUser.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.txtUser.Location = new System.Drawing.Point(92, 115);
             this.txtUser.Name = "txtUser";
             this.txtUser.Size = new System.Drawing.Size(109, 20);
@@ -83,6 +88,7 @@
             // 
             // cmdScan
             // 
+            this.cmdScan.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.cmdScan.Location = new System.Drawing.Point(12, 12);
             this.cmdScan.Name = "cmdScan";
             this.cmdScan.Size = new System.Drawing.Size(189, 23);
@@ -93,6 +99,8 @@
             // 
             // pbScan
             // 
+            this.pbScan.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.pbScan.Enabled = false;
             this.pbScan.Location = new System.Drawing.Point(12, 170);
             this.pbScan.Name = "pbScan";
@@ -112,6 +120,7 @@
             this.Controls.Add(this.cmdSelect);
             this.Controls.Add(this.cmbLogger);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.MinimumSize = new System.Drawing.Size(229, 244);
             this.Name = "ConnectForm";
             this.Text = "Logger Login";
             this.Load += new System.EventHandler(this.Form1_Load);

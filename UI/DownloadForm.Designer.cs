@@ -29,6 +29,7 @@ namespace SteerLoggerUser
         /// </summary>
         private void InitializeComponent()
         {
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(DownloadForm));
             this.cmdDownload = new System.Windows.Forms.Button();
             this.lblDownload = new System.Windows.Forms.Label();
@@ -41,6 +42,7 @@ namespace SteerLoggerUser
             this.Project = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.WorkPack = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.JobSheet = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.description = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.LogSize = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.dgvDownload)).BeginInit();
             this.SuspendLayout();
@@ -82,6 +84,7 @@ namespace SteerLoggerUser
             this.Project,
             this.WorkPack,
             this.JobSheet,
+            this.description,
             this.LogSize});
             this.dgvDownload.Location = new System.Drawing.Point(13, 26);
             this.dgvDownload.Name = "dgvDownload";
@@ -121,6 +124,9 @@ namespace SteerLoggerUser
             // Date
             // 
             this.Date.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.DisplayedCells;
+            dataGridViewCellStyle1.Format = "F";
+            dataGridViewCellStyle1.NullValue = null;
+            this.Date.DefaultCellStyle = dataGridViewCellStyle1;
             this.Date.HeaderText = "Date";
             this.Date.Name = "Date";
             this.Date.ReadOnly = true;
@@ -143,6 +149,11 @@ namespace SteerLoggerUser
             this.JobSheet.HeaderText = "Job Sheet";
             this.JobSheet.Name = "JobSheet";
             this.JobSheet.ReadOnly = true;
+            // 
+            // description
+            // 
+            this.description.HeaderText = "Description";
+            this.description.Name = "description";
             // 
             // LogSize
             // 
@@ -185,6 +196,7 @@ namespace SteerLoggerUser
         private System.Windows.Forms.DataGridViewTextBoxColumn Project;
         private System.Windows.Forms.DataGridViewTextBoxColumn WorkPack;
         private System.Windows.Forms.DataGridViewTextBoxColumn JobSheet;
+        private System.Windows.Forms.DataGridViewTextBoxColumn description;
         private System.Windows.Forms.DataGridViewTextBoxColumn LogSize;
     }
 }

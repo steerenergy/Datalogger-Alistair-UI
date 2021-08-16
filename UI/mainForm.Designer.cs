@@ -59,8 +59,8 @@
             this.lblPin = new System.Windows.Forms.Label();
             this.cmbVar = new System.Windows.Forms.ComboBox();
             this.lblSensor = new System.Windows.Forms.Label();
-            this.txtLogPins = new System.Windows.Forms.TextBox();
             this.cmbPin = new System.Windows.Forms.ComboBox();
+            this.txtLogPins = new System.Windows.Forms.TextBox();
             this.dgvInputSetup = new System.Windows.Forms.DataGridView();
             this.id = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.name = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -93,6 +93,8 @@
             this.ofdLog = new System.Windows.Forms.OpenFileDialog();
             this.sfdLog = new System.Windows.Forms.SaveFileDialog();
             this.ofdPythonScript = new System.Windows.Forms.OpenFileDialog();
+            this.cmdChangeUser = new System.Windows.Forms.Button();
+            this.cmdReconvert = new System.Windows.Forms.Button();
             this.pnlCtrlConf.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.nudProject)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudWorkPack)).BeginInit();
@@ -366,6 +368,9 @@
             // 
             // pnlSimpleConfig
             // 
+            this.pnlSimpleConfig.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.pnlSimpleConfig.Controls.Add(this.cmdRemovePin);
             this.pnlSimpleConfig.Controls.Add(this.cmbSensor);
             this.pnlSimpleConfig.Controls.Add(this.lblVar);
@@ -373,8 +378,8 @@
             this.pnlSimpleConfig.Controls.Add(this.lblPin);
             this.pnlSimpleConfig.Controls.Add(this.cmbVar);
             this.pnlSimpleConfig.Controls.Add(this.lblSensor);
-            this.pnlSimpleConfig.Controls.Add(this.txtLogPins);
             this.pnlSimpleConfig.Controls.Add(this.cmbPin);
+            this.pnlSimpleConfig.Controls.Add(this.txtLogPins);
             this.pnlSimpleConfig.Location = new System.Drawing.Point(214, 0);
             this.pnlSimpleConfig.Name = "pnlSimpleConfig";
             this.pnlSimpleConfig.Size = new System.Drawing.Size(607, 379);
@@ -382,6 +387,7 @@
             // 
             // cmdRemovePin
             // 
+            this.cmdRemovePin.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.cmdRemovePin.Location = new System.Drawing.Point(510, 31);
             this.cmdRemovePin.Name = "cmdRemovePin";
             this.cmdRemovePin.Size = new System.Drawing.Size(93, 22);
@@ -411,6 +417,7 @@
             // 
             // cmdAddPin
             // 
+            this.cmdAddPin.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.cmdAddPin.Location = new System.Drawing.Point(384, 31);
             this.cmdAddPin.Name = "cmdAddPin";
             this.cmdAddPin.Size = new System.Drawing.Size(120, 22);
@@ -446,15 +453,6 @@
             this.lblSensor.TabIndex = 18;
             this.lblSensor.Text = "Sensor:";
             // 
-            // txtLogPins
-            // 
-            this.txtLogPins.Location = new System.Drawing.Point(3, 59);
-            this.txtLogPins.Multiline = true;
-            this.txtLogPins.Name = "txtLogPins";
-            this.txtLogPins.ReadOnly = true;
-            this.txtLogPins.Size = new System.Drawing.Size(600, 317);
-            this.txtLogPins.TabIndex = 15;
-            // 
             // cmbPin
             // 
             this.cmbPin.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
@@ -463,6 +461,18 @@
             this.cmbPin.Name = "cmbPin";
             this.cmbPin.Size = new System.Drawing.Size(121, 21);
             this.cmbPin.TabIndex = 11;
+            // 
+            // txtLogPins
+            // 
+            this.txtLogPins.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtLogPins.Location = new System.Drawing.Point(3, 59);
+            this.txtLogPins.Multiline = true;
+            this.txtLogPins.Name = "txtLogPins";
+            this.txtLogPins.ReadOnly = true;
+            this.txtLogPins.Size = new System.Drawing.Size(600, 317);
+            this.txtLogPins.TabIndex = 15;
             // 
             // dgvInputSetup
             // 
@@ -606,6 +616,7 @@
             this.pnlDataProc.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.pnlDataProc.Controls.Add(this.cmdReconvert);
             this.pnlDataProc.Controls.Add(this.lblLogDisplay);
             this.pnlDataProc.Controls.Add(this.cmdClearData);
             this.pnlDataProc.Controls.Add(this.cmdDwnldCsv);
@@ -623,19 +634,19 @@
             // 
             // lblLogDisplay
             // 
-            this.lblLogDisplay.AutoSize = true;
+            this.lblLogDisplay.AutoEllipsis = true;
             this.lblLogDisplay.Location = new System.Drawing.Point(19, 14);
             this.lblLogDisplay.Name = "lblLogDisplay";
-            this.lblLogDisplay.Size = new System.Drawing.Size(93, 13);
+            this.lblLogDisplay.Size = new System.Drawing.Size(185, 13);
             this.lblLogDisplay.TabIndex = 7;
             this.lblLogDisplay.Text = "No Log Displaying";
             // 
             // cmdClearData
             // 
             this.cmdClearData.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.cmdClearData.Location = new System.Drawing.Point(17, 340);
+            this.cmdClearData.Location = new System.Drawing.Point(18, 340);
             this.cmdClearData.Name = "cmdClearData";
-            this.cmdClearData.Size = new System.Drawing.Size(186, 29);
+            this.cmdClearData.Size = new System.Drawing.Size(186, 30);
             this.cmdClearData.TabIndex = 4;
             this.cmdClearData.Text = "Clear Data View";
             this.cmdClearData.UseVisualStyleBackColor = true;
@@ -644,9 +655,9 @@
             // cmdDwnldCsv
             // 
             this.cmdDwnldCsv.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.cmdDwnldCsv.Location = new System.Drawing.Point(17, 234);
+            this.cmdDwnldCsv.Location = new System.Drawing.Point(18, 235);
             this.cmdDwnldCsv.Name = "cmdDwnldCsv";
-            this.cmdDwnldCsv.Size = new System.Drawing.Size(186, 29);
+            this.cmdDwnldCsv.Size = new System.Drawing.Size(186, 30);
             this.cmdDwnldCsv.TabIndex = 0;
             this.cmdDwnldCsv.Text = "Save as CSV/s";
             this.cmdDwnldCsv.UseVisualStyleBackColor = true;
@@ -655,9 +666,9 @@
             // cmdExpExcel
             // 
             this.cmdExpExcel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.cmdExpExcel.Location = new System.Drawing.Point(17, 305);
+            this.cmdExpExcel.Location = new System.Drawing.Point(18, 305);
             this.cmdExpExcel.Name = "cmdExpExcel";
-            this.cmdExpExcel.Size = new System.Drawing.Size(186, 29);
+            this.cmdExpExcel.Size = new System.Drawing.Size(186, 30);
             this.cmdExpExcel.TabIndex = 2;
             this.cmdExpExcel.Text = "Export to Excel";
             this.cmdExpExcel.UseVisualStyleBackColor = true;
@@ -666,9 +677,9 @@
             // cmdDwnldZip
             // 
             this.cmdDwnldZip.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.cmdDwnldZip.Location = new System.Drawing.Point(17, 270);
+            this.cmdDwnldZip.Location = new System.Drawing.Point(18, 270);
             this.cmdDwnldZip.Name = "cmdDwnldZip";
-            this.cmdDwnldZip.Size = new System.Drawing.Size(186, 29);
+            this.cmdDwnldZip.Size = new System.Drawing.Size(186, 30);
             this.cmdDwnldZip.TabIndex = 1;
             this.cmdDwnldZip.Text = "Save as CSV/s in Zip";
             this.cmdDwnldZip.UseVisualStyleBackColor = true;
@@ -677,9 +688,9 @@
             // cmdImportLogFile
             // 
             this.cmdImportLogFile.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.cmdImportLogFile.Location = new System.Drawing.Point(17, 200);
+            this.cmdImportLogFile.Location = new System.Drawing.Point(18, 199);
             this.cmdImportLogFile.Name = "cmdImportLogFile";
-            this.cmdImportLogFile.Size = new System.Drawing.Size(186, 29);
+            this.cmdImportLogFile.Size = new System.Drawing.Size(186, 30);
             this.cmdImportLogFile.TabIndex = 5;
             this.cmdImportLogFile.Text = "Import Log From File";
             this.cmdImportLogFile.UseVisualStyleBackColor = true;
@@ -688,9 +699,9 @@
             // cmdImportLogPi
             // 
             this.cmdImportLogPi.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.cmdImportLogPi.Location = new System.Drawing.Point(17, 165);
+            this.cmdImportLogPi.Location = new System.Drawing.Point(18, 164);
             this.cmdImportLogPi.Name = "cmdImportLogPi";
-            this.cmdImportLogPi.Size = new System.Drawing.Size(186, 29);
+            this.cmdImportLogPi.Size = new System.Drawing.Size(186, 30);
             this.cmdImportLogPi.TabIndex = 6;
             this.cmdImportLogPi.Text = "Import Log From Pi";
             this.cmdImportLogPi.UseVisualStyleBackColor = true;
@@ -698,9 +709,9 @@
             // 
             // cmdPythonGraph
             // 
-            this.cmdPythonGraph.Location = new System.Drawing.Point(17, 66);
+            this.cmdPythonGraph.Location = new System.Drawing.Point(18, 67);
             this.cmdPythonGraph.Name = "cmdPythonGraph";
-            this.cmdPythonGraph.Size = new System.Drawing.Size(186, 29);
+            this.cmdPythonGraph.Size = new System.Drawing.Size(186, 30);
             this.cmdPythonGraph.TabIndex = 3;
             this.cmdPythonGraph.Text = "Graph using Python Script";
             this.cmdPythonGraph.UseVisualStyleBackColor = true;
@@ -708,9 +719,9 @@
             // 
             // cmdPythonScript
             // 
-            this.cmdPythonScript.Location = new System.Drawing.Point(17, 31);
+            this.cmdPythonScript.Location = new System.Drawing.Point(18, 31);
             this.cmdPythonScript.Name = "cmdPythonScript";
-            this.cmdPythonScript.Size = new System.Drawing.Size(186, 29);
+            this.cmdPythonScript.Size = new System.Drawing.Size(186, 30);
             this.cmdPythonScript.TabIndex = 2;
             this.cmdPythonScript.Text = "Process using Python Script";
             this.cmdPythonScript.UseVisualStyleBackColor = true;
@@ -743,13 +754,13 @@
             // 
             // lblConnection
             // 
-            this.lblConnection.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.lblConnection.AutoSize = true;
+            this.lblConnection.AutoEllipsis = true;
             this.lblConnection.Location = new System.Drawing.Point(505, 17);
             this.lblConnection.Name = "lblConnection";
             this.lblConnection.Size = new System.Drawing.Size(119, 13);
             this.lblConnection.TabIndex = 6;
             this.lblConnection.Text = " You are connected to: ";
+            this.lblConnection.TextChanged += new System.EventHandler(this.lblConnection_TextChanged);
             // 
             // cmdConnect
             // 
@@ -777,19 +788,42 @@
             this.ofdPythonScript.DefaultExt = "py";
             this.ofdPythonScript.Filter = "Python Files (*.py)|*.py|All files (*.*)|*.*";
             // 
+            // cmdChangeUser
+            // 
+            this.cmdChangeUser.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.cmdChangeUser.Location = new System.Drawing.Point(668, 12);
+            this.cmdChangeUser.Name = "cmdChangeUser";
+            this.cmdChangeUser.Size = new System.Drawing.Size(80, 22);
+            this.cmdChangeUser.TabIndex = 8;
+            this.cmdChangeUser.Text = "Change User";
+            this.cmdChangeUser.UseVisualStyleBackColor = true;
+            this.cmdChangeUser.LocationChanged += new System.EventHandler(this.lblConnection_TextChanged);
+            this.cmdChangeUser.Click += new System.EventHandler(this.cmdChangeUser_Click);
+            // 
+            // cmdReconvert
+            // 
+            this.cmdReconvert.Location = new System.Drawing.Point(18, 103);
+            this.cmdReconvert.Name = "cmdReconvert";
+            this.cmdReconvert.Size = new System.Drawing.Size(186, 30);
+            this.cmdReconvert.TabIndex = 8;
+            this.cmdReconvert.Text = "Reconvert Raw Data";
+            this.cmdReconvert.UseVisualStyleBackColor = true;
+            this.cmdReconvert.Click += new System.EventHandler(this.cmdReconvert_Click);
+            // 
             // mainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.ClientSize = new System.Drawing.Size(855, 450);
+            this.Controls.Add(this.cmdChangeUser);
             this.Controls.Add(this.cmdConnect);
             this.Controls.Add(this.lblConnection);
             this.Controls.Add(this.cmdAbt);
             this.Controls.Add(this.cmdSettings);
             this.Controls.Add(this.cmdDataProc);
             this.Controls.Add(this.cmdCtrlConf);
-            this.Controls.Add(this.pnlCtrlConf);
             this.Controls.Add(this.pnlDataProc);
+            this.Controls.Add(this.pnlCtrlConf);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MinimumSize = new System.Drawing.Size(871, 489);
             this.Name = "mainForm";
@@ -805,10 +839,8 @@
             this.pnlSimpleConfig.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvInputSetup)).EndInit();
             this.pnlDataProc.ResumeLayout(false);
-            this.pnlDataProc.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvDataProc)).EndInit();
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
@@ -877,5 +909,7 @@
         private System.Windows.Forms.NumericUpDown nudWorkPack;
         private System.Windows.Forms.NumericUpDown nudJobSheet;
         private System.Windows.Forms.Button cmdRemovePin;
+        private System.Windows.Forms.Button cmdChangeUser;
+        private System.Windows.Forms.Button cmdReconvert;
     }
 }

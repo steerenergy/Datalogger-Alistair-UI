@@ -47,6 +47,9 @@ namespace SteerLoggerUser
             this.ckbProject = new System.Windows.Forms.CheckBox();
             this.ckbWorkPack = new System.Windows.Forms.CheckBox();
             this.ckbJobSheet = new System.Windows.Forms.CheckBox();
+            this.txtDescription = new System.Windows.Forms.TextBox();
+            this.lblDescription = new System.Windows.Forms.Label();
+            this.ckbNotDownloaded = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.nudProject)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudWorkPack)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudJobSheet)).BeginInit();
@@ -90,6 +93,7 @@ namespace SteerLoggerUser
             // 
             // txtName
             // 
+            this.txtName.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.txtName.Location = new System.Drawing.Point(85, 45);
             this.txtName.Name = "txtName";
             this.txtName.Size = new System.Drawing.Size(187, 20);
@@ -97,6 +101,7 @@ namespace SteerLoggerUser
             // 
             // dtpDate
             // 
+            this.dtpDate.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.dtpDate.Location = new System.Drawing.Point(112, 73);
             this.dtpDate.Name = "dtpDate";
             this.dtpDate.Size = new System.Drawing.Size(160, 20);
@@ -104,6 +109,7 @@ namespace SteerLoggerUser
             // 
             // txtLoggedBy
             // 
+            this.txtLoggedBy.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.txtLoggedBy.Location = new System.Drawing.Point(85, 99);
             this.txtLoggedBy.Name = "txtLoggedBy";
             this.txtLoggedBy.Size = new System.Drawing.Size(187, 20);
@@ -111,7 +117,8 @@ namespace SteerLoggerUser
             // 
             // cmdSearch
             // 
-            this.cmdSearch.Location = new System.Drawing.Point(16, 205);
+            this.cmdSearch.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
+            this.cmdSearch.Location = new System.Drawing.Point(16, 254);
             this.cmdSearch.Name = "cmdSearch";
             this.cmdSearch.Size = new System.Drawing.Size(259, 23);
             this.cmdSearch.TabIndex = 7;
@@ -140,6 +147,7 @@ namespace SteerLoggerUser
             // 
             // nudProject
             // 
+            this.nudProject.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.nudProject.Location = new System.Drawing.Point(112, 125);
             this.nudProject.Maximum = new decimal(new int[] {
             1000000,
@@ -152,6 +160,7 @@ namespace SteerLoggerUser
             // 
             // nudWorkPack
             // 
+            this.nudWorkPack.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.nudWorkPack.Location = new System.Drawing.Point(112, 152);
             this.nudWorkPack.Maximum = new decimal(new int[] {
             1000000,
@@ -173,6 +182,7 @@ namespace SteerLoggerUser
             // 
             // nudJobSheet
             // 
+            this.nudJobSheet.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.nudJobSheet.Location = new System.Drawing.Point(112, 179);
             this.nudJobSheet.Maximum = new decimal(new int[] {
             1000000,
@@ -222,11 +232,43 @@ namespace SteerLoggerUser
             this.ckbJobSheet.UseVisualStyleBackColor = true;
             this.ckbJobSheet.CheckedChanged += new System.EventHandler(this.ckbJobSheet_CheckedChanged);
             // 
+            // txtDescription
+            // 
+            this.txtDescription.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtDescription.Location = new System.Drawing.Point(85, 205);
+            this.txtDescription.Name = "txtDescription";
+            this.txtDescription.Size = new System.Drawing.Size(187, 20);
+            this.txtDescription.TabIndex = 18;
+            // 
+            // lblDescription
+            // 
+            this.lblDescription.AutoSize = true;
+            this.lblDescription.Location = new System.Drawing.Point(13, 208);
+            this.lblDescription.Name = "lblDescription";
+            this.lblDescription.Size = new System.Drawing.Size(63, 13);
+            this.lblDescription.TabIndex = 19;
+            this.lblDescription.Text = "Description:";
+            // 
+            // ckbNotDownloaded
+            // 
+            this.ckbNotDownloaded.Anchor = System.Windows.Forms.AnchorStyles.Top;
+            this.ckbNotDownloaded.AutoSize = true;
+            this.ckbNotDownloaded.Location = new System.Drawing.Point(85, 231);
+            this.ckbNotDownloaded.Name = "ckbNotDownloaded";
+            this.ckbNotDownloaded.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.ckbNotDownloaded.Size = new System.Drawing.Size(145, 17);
+            this.ckbNotDownloaded.TabIndex = 20;
+            this.ckbNotDownloaded.Text = "Not Downloaded by User";
+            this.ckbNotDownloaded.UseVisualStyleBackColor = true;
+            // 
             // DatabaseSearchForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(284, 243);
+            this.ClientSize = new System.Drawing.Size(284, 292);
+            this.Controls.Add(this.ckbNotDownloaded);
+            this.Controls.Add(this.lblDescription);
+            this.Controls.Add(this.txtDescription);
             this.Controls.Add(this.ckbJobSheet);
             this.Controls.Add(this.ckbWorkPack);
             this.Controls.Add(this.ckbProject);
@@ -245,6 +287,7 @@ namespace SteerLoggerUser
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
+            this.MinimumSize = new System.Drawing.Size(300, 331);
             this.Name = "DatabaseSearchForm";
             this.Text = "Search Pi Database";
             this.Load += new System.EventHandler(this.DatabaseSearchForm_Load);
@@ -276,5 +319,8 @@ namespace SteerLoggerUser
         private System.Windows.Forms.CheckBox ckbProject;
         private System.Windows.Forms.CheckBox ckbWorkPack;
         private System.Windows.Forms.CheckBox ckbJobSheet;
+        private System.Windows.Forms.TextBox txtDescription;
+        private System.Windows.Forms.Label lblDescription;
+        private System.Windows.Forms.CheckBox ckbNotDownloaded;
     }
 }
