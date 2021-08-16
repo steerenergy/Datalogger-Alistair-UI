@@ -799,7 +799,7 @@ namespace SteerLoggerUser
                     current = CalcPercent(80, numLogs, current);
                     worker.ReportProgress(current, "Finalising download...");
                     // If there is already a log being processed, ask user if they want to merge logs
-                    if (DAP.processing == true)
+                    if (dgvDataProc.DataSource != null)
                     {
                         if (DAP.TestMerge(min, max))
                         {
@@ -842,7 +842,7 @@ namespace SteerLoggerUser
                             DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].conv);
                             this.Invoke(new Action(() => { lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name + " " + DAP.logsProcessing[0].testNumber; }));
                             this.Invoke(new Action(() => { PopulateDataViewProc(DAP.logProc); }));
-                            DAP.processing = true;
+                            //DAP.processing = true;
                         }
                     }
                 }
@@ -914,7 +914,14 @@ namespace SteerLoggerUser
                 }
                 else 
                 {
-                    table.Columns.Add(header, typeof(double));
+                    try
+                    {
+                        table.Columns.Add(header, typeof(double));
+                    }
+                    catch (DuplicateNameException)
+                    {
+                        table.Columns.Add(header + " Processed", typeof(double));
+                    }
                 }
             }
 
@@ -934,6 +941,7 @@ namespace SteerLoggerUser
             }
             dgvDataProc.DataSource = table;
             dgvDataProc.Columns[0].DefaultCellStyle.Format = "yyyy/MM/dd HH:mm:ss.fff";
+            DAP.saved = false;
         }
 
 
@@ -1051,19 +1059,22 @@ namespace SteerLoggerUser
         // Clear data in the DataProc view
         private void cmdClearData_Click(object sender, EventArgs e)
         {
-            if (DAP.processing == false)
+            if (dgvDataProc.DataSource == null)
             {
                 return;
             }
-            // If the data there is being processed, ask if user wants to save before clearing
-            DialogResult dialogResult = MessageBox.Show("Do you want to save data before clearing?", "Clear Data", MessageBoxButtons.YesNoCancel);
-            if (dialogResult == DialogResult.Yes)
+            if (DAP.saved == false)
             {
-                cmdDwnldCsv.PerformClick();
-            }
-            else if (dialogResult == DialogResult.Cancel)
-            {
-                return;
+                // If the data there is being processed, ask if user wants to save before clearing
+                DialogResult dialogResult = MessageBox.Show("Do you want to save data before clearing?", "Clear Data", MessageBoxButtons.YesNoCancel);
+                if (dialogResult == DialogResult.Yes)
+                {
+                    cmdDwnldCsv.PerformClick();
+                }
+                else if (dialogResult == DialogResult.Cancel)
+                {
+                    return;
+                }
             }
 
             foreach (LogMeta log in DAP.logsProcessing)
@@ -1071,6 +1082,9 @@ namespace SteerLoggerUser
                 File.Delete(log.raw);
                 File.Delete(log.conv);
             }
+
+            DAP.saved = false;
+            DAP.processing = false;
 
             // If there is a log in the processing queue, display that log
             if (DAP.logsToProc.Count > 0)
@@ -1080,7 +1094,6 @@ namespace SteerLoggerUser
                 DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].conv);
                 lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name + " " + DAP.logsProcessing[0].testNumber;
                 PopulateDataViewProc(DAP.logProc);
-                DAP.processing = true;
             }
             else
             {
@@ -1720,7 +1733,7 @@ namespace SteerLoggerUser
                 };
 
                 // If there is already a log being processed, allow user to merge logs
-                if (DAP.processing == true)
+                if (dgvDataProc.DataSource != null)
                 {
                     DialogResult dialogResult = MessageBox.Show("Would you like to merge the imported log with the current log?\n" +
                                                                 "Otherwise the imported log will be added to the queue.",
@@ -1756,7 +1769,6 @@ namespace SteerLoggerUser
                         DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].conv);
                         lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name + " " + DAP.logsProcessing[0].testNumber;
                         PopulateDataViewProc(DAP.logProc);
-                        DAP.processing = true;
                     }
                 }
             }
@@ -1833,7 +1845,9 @@ namespace SteerLoggerUser
                 // If a log config exists, allow user to save it on local machine
                 if (log.config != null)
                 {
-                    sfdConfig.FileName = "logConf-" + log.name + "-" + log.testNumber + "-" + log.date + ".ini";
+                    sfdConfig.FileName = "logConf-" + log.name +
+                                        (log.testNumber == 0 ? "" : String.Format("-{0}", log.testNumber)) +
+                                        (log.date == null ? "" : String.Format("-{0}", log.date)) + ".csv";
                     sfdConfig.DefaultExt = "ini";
                     if (sfdConfig.ShowDialog() == DialogResult.OK)
                     {
@@ -1853,7 +1867,9 @@ namespace SteerLoggerUser
                 // If a log has raw data, allow user to save raw data csv on local machine
                 if (log.raw != null || log.raw != "")
                 {
-                    sfdLog.FileName = "raw-" + log.name + "-" + log.testNumber + "-" + log.date + ".csv";
+                    sfdLog.FileName = "raw-" + log.name +
+                                        (log.testNumber == 0 ? "" : String.Format("-{0}", log.testNumber)) +
+                                        (log.date == null ? "" : String.Format("-{0}", log.date)) + ".csv";
                     sfdLog.DefaultExt = "csv";
                     sfdLog.Filter = "Csv files (*.csv)|*.csv|All files (*.*)|*.*";
                     if (sfdLog.ShowDialog() == DialogResult.OK)
@@ -1879,7 +1895,9 @@ namespace SteerLoggerUser
                 // If a log has converted data, allow user to save conv data csv on local machine
                 if (log.conv != null || log.conv != "")
                 {
-                    sfdLog.FileName = "converted-" + log.name + "-" + log.testNumber + "-" + log.date + ".csv";
+                    sfdLog.FileName = "converted-" + log.name + 
+                                      (log.testNumber == 0 ? "" : String.Format("-{0}",log.testNumber)) + 
+                                      (log.date == null ? "" : String.Format("-{0}",log.date)) + ".csv";
                     sfdLog.DefaultExt = "csv";
                     sfdLog.Filter = "Csv files (*.csv)|*.csv|All files (*.*)|*.*";
                     if (sfdLog.ShowDialog() == DialogResult.OK)
@@ -1906,7 +1924,9 @@ namespace SteerLoggerUser
             // If the log is being processed, allow user to save processed data (data in data display)
             if (DAP.processing == true)
             {
-                sfdLog.FileName = "processed-" + DAP.logsProcessing[0].name + "-" + DAP.logsProcessing[0].testNumber + "-" + DAP.logsProcessing[0].date + ".csv";
+                sfdLog.FileName = "processed-" + DAP.logsProcessing[0].name +
+                                    (DAP.logsProcessing[0].testNumber == 0 ? "" : String.Format("-{0}", DAP.logsProcessing[0].testNumber)) +
+                                    (DAP.logsProcessing[0].date == null ? "" : String.Format("-{0}", DAP.logsProcessing[0].date)) + ".csv";
                 sfdLog.DefaultExt = "csv";
                 sfdLog.Filter = "Csv files (*.csv)|*.csv|All files (*.*)|*.*";
                 if (sfdLog.ShowDialog() == DialogResult.OK)
@@ -1924,6 +1944,7 @@ namespace SteerLoggerUser
                     }
                 }
             }
+            DAP.saved = true;
         }
 
 
@@ -2038,6 +2059,7 @@ namespace SteerLoggerUser
                 ZipFile.CreateFromDirectory(dirPath, sfdLog.FileName);
                 MessageBox.Show("Files zipped successfully.");
             }
+            DAP.saved = true;
         }
 
 
@@ -2131,6 +2153,7 @@ namespace SteerLoggerUser
                 }
                 lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name + " " + DAP.logsProcessing[0].testNumber;
                 PopulateDataViewProc(DAP.logProc);
+                DAP.processing = true;
                 File.Delete(dirPath + @"\temp.csv");
                 File.Delete(dirPath + @"\proc.csv");
             }
@@ -2377,6 +2400,192 @@ namespace SteerLoggerUser
         private void lblConnection_TextChanged(object sender, EventArgs e)
         {
             lblConnection.Width = cmdChangeUser.Location.X - (cmdAbt.Location.X + cmdAbt.Width) - 10;
+        }
+
+        private void cmdReconvert_Click(object sender, EventArgs e)
+        {
+            // Create new logMeta to hold log
+            LogMeta logMeta;
+            ofdLog.Title = "Open Log Data";
+            // Allow user to select raw data file
+            if (ofdLog.ShowDialog() == DialogResult.OK)
+            {
+                // Set log name to name of file imported
+                logMeta = new LogMeta
+                {
+                    name = ofdLog.SafeFileName.Replace("raw-","").Replace(".csv","") + "-Reconverted",
+                    raw = ofdLog.FileName
+                };
+            }
+            // If user cancels, return
+            else
+            {
+                return;
+            }
+            List<Pin> enabled = new List<Pin>();
+            // Import the config to use to convert raw data
+            ofdConfig.Title = "Open Config Data";
+            if (ofdConfig.ShowDialog() == DialogResult.OK)
+            {
+                // Create stream object to use in StreamReader creation
+                Stream fileStream = ofdConfig.OpenFile();
+
+                bool general = false;
+                // Used to select which data grid cell to change
+                // pinNumber represents row, cellNumber represents column
+                int pinNumber = 0;
+                logMeta.config = new ConfigFile();
+                using (StreamReader reader = new StreamReader(fileStream))
+                {
+                    Pin tempPin = new Pin();
+                    // Reads lines one at a time until the end of the file
+                    while (reader.EndOfStream == false)
+                    {
+                        string line = reader.ReadLine().Trim();
+                        if (line != "")
+                        {
+                            if (line == "[General]")
+                            {
+                                general = true;
+                            }
+                            // Indicates that a new pin header has been reached
+                            else if (line[0] == '[')
+                            {
+                                if (tempPin.name != null)
+                                {
+                                    logMeta.config.pinList.Add(tempPin);
+                                    if (tempPin.enabled)
+                                    {
+                                        enabled.Add(tempPin);
+                                    }
+                                    tempPin = new Pin();
+                                }
+                                general = false;
+                                tempPin.id = pinNumber;
+                                tempPin.name = line.Replace("[", "").Replace("]", "");
+
+                                // Increase pin number by one to move one row down on the grid
+                                pinNumber += 1;
+                            }
+                            else if (general == true)
+                            {
+                                string[] data = line.Split(new string[] { " = " }, StringSplitOptions.RemoveEmptyEntries);
+                                // Only time interval is imported from general settings
+                                switch (data[0])
+                                {
+                                    case "timeinterval":
+                                        logMeta.time = Convert.ToDecimal(data[1]);
+                                        break;
+                                    case "description":
+                                        logMeta.description = data[1].Replace(";", "\r\n");
+                                        break;
+                                    case "project":
+                                        logMeta.project = Convert.ToInt16(data[1]);
+                                        break;
+                                    case "workpack":
+                                        logMeta.workPack = Convert.ToInt16(data[1]);
+                                        break;
+                                    case "jobsheet":
+                                        logMeta.jobSheet = Convert.ToInt16(data[1]);
+                                        break;
+                                }
+                            }
+                            else
+                            {
+                                string[] data = line.Split(new string[] { " = " }, StringSplitOptions.None);
+                                // As enabled has to be a bool, a special case for conversion is used
+                                switch (data[0])
+                                {
+                                    case "enabled":
+                                        tempPin.enabled = data[1] == "True";
+                                        break;
+                                    case "friendlyname":
+                                        tempPin.fName = data[1];
+                                        break;
+                                    case "inputtype":
+                                        tempPin.inputType = data[1] == "Edit Me" ? "4-20mA" : data[1];
+                                        break;
+                                    case "gain":
+                                        tempPin.gain = Convert.ToInt16(data[1]);
+                                        break;
+                                    case "scalelow":
+                                        tempPin.scaleMin = Convert.ToDouble(data[1]);
+                                        break;
+                                    case "scalehigh":
+                                        tempPin.scaleMax = Convert.ToDouble(data[1]);
+                                        break;
+                                    case "unit":
+                                        tempPin.units = data[1] == "Edit Me" ? "V" : data[1];
+                                        break;
+                                    case "m":
+                                        tempPin.m = Convert.ToDouble(data[1]);
+                                        break;
+                                    case "c":
+                                        tempPin.c = Convert.ToDouble(data[1]);
+                                        break;
+                                }
+                            }
+                        }
+                    }
+                    logMeta.config.pinList.Add(tempPin);
+                    if (tempPin.enabled)
+                    {
+                        enabled.Add(tempPin);
+                    }
+                }
+            }
+            else
+            {
+                return;
+            }
+
+            // Read from the file selected
+            using (StreamReader reader = new StreamReader(logMeta.raw))
+            {
+                logMeta.conv = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + String.Format(@"\SteerLogger\converted-{0}.csv", logMeta.name);
+                using (StreamWriter writer = new StreamWriter(logMeta.conv))
+                {
+                    // Read over header line
+                    reader.ReadLine();
+                    StringBuilder header = new StringBuilder("Date/Time,Time (seconds),");
+                    foreach (Pin pin in enabled)
+                    {
+                        header.Append(pin.fName + " | " + pin.units + ",");
+                    }
+                    writer.WriteLine(header.ToString().TrimEnd(','));
+                    // Read each line from raw data, convert and write to config data
+                    while (!reader.EndOfStream)
+                    {
+                        string[] line = reader.ReadLine().Split(',');
+                        StringBuilder output = new StringBuilder(String.Format("{0},{1}", line[0], line[1]));
+
+                        for (int j = 2; j < line.Length; j++)
+                        {
+                            output.AppendFormat(",{0}", double.Parse(line[j]) * enabled[j - 2].m + enabled[j - 2].c);
+                        }
+                        writer.WriteLine(output.ToString());
+                    }
+                }
+            }
+            // Enqueue converted data, display if no logs being processed
+            if (dgvDataProc.DataSource != null)
+            {
+                DAP.logsToProc.Enqueue(logMeta);
+            }
+            else
+            {
+                // Enqueue imported log
+                DAP.logsToProc.Enqueue(logMeta);
+                // Dequeue next log and display it
+                if (DAP.logsToProc.Count > 0)
+                {
+                    DAP.logsProcessing.Clear();
+                    DAP.logsProcessing.Add(DAP.logsToProc.Dequeue());
+                    DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].conv);
+                    lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name + " " + DAP.logsProcessing[0].testNumber;
+                    PopulateDataViewProc(DAP.logProc);
+                }
+            }
         }
     }
 }

@@ -15,6 +15,8 @@ namespace SteerLoggerUser
         public LogProc logProc = new LogProc();
         // Stores whether a log is being processed or not
         public bool processing = false;
+        // Stores whether a log has been saved or not
+        public bool saved = false;
 
 
         // Used to merge two logs together
@@ -123,6 +125,7 @@ namespace SteerLoggerUser
             }
             // Set current logProc to the merged logs
             this.logProc = tempProcessLog;
+            this.processing = true;
         }
 
 

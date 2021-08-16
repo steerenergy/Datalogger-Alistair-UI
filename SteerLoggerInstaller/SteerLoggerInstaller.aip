@@ -26,7 +26,9 @@
     <ROW Property="ALLUSERS" Value="1"/>
     <ROW Property="ARPCOMMENTS" Value="Run this installer to install the UI for the new datalogger program." ValueLocId="*"/>
     <ROW Property="ARPCONTACT" Value="a.ryan@steerenergy.com"/>
+    <ROW Property="ARPHELPLINK" Value="https://github.com/steerenergy/Datalogger-Alistair-UI/issues"/>
     <ROW Property="ARPPRODUCTICON" Value="steer.exe" Type="8"/>
+    <ROW Property="ARPURLINFOABOUT" Value="https://github.com/steerenergy/Datalogger-Alistair-UI"/>
     <ROW Property="Manufacturer" Value="Steer Energy"/>
     <ROW Property="ProductCode" Value="1033:{39902E86-3FCA-4F40-AC44-2A758D39B916} " Type="16"/>
     <ROW Property="ProductLanguage" Value="1033"/>
@@ -53,10 +55,10 @@
   <COMPONENT cid="caphyon.advinst.msicomp.MsiCompsComponent">
     <ROW Component="APPDIR" ComponentId="{47B8B400-2DFC-4E07-B10A-D90E619F54A8}" Directory_="APPDIR" Attributes="0"/>
     <ROW Component="ProductInformation" ComponentId="{7C6230CF-FF86-4E22-BCC6-F518910CEF5E}" Directory_="APPDIR" Attributes="4" KeyPath="Version"/>
-    <ROW Component="SHORTCUTDIR" ComponentId="{9D1AF70A-EC60-4C51-83C4-98ABB9559917}" Directory_="SHORTCUTDIR" Attributes="0"/>
+    <ROW Component="SHORTCUTDIR" ComponentId="{280A67E6-0566-4CB5-8166-11503DE1239C}" Directory_="SHORTCUTDIR" Attributes="0"/>
     <ROW Component="SteerLoggerUser_ContentOutput" ComponentId="{8801C8F9-8544-4EAF-908B-1BA5A90062AA}" Directory_="SteerLoggerUser_Dir" Attributes="0" KeyPath="steer.ico" Type="0"/>
     <ROW Component="SteerLoggerUser_ContentOutput_pythonScripts" ComponentId="{C9E5D472-1304-46E0-9FDA-633E3EB66B57}" Directory_="pythonScripts_Dir" Attributes="0" KeyPath="compression.py" Type="0"/>
-    <ROW Component="SteerLoggerUser_PrimaryOutput" ComponentId="{383902CE-2AEF-40CC-B988-7BE5F7E8B168}" Directory_="SteerLoggerUser_Dir" Attributes="0" KeyPath="SteerLoggerUser.exe"/>
+    <ROW Component="SteerLoggerUser_PrimaryOutput" ComponentId="{60F5CDB4-B9BD-491B-BE65-93B1A514A63B}" Directory_="SteerLoggerUser_Dir" Attributes="0" KeyPath="SteerLoggerUser.exe"/>
     <ROW Component="SteerLoggerUser_References" ComponentId="{73C9E25A-5ABD-4C6C-A12D-7A3013123692}" Directory_="SteerLoggerUser_Dir" Attributes="0" KeyPath="Renci.SshNet.dll"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFeatsComponent">
