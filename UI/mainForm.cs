@@ -666,7 +666,7 @@ namespace SteerLoggerUser
                     received = TCPReceive();
 
                     // Receive config settings of log and write to ConfigFile object
-                    tempLog.config = new ConfigFile(); 
+                    tempLog.config = new Pin[16]; 
                     for (int j = 0; j < 16; j++)
                     {
                         string[] pinData = received.Split('\u001f');
@@ -684,7 +684,7 @@ namespace SteerLoggerUser
                             m = double.Parse(pinData[9]),
                             c = double.Parse(pinData[10])
                         };
-                        tempLog.config.pinList.Add(tempPin);
+                        tempLog.config[j] = tempPin;
                         received = TCPReceive();
                     }
 
@@ -700,7 +700,7 @@ namespace SteerLoggerUser
                     List<string> convHeaders = new List<string> { "Date/Time", "Time (seconds)" };
                     // Use config file to write pin headers to convheaders
                     List<Pin> pins = new List<Pin>();
-                    foreach (Pin pin in tempLog.config.pinList)
+                    foreach (Pin pin in tempLog.config)
                     {
                         if (pin.enabled)
                         {
@@ -1441,20 +1441,23 @@ namespace SteerLoggerUser
             };
 
             int enabled = 0;
-            ConfigFile newConfig = new ConfigFile();
+            newLog.config = new Pin[16];
+            int index = 0;
             foreach (DataGridViewRow row in dgvInputSetup.Rows)
             {
                 // Create a new Pin from each InputSetup row
-                Pin newPin = new Pin();
-                newPin.id = Convert.ToInt32(row.Cells[0].Value);
-                newPin.name = row.Cells[1].Value.ToString();
-                newPin.enabled = Convert.ToBoolean(row.Cells[2].Value);
-                newPin.fName = row.Cells[3].Value.ToString();
-                newPin.inputType = row.Cells[4].Value.ToString();
-                newPin.gain = Convert.ToInt32(row.Cells[5].Value);
-                newPin.scaleMin = Convert.ToDouble(row.Cells[6].Value);
-                newPin.scaleMax = Convert.ToDouble(row.Cells[7].Value);
-                newPin.units = row.Cells[8].Value.ToString();
+                Pin newPin = new Pin
+                {
+                    id = Convert.ToInt32(row.Cells[0].Value),
+                    name = row.Cells[1].Value.ToString(),
+                    enabled = Convert.ToBoolean(row.Cells[2].Value),
+                    fName = row.Cells[3].Value.ToString(),
+                    inputType = row.Cells[4].Value.ToString(),
+                    gain = Convert.ToInt32(row.Cells[5].Value),
+                    scaleMin = Convert.ToDouble(row.Cells[6].Value),
+                    scaleMax = Convert.ToDouble(row.Cells[7].Value),
+                    units = row.Cells[8].Value.ToString()
+                };
                 if (newPin.enabled == true)
                 {
                     // If pin is enabled, calculate m and c values for pin
@@ -1466,13 +1469,13 @@ namespace SteerLoggerUser
                     newPin.m = 0;
                     newPin.c = 0;
                 }
-                newConfig.pinList.Add(newPin);
+                newLog.config[index] = newPin;
+                index += 1;
             }
             if (enabled == 0)
             {
                 throw new InvalidDataException("No pins enabled");
             }
-            newLog.config = newConfig;
             return newLog;
         }
 
@@ -1509,7 +1512,7 @@ namespace SteerLoggerUser
                 writer.WriteLine();
 
                 // Enumerate through Pins and write each one to file
-                foreach (Pin pin in newLog.config.pinList)
+                foreach (Pin pin in newLog.config)
                 {
                     // Create new heading using Pin name
                     writer.WriteLine("[" + pin.name + "]");
@@ -1560,7 +1563,7 @@ namespace SteerLoggerUser
             metadata.Append(newLog.description);
             TCPSend(metadata.ToString());
             // Enumerate through pinList and send settings for each Pin to logger
-            foreach (Pin pin in newLog.config.pinList)
+            foreach (Pin pin in newLog.config)
             {
                 StringBuilder pindata = new StringBuilder();
                 pindata.Append(pin.id + "\u001f");
@@ -1847,7 +1850,7 @@ namespace SteerLoggerUser
                 {
                     sfdConfig.FileName = "logConf-" + log.name +
                                         (log.testNumber == 0 ? "" : String.Format("-{0}", log.testNumber)) +
-                                        (log.date == null ? "" : String.Format("-{0}", log.date)) + ".csv";
+                                        (log.date == null ? "" : String.Format("-{0}", log.date)) + ".ini";
                     sfdConfig.DefaultExt = "ini";
                     if (sfdConfig.ShowDialog() == DialogResult.OK)
                     {
@@ -2434,7 +2437,7 @@ namespace SteerLoggerUser
                 // Used to select which data grid cell to change
                 // pinNumber represents row, cellNumber represents column
                 int pinNumber = 0;
-                logMeta.config = new ConfigFile();
+                logMeta.config = new Pin[16];
                 using (StreamReader reader = new StreamReader(fileStream))
                 {
                     Pin tempPin = new Pin();
@@ -2453,7 +2456,7 @@ namespace SteerLoggerUser
                             {
                                 if (tempPin.name != null)
                                 {
-                                    logMeta.config.pinList.Add(tempPin);
+                                    logMeta.config[tempPin.id] = tempPin;
                                     if (tempPin.enabled)
                                     {
                                         enabled.Add(tempPin);
@@ -2527,7 +2530,7 @@ namespace SteerLoggerUser
                             }
                         }
                     }
-                    logMeta.config.pinList.Add(tempPin);
+                    logMeta.config[tempPin.id] = tempPin;
                     if (tempPin.enabled)
                     {
                         enabled.Add(tempPin);
