@@ -1154,11 +1154,12 @@ namespace SteerLoggerUser
                 nudWorkPack.Value = Convert.ToInt32(response);
                 response = TCPReceive();
                 nudJobSheet.Value = Convert.ToInt32(response);
-                response = TCPReceive();
+
 
                 // Recevie data for each pin until all pins have been received
                 for (int i = 0; i < 16; i++)
                 {
+                    response = TCPReceive();
                     string[] pinData = response.Split('\u001f');
                     // Create row from pin data and add to InputSetup grid
                     object[] rowData = new object[]
@@ -1178,7 +1179,6 @@ namespace SteerLoggerUser
                         ((DataGridViewComboBoxColumn)dgvInputSetup.Columns["units"]).Items.Add(pinData[8]);
                     }
                     dgvInputSetup.Rows.Add(rowData);
-                    response = TCPReceive();
                 }
                 SetupSimpleConf();
             }

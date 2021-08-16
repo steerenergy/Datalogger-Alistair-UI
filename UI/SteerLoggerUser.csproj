@@ -103,7 +103,6 @@
       <DependentUpon>ExcelForm.cs</DependentUpon>
     </Compile>
     <Compile Include="LogProc.cs" />
-    <Compile Include="LogData.cs" />
     <Compile Include="LogMeta.cs" />
     <Compile Include="mainForm.cs">
       <SubType>Form</SubType>
