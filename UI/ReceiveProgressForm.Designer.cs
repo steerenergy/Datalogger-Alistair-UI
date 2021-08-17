@@ -76,6 +76,7 @@ namespace SteerLoggerUser
             this.MaximumSize = new System.Drawing.Size(404, 252);
             this.MinimumSize = new System.Drawing.Size(404, 252);
             this.Name = "ReceiveProgressForm";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "ReceiveProgessFrom";
             this.Load += new System.EventHandler(this.ReceiveProgessFrom_Load);
             this.ResumeLayout(false);

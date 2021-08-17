@@ -20,12 +20,24 @@ namespace SteerLoggerUser
 
 
         // Used to merge two logs together
-        public void MergeLogs(LogProc logToMerge)
+        public void MergeLogs(LogProc logToMerge, string mergeName)
         {
             // Create new LogProc object to store merged logs
             LogProc tempProcessLog = new LogProc();
             // Counters is used to store the index of each log
             int[] counters = { 0, 0 };
+
+
+            for (int i = 2; i < logProc.procheaders.Count; i++)
+            {
+                for (int j = 2; j < logToMerge.procheaders.Count; j++)
+                {
+                    if (logProc.procheaders[i] == logToMerge.procheaders[j])
+                    {
+                        string[] header = logToMerge.procheaders[j].Split('|');
+                        logToMerge.procheaders[j] = string.Format("{0} {1} | {2}", header[0], mergeName, header[1]);                    }
+                }
+            }
 
             // Create headers from current log and imported log
             tempProcessLog.procheaders = logProc.procheaders;

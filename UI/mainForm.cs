@@ -585,7 +585,6 @@ namespace SteerLoggerUser
         private void RequestRecentLogs()
         {
             // Send command and username to logger
-            //TCPSend("Recent_Logs_To_Download");
             TCPSend("Search_Log");
             TCPSend(new string('\u001f',7) + user);
             List<LogMeta> logsAvailable = new List<LogMeta>();
@@ -812,7 +811,7 @@ namespace SteerLoggerUser
                                 DAP.logsProcessing.Add(tempLog);
                                 LogProc tempProc = new LogProc();
                                 tempProc.CreateProcFromConv(tempLog.conv);
-                                DAP.MergeLogs(tempProc);
+                                DAP.MergeLogs(tempProc, tempLog.name);
                                 this.Invoke(new Action(() => { lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name + " " + DAP.logsProcessing[0].testNumber; }));
                                 this.Invoke(new Action(() => { PopulateDataViewProc(DAP.logProc); }));
                             }
@@ -971,10 +970,11 @@ namespace SteerLoggerUser
             nudWorkPack.Value = Convert.ToInt32(received);
             received = TCPReceive();
             nudJobSheet.Value = Convert.ToInt32(received);
-            received = TCPReceive();
+
             // Receive pin data until all data has been sent
-            while (received != "EoConfig")
+            for (int i = 0; i < 16; i++)
             {
+                received = TCPReceive();
                 string[] pinData = received.Split('\u001f');
                 // Create new row from pin data and add to InputSetup grid
                 object[] rowData = new object[]
@@ -994,7 +994,6 @@ namespace SteerLoggerUser
                     ((DataGridViewComboBoxColumn)dgvInputSetup.Columns["units"]).Items.Add(pinData[8]);
                 }
                 dgvInputSetup.Rows.Add(rowData);
-                received = TCPReceive();
             }
             SetupSimpleConf();
         }
@@ -1079,8 +1078,15 @@ namespace SteerLoggerUser
 
             foreach (LogMeta log in DAP.logsProcessing)
             {
-                File.Delete(log.raw);
-                File.Delete(log.conv);
+                if (log.raw != null)
+                {
+                    File.Delete(log.raw);
+                }
+                
+                if (log.conv != null)
+                {
+                    File.Delete(log.conv);
+                }                
             }
 
             DAP.saved = false;
@@ -1748,7 +1754,7 @@ namespace SteerLoggerUser
                         LogProc tempProc = new LogProc();
                         tempProc.CreateProcFromConv(logMeta.conv);
                         // Merge logs together
-                        DAP.MergeLogs(tempProc);
+                        DAP.MergeLogs(tempProc, logMeta.name);
                         //dgvDataProc.Columns.Clear();
                         // Update data display
                         lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name + " " + DAP.logsProcessing[0].testNumber;
@@ -2148,7 +2154,7 @@ namespace SteerLoggerUser
                 DialogResult dialogResult = MessageBox.Show("Combine processed data with data in the grid?", "Combine Data?", MessageBoxButtons.YesNo);
                 if (dialogResult == DialogResult.Yes)
                 {
-                    DAP.MergeLogs(tempLogProc);
+                    DAP.MergeLogs(tempLogProc, "Processed");
                 }
                 else
                 {

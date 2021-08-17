@@ -367,6 +367,7 @@ namespace SteerLoggerUser
             this.Controls.Add(this.pnlExportNew);
             this.MinimumSize = new System.Drawing.Size(488, 502);
             this.Name = "ExcelForm";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "ExcelForm";
             this.Load += new System.EventHandler(this.ExcelForm_Load);
             this.pnlTemplate.ResumeLayout(false);

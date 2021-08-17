@@ -74,6 +74,7 @@ namespace SteerLoggerUser
             this.Controls.Add(this.txtUser);
             this.MinimumSize = new System.Drawing.Size(222, 122);
             this.Name = "ChangeUserForm";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Change User";
             this.ResumeLayout(false);
             this.PerformLayout();

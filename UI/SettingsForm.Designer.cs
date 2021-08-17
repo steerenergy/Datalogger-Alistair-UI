@@ -431,6 +431,7 @@ namespace SteerLoggerUser
             this.Controls.Add(this.lblActivate);
             this.MinimumSize = new System.Drawing.Size(334, 637);
             this.Name = "SettingsForm";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "SettingsForm";
             this.Load += new System.EventHandler(this.SettingsForm_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dgvPresets)).EndInit();

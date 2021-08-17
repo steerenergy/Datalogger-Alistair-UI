@@ -76,6 +76,7 @@
             this.cmdSettings = new System.Windows.Forms.Button();
             this.cmdAbt = new System.Windows.Forms.Button();
             this.pnlDataProc = new System.Windows.Forms.Panel();
+            this.cmdReconvert = new System.Windows.Forms.Button();
             this.lblLogDisplay = new System.Windows.Forms.Label();
             this.cmdClearData = new System.Windows.Forms.Button();
             this.cmdDwnldCsv = new System.Windows.Forms.Button();
@@ -94,7 +95,6 @@
             this.sfdLog = new System.Windows.Forms.SaveFileDialog();
             this.ofdPythonScript = new System.Windows.Forms.OpenFileDialog();
             this.cmdChangeUser = new System.Windows.Forms.Button();
-            this.cmdReconvert = new System.Windows.Forms.Button();
             this.pnlCtrlConf.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.nudProject)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudWorkPack)).BeginInit();
@@ -632,12 +632,24 @@
             this.pnlDataProc.Size = new System.Drawing.Size(821, 379);
             this.pnlDataProc.TabIndex = 5;
             // 
+            // cmdReconvert
+            // 
+            this.cmdReconvert.Location = new System.Drawing.Point(18, 103);
+            this.cmdReconvert.Name = "cmdReconvert";
+            this.cmdReconvert.Size = new System.Drawing.Size(186, 30);
+            this.cmdReconvert.TabIndex = 8;
+            this.cmdReconvert.Text = "Reconvert Raw Data";
+            this.cmdReconvert.UseVisualStyleBackColor = true;
+            this.cmdReconvert.Click += new System.EventHandler(this.cmdReconvert_Click);
+            // 
             // lblLogDisplay
             // 
             this.lblLogDisplay.AutoEllipsis = true;
+            this.lblLogDisplay.AutoSize = true;
             this.lblLogDisplay.Location = new System.Drawing.Point(19, 14);
+            this.lblLogDisplay.MaximumSize = new System.Drawing.Size(185, 14);
             this.lblLogDisplay.Name = "lblLogDisplay";
-            this.lblLogDisplay.Size = new System.Drawing.Size(185, 13);
+            this.lblLogDisplay.Size = new System.Drawing.Size(93, 13);
             this.lblLogDisplay.TabIndex = 7;
             this.lblLogDisplay.Text = "No Log Displaying";
             // 
@@ -800,16 +812,6 @@
             this.cmdChangeUser.LocationChanged += new System.EventHandler(this.lblConnection_TextChanged);
             this.cmdChangeUser.Click += new System.EventHandler(this.cmdChangeUser_Click);
             // 
-            // cmdReconvert
-            // 
-            this.cmdReconvert.Location = new System.Drawing.Point(18, 103);
-            this.cmdReconvert.Name = "cmdReconvert";
-            this.cmdReconvert.Size = new System.Drawing.Size(186, 30);
-            this.cmdReconvert.TabIndex = 8;
-            this.cmdReconvert.Text = "Reconvert Raw Data";
-            this.cmdReconvert.UseVisualStyleBackColor = true;
-            this.cmdReconvert.Click += new System.EventHandler(this.cmdReconvert_Click);
-            // 
             // mainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
@@ -822,12 +824,12 @@
             this.Controls.Add(this.cmdSettings);
             this.Controls.Add(this.cmdDataProc);
             this.Controls.Add(this.cmdCtrlConf);
-            this.Controls.Add(this.pnlDataProc);
             this.Controls.Add(this.pnlCtrlConf);
+            this.Controls.Add(this.pnlDataProc);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MinimumSize = new System.Drawing.Size(871, 489);
             this.Name = "mainForm";
-            this.Text = "mainForm";
+            this.Text = "Steer Logger v1.0.4";
             this.Load += new System.EventHandler(this.mainForm_Load);
             this.pnlCtrlConf.ResumeLayout(false);
             this.pnlCtrlConf.PerformLayout();
@@ -839,6 +841,7 @@
             this.pnlSimpleConfig.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvInputSetup)).EndInit();
             this.pnlDataProc.ResumeLayout(false);
+            this.pnlDataProc.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvDataProc)).EndInit();
             this.ResumeLayout(false);
 

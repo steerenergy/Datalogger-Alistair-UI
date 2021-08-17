@@ -289,6 +289,7 @@ namespace SteerLoggerUser
             this.Controls.Add(this.label1);
             this.MinimumSize = new System.Drawing.Size(300, 331);
             this.Name = "DatabaseSearchForm";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Search Pi Database";
             this.Load += new System.EventHandler(this.DatabaseSearchForm_Load);
             ((System.ComponentModel.ISupportInitialize)(this.nudProject)).EndInit();

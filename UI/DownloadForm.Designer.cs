@@ -176,6 +176,7 @@ namespace SteerLoggerUser
             this.MinimumSize = new System.Drawing.Size(300, 420);
             this.Name = "DownloadForm";
             this.Padding = new System.Windows.Forms.Padding(10);
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "DownloadForm";
             this.Load += new System.EventHandler(this.DownloadForm_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dgvDownload)).EndInit();

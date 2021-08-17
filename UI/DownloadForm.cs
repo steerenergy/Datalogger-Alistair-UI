@@ -47,15 +47,15 @@ namespace SteerLoggerUser
                 object[] rowData = new object[]
                 {
                     false,
-                    Convert.ToUInt16(response[0]),
+                    Convert.ToUInt32(response[0]),
                     response[1],
-                    Convert.ToUInt16(response[2]),
+                    Convert.ToUInt32(response[2]),
                     response[3],
-                    Convert.ToUInt16(response[4]),
-                    Convert.ToUInt16(response[5]),
-                    Convert.ToUInt16(response[6]),
+                    Convert.ToUInt32(response[4]),
+                    Convert.ToUInt32(response[5]),
+                    Convert.ToUInt32(response[6]),
                     response[7],
-                    (response[8] == "None") ? 0 : Convert.ToUInt16(response[8])
+                    (response[8] == "None") ? 0 : Convert.ToUInt32(response[8])
                 };
                 dgvDownload.Rows.Add(rowData);
             }

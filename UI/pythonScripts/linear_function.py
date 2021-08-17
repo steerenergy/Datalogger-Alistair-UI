@@ -52,7 +52,6 @@ for i in range(0,len(current_data.index)):
     temp_row.append(current_data['Date/Time'][i])
     temp_row.append(current_data['Time (seconds)'][i])
     # Apply linear function to data in selected columns
-    # Objective 20
     for column in proc_columns[2:]:
         value = (Decimal(current_data[column][i]) * m) + c
         temp_row.append(f"{value:.14f}")
