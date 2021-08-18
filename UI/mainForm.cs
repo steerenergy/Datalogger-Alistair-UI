@@ -199,7 +199,8 @@ namespace SteerLoggerUser
                 if (listenerExit == false)
                 {
                     this.BeginInvoke(new Action(() => { lblConnection.Text = "You're not connected to a logger."; }));
-                    MessageBox.Show("An error occured in the connection, please reconnect.");
+                    MessageBox.Show("An error occured in the connection, please reconnect.","Connection Error",
+                                    MessageBoxButtons.OK,MessageBoxIcon.Error);
                 }
             }
             catch (SocketException)
@@ -222,7 +223,8 @@ namespace SteerLoggerUser
                 if (listenerExit == false)
                 {
                     this.BeginInvoke(new Action(() => { lblConnection.Text = "You're not connected to a logger."; }));
-                    MessageBox.Show("An error occured in the connection, please reconnect.");
+                    MessageBox.Show("An error occured in the connection, please reconnect.","Connection Error",
+                                    MessageBoxButtons.OK,MessageBoxIcon.Error);
                 }
             }
             return;
@@ -378,7 +380,8 @@ namespace SteerLoggerUser
                                             else
                                             {
                                                 MessageBox.Show("Cannot find activate.bat for Anaconda," 
-                                                                + "please edit settings and give the location of activate.bat.");
+                                                                + "please edit settings and give the location of activate.bat.","Cannot Find activate.bat",
+                                                                MessageBoxButtons.OK,MessageBoxIcon.Warning);
                                                 progConfig.activatePath = "";
                                             }
                                         }
@@ -392,7 +395,8 @@ namespace SteerLoggerUser
                                             // If activate.bat not in set location, alert user and continue
                                             else
                                             {
-                                                MessageBox.Show("Cannot find activate.bat for Anaconda, please edit settings and give the location of activate.bat.");
+                                                MessageBox.Show("Cannot find activate.bat for Anaconda, please edit settings and give the location of activate.bat.",
+                                                                "Cannot Find activate.bat", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                                                 progConfig.activatePath = "";
                                             }
                                         }
@@ -555,7 +559,8 @@ namespace SteerLoggerUser
                 catch (SocketException)
                 {
                     TCPTearDown();
-                    MessageBox.Show("An error occured in the connection, please reconnect.");
+                    MessageBox.Show("An error occured in the connection, please reconnect.","Connection Error",
+                                    MessageBoxButtons.OK,MessageBoxIcon.Error);
                     // Loads InputSetup grid with default values as cannot retrieve recent config
                     LoadDefaultConfig();
                     return;
@@ -563,7 +568,8 @@ namespace SteerLoggerUser
                 catch (TimeoutException)
                 {
                     TCPTearDown();
-                    MessageBox.Show("Connection timed out, please reconnect.");
+                    MessageBox.Show("Connection timed out, please reconnect.","Timeout Error",
+                                    MessageBoxButtons.OK,MessageBoxIcon.Error);
                     // Loads InputSetup grid with default values as cannot retrieve recent config
                     LoadDefaultConfig();
                     return;
@@ -604,7 +610,8 @@ namespace SteerLoggerUser
             // If no logs to download, return
             if (response == "No Logs Match Criteria")
             {
-                MessageBox.Show("No new logs to download.");
+                MessageBox.Show("No new logs to download.","No Logs to Download",
+                                MessageBoxButtons.OK,MessageBoxIcon.Information);
                 return;
             }
             // Get number of logs which match criteria
@@ -744,7 +751,8 @@ namespace SteerLoggerUser
                         TCPSend("Quit");
                         TCPTearDown();
                         worker.ReportProgress(100, "Error occurred, aborting!");
-                        MessageBox.Show("Failed to download, check that Pi has FTP/SSH enabled.");
+                        MessageBox.Show("Failed to download, check that Pi has FTP/SSH enabled.","Failed to Download",
+                                        MessageBoxButtons.OK,MessageBoxIcon.Error);
                         return;
                     }
                     // If SteerLogger directory doesn't exist in appData, create it
@@ -832,7 +840,7 @@ namespace SteerLoggerUser
                             // If logs can be merged, ask user
                             DialogResult dialogResult = MessageBox.Show("Would you like to merge the imported log with the current log?\n" +
                                                     "Otherwise the imported log will be added to the queue.",
-                                                    "Merge Logs?", MessageBoxButtons.YesNo);
+                                                    "Merge Logs?", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                             if (dialogResult == DialogResult.Yes)
                             {
                                 // If they want to merge, add log to the currently processing logs
@@ -891,8 +899,10 @@ namespace SteerLoggerUser
             {
                 TCPTearDown();
                 worker.ReportProgress(100, "Error occurred, aborting!");
-                MessageBox.Show("Error occurred in connection, please reconnect.");
-                MessageBox.Show("Failed to download, check that Pi has FTP/SSH enabled.");
+                MessageBox.Show("Error occurred in connection, please reconnect.",
+                                "Connection Error",MessageBoxButtons.OK,MessageBoxIcon.Error);
+                MessageBox.Show("Failed to download, check that Pi has FTP/SSH enabled.",
+                                "Download Failed",MessageBoxButtons.OK,MessageBoxIcon.Warning);
                 return;
             }
             // If there is any other error, tell user error message
@@ -901,9 +911,13 @@ namespace SteerLoggerUser
             {
                 TCPTearDown();
                 worker.ReportProgress(100, "Error occurred, aborting!");
-                MessageBox.Show(exp.Message);
-                MessageBox.Show(exp.ToString());
-                MessageBox.Show("Failed to download, check that Pi has FTP/SSH enabled.");
+                String errorMessage;
+                errorMessage = "Error: ";
+                errorMessage = String.Concat(errorMessage, exp.Message);
+                errorMessage = String.Concat(errorMessage, " Line: ");
+                errorMessage = String.Concat(errorMessage, exp.Source);
+                MessageBox.Show(errorMessage, "Error", MessageBoxButtons.OK,MessageBoxIcon.Error);
+                MessageBox.Show(String.Format("Full error: {0}",exp.ToString()),"Full Error", MessageBoxButtons.OK,MessageBoxIcon.Error);
                 return;
             }  
         }
@@ -1001,7 +1015,8 @@ namespace SteerLoggerUser
             if (received == "No Config Found")
             {
                 LoadDefaultConfig();
-                MessageBox.Show("No recent config found, loading a default config.");
+                MessageBox.Show("No recent config found, loading a default config.",
+                                "No Recent Config", MessageBoxButtons.OK,MessageBoxIcon.Exclamation);
                 return;
             }
             // Receive metadata
@@ -1117,7 +1132,8 @@ namespace SteerLoggerUser
             if (DAP.saved == false)
             {
                 // If the data hasn't been saved, ask user if they want to save before clearing
-                DialogResult dialogResult = MessageBox.Show("Do you want to save data before clearing?", "Clear Data", MessageBoxButtons.YesNoCancel);
+                DialogResult dialogResult = MessageBox.Show("Do you want to save data before clearing?", "Clear Data", 
+                                                            MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
                 if (dialogResult == DialogResult.Yes)
                 {
                     // If they want to save, run DwnldCsv button click event
@@ -1183,7 +1199,8 @@ namespace SteerLoggerUser
                 // If no logs match search criteria, alert user
                 if (response == "No Logs Match Criteria")
                 {
-                    MessageBox.Show("No logs match criteria.");
+                    MessageBox.Show("No logs match search criteria, try using fewer criteria.",
+                                    "No Logs Match Criteria",MessageBoxButtons.OK,MessageBoxIcon.Warning);
                     return;
                 }
                 // Receive number of logs that match criteria
@@ -1243,16 +1260,19 @@ namespace SteerLoggerUser
             // Catch errors which can occur during the connection
             catch (SocketException)
             {
-                MessageBox.Show("An error occured in the connection, please reconnect.");
+                MessageBox.Show("An error occured in the connection, please reconnect.",
+                                "Connection Error",MessageBoxButtons.OK,MessageBoxIcon.Error);
                 return;
             }
             catch (InvalidDataException)
             {
-                MessageBox.Show("You need to be connected to a logger to do that!");
+                MessageBox.Show("You need to be connected to a logger to do that!",
+                                "Connect to a Logger",MessageBoxButtons.OK,MessageBoxIcon.Stop);
             }
             catch (TimeoutException)
             {
-                MessageBox.Show("Connection timed out, please reconnect.");
+                MessageBox.Show("Connection timed out, please reconnect.",
+                                "Timeout Error",MessageBoxButtons.OK,MessageBoxIcon.Error);
             }
         }
 
@@ -1382,7 +1402,8 @@ namespace SteerLoggerUser
                 catch (InvalidDataException)
                 {
                     // No pins enabled
-                    MessageBox.Show("Please set at least one pin to enabled.", "No Pins Enabled!");
+                    MessageBox.Show("Please set at least one pin to enabled.", "No Pins Enabled!",
+                                    MessageBoxButtons.OK,MessageBoxIcon.Warning);
                     return;
                 }
             }
@@ -1404,7 +1425,8 @@ namespace SteerLoggerUser
             // Catch errors when uploading config to Logger
             catch (SocketException)
             {
-                MessageBox.Show("An error occured in the connection, please reconnect.");
+                MessageBox.Show("An error occured in the connection, please reconnect.","Connection Error",
+                                MessageBoxButtons.OK,MessageBoxIcon.Error);
                 return;
             }
             catch (InvalidDataException exp)
@@ -1412,11 +1434,13 @@ namespace SteerLoggerUser
                 // Show different message box depending on error message
                 if (exp.Message != "" && exp.Message == "No pins enabled")
                 {
-                    MessageBox.Show("Please set at least one pin to enabled.", "No Pins Enabled!");
+                    MessageBox.Show("Please set at least one pin to enabled.", "No Pins Enabled!",
+                                    MessageBoxButtons.OK,MessageBoxIcon.Warning);
                 }
                 else
                 {
-                    MessageBox.Show("You need to be connected to a logger to do that!");
+                    MessageBox.Show("You need to be connected to a logger to do that!", "Connect to a Logger",
+                                    MessageBoxButtons.OK, MessageBoxIcon.Stop);
                 }
                 return;
             }
@@ -1429,7 +1453,8 @@ namespace SteerLoggerUser
             // Make sure user has given the log a name
             if (txtLogName.Text == "")
             {
-                MessageBox.Show("Please input a value for the log name.");
+                MessageBox.Show("Please input a value for the log name.","No Log Name",
+                                MessageBoxButtons.OK,MessageBoxIcon.Warning);
                 return false;
             }
             // Make sure user hasn't used invalid file name characters in the log name
@@ -1438,14 +1463,16 @@ namespace SteerLoggerUser
             {
                 if (txtLogName.Text.Contains(invalid))
                 {
-                    MessageBox.Show(String.Format("The log name contains invalid character: {0}",invalid));
+                    MessageBox.Show(String.Format("The log name contains invalid character: {0}",invalid), 
+                        "Invalid Characters",MessageBoxButtons.OK,MessageBoxIcon.Warning);
                     return false;
                 }
             }
             // If user hasn't added description, ask if they want to add one
             if (txtDescription.Text == "")
             {
-                if (MessageBox.Show("No description. Press OK to continue without description or cancel to cancel upload and add description.","No Description!",MessageBoxButtons.OKCancel) != DialogResult.OK)
+                if (MessageBox.Show("No description. Continue without description?"
+                                    ,"No Description!",MessageBoxButtons.YesNo,MessageBoxIcon.Question) != DialogResult.Yes)
                 {
                     return false;
                 }
@@ -1459,17 +1486,17 @@ namespace SteerLoggerUser
             // Make sure project, workpack and jobsheet are integers
             if (!(nudProject.Value % 1 == 0))
             {
-                MessageBox.Show("Project number must be a whole number.");
+                MessageBox.Show("Project number must be a whole number.","Project Not Integer", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
             }
             if (!(nudWorkPack.Value % 1 == 0))
             {
-                MessageBox.Show("Work pack number must be a whole number.");
+                MessageBox.Show("Work pack number must be a whole number.", "Work Pack Not Integer", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
             }
             if (!(nudJobSheet.Value % 1 == 0))
             {
-                MessageBox.Show("Job sheet number must be a whole number.");
+                MessageBox.Show("Job sheet number must be a whole number.", "Job Sheet Not Integer", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
             }
             // Make sure scale min and scale max values are all decimals
@@ -1477,12 +1504,14 @@ namespace SteerLoggerUser
             {
                 if (!double.TryParse(row.Cells[6].Value.ToString(), out _))
                 {
-                    MessageBox.Show("Please check that all Scale Min values are deciamls.");
+                    MessageBox.Show("Please check that all Scale Min values are decimals.","Scale Min Not Decimal",
+                                    MessageBoxButtons.OK,MessageBoxIcon.Warning);
                     return false;
                 }
                 if (!double.TryParse(row.Cells[7].Value.ToString(), out _))
                 {
-                    MessageBox.Show("Please check that all Scale Min values are deciamls.");
+                    MessageBox.Show("Please check that all Scale Min values are decimals.","Scale Max Not Decimal",
+                                    MessageBoxButtons.OK,MessageBoxIcon.Warning);
                     return false;
                 }
             }
@@ -1655,22 +1684,25 @@ namespace SteerLoggerUser
             {
                 TCPSend("Start_Log");
                 // Show response (either logger started, or logger already running)
-                MessageBox.Show(TCPReceive());
+                MessageBox.Show(TCPReceive(),"Logger State",MessageBoxButtons.OK,MessageBoxIcon.Information);
             }
             // Catch connection errors
             catch (SocketException)
             {
-                MessageBox.Show("An error occured in the connection, or you are not connected. Please reconnect.");
+                MessageBox.Show("An error occured in the connection, or you are not connected. Please reconnect.",
+                                "Connection Error",MessageBoxButtons.OK,MessageBoxIcon.Error);
                 return;
             }
             catch (InvalidDataException)
             {
-                MessageBox.Show("You need to be connected to a logger to do that!");
+                MessageBox.Show("You need to be connected to a logger to do that!","Not Connected",
+                                MessageBoxButtons.OK,MessageBoxIcon.Warning);
                 return;
             }
             catch (TimeoutException)
             {
-                MessageBox.Show("Connection timed out, please reconnect.");
+                MessageBox.Show("Connection timed out, please reconnect.", "Timeout Error",
+                                MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
         }
@@ -1683,21 +1715,24 @@ namespace SteerLoggerUser
             {
                 TCPSend("Stop_Log");
                 // Show response (either logger stopped, or logger already stopped)
-                MessageBox.Show(TCPReceive());
+                MessageBox.Show(TCPReceive(), "Logger State", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             // Catch connection errors
             catch (SocketException)
             {
-                MessageBox.Show("An error occured in the connection, or you are not connected. Please reconnect.");
+                MessageBox.Show("An error occured in the connection, or you are not connected. Please reconnect.",
+                                "Connection Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             catch (InvalidDataException)
             {
-                MessageBox.Show("You need to be connected to a logger to do that!");
+                MessageBox.Show("You need to be connected to a logger to do that!","Not Connected",
+                                MessageBoxButtons.OK,MessageBoxIcon.Warning);
                 return;
             }
             catch (TimeoutException)
             {
-                MessageBox.Show("Connection timed out, please reconnect.");
+                MessageBox.Show("Connection timed out, please reconnect.","Timeout Error",
+                                MessageBoxButtons.OK,MessageBoxIcon.Error);
                 return;
             }
         }
@@ -1706,7 +1741,8 @@ namespace SteerLoggerUser
         // Reset InputSetup grid to default values
         private void cmdResetConfig_Click(object sender, EventArgs e)
         {
-            DialogResult result = MessageBox.Show("This will clear all config data in the Simple/Advanced config menus. Continue?", "Continue?", MessageBoxButtons.OKCancel);
+            DialogResult result = MessageBox.Show("This will clear all config data in the Simple/Advanced config menus. Continue?", 
+                                                  "Continue?", MessageBoxButtons.OKCancel, MessageBoxIcon.Question);
             if (result == DialogResult.OK)
             {
                 // Clear simple config textbox and clear advanced setup grid
@@ -1746,7 +1782,8 @@ namespace SteerLoggerUser
                 }
                 catch (SocketException)
                 {
-                    MessageBox.Show("An error occured in the connection, please reconnect.");
+                    MessageBox.Show("An error occured in the connection, please reconnect.","Connection Error",
+                                    MessageBoxButtons.OK,MessageBoxIcon.Error);
                     return;
                 }
             }
@@ -1815,7 +1852,7 @@ namespace SteerLoggerUser
                 {
                     DialogResult dialogResult = MessageBox.Show("Would you like to merge the imported log with the current log?\n" +
                                                                 "Otherwise the imported log will be added to the queue.",
-                                                                "Merge Logs?", MessageBoxButtons.YesNo);
+                                                                "Merge Logs?", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                     if (dialogResult == DialogResult.Yes)
                     {
                         // If select to merge, create new logProc from imported log
@@ -1875,7 +1912,8 @@ namespace SteerLoggerUser
                 // If no logs match search criteria, tell user
                 if (response == "No Logs Match Criteria")
                 {
-                    MessageBox.Show("No logs match criteria.");
+                    MessageBox.Show("No logs match search criteria, trying searching with fewer criteria.",
+                                    "No Logs Match Criteria", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                     return;
                 }
                 // Get number of logs which match criteria
@@ -1903,15 +1941,18 @@ namespace SteerLoggerUser
             // Catch connection errors
             catch (SocketException)
             {
-                MessageBox.Show("An error occured in the connection, or you are not connected. Please reconnect.");
+                MessageBox.Show("An error occured in the connection, or you are not connected. Please reconnect.",
+                                "Connection Error",MessageBoxButtons.OK,MessageBoxIcon.Error);
             }
             catch (InvalidDataException)
             {
-                MessageBox.Show("You need to be connected to a logger to do that!");
+                MessageBox.Show("You need to be connected to a logger to do that!", "Not Connected",
+                                MessageBoxButtons.OK,MessageBoxIcon.Warning);
             }
             catch (TimeoutException)
             {
-                MessageBox.Show("Connection timed out, please reconnect.");
+                MessageBox.Show("Connection timed out, please reconnect.","Timeout Error",
+                                MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -2144,7 +2185,8 @@ namespace SteerLoggerUser
                 // Create a zip archive from the temporary zip directory
                 // Save zip archive to path specified by user
                 ZipFile.CreateFromDirectory(dirPath, sfdLog.FileName);
-                MessageBox.Show("Files zipped successfully.");
+                MessageBox.Show("Files zipped successfully.","Zip Successful",
+                                MessageBoxButtons.OK,MessageBoxIcon.Information);
             }
             // Set save to true as logs have been saved
             DAP.saved = true;
@@ -2172,7 +2214,8 @@ namespace SteerLoggerUser
             // If there is no data to export, tell user
             else
             {
-                MessageBox.Show("No data to export, please import data into the processing view!");
+                MessageBox.Show("No data to export, please import data into the processing view!",
+                                "No Data", MessageBoxButtons.OK,MessageBoxIcon.Warning);
             }
         }
 
@@ -2183,7 +2226,8 @@ namespace SteerLoggerUser
             // Make sure there is data to process
             if (dgvDataProc.DataSource == null)
             {
-                MessageBox.Show("No log data to process, please import log data and try again.");
+                MessageBox.Show("No log data to process, please import log data and try again.",
+                                "No Data", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
             // Make sure scripts and files are in appData
@@ -2202,8 +2246,9 @@ namespace SteerLoggerUser
                 // If activate.bat cannot be found, alert user and return
                 if (File.Exists(condaPath) == false)
                 {
-                    MessageBox.Show("activate.bat is not the the location expected. Please change the settings to correct the activate.bat location."
-                                    + Environment.NewLine + "Expected location: " + condaPath);
+                    MessageBox.Show("activate.bat is not at the location expected. Please change the settings to correct the activate.bat location."
+                                    + Environment.NewLine + "Expected location: " + condaPath, "Cannot Find activate.bat",
+                                    MessageBoxButtons.OK,MessageBoxIcon.Warning);
                     return;
                 }
                 // Construct the argument to pass to the command shell
@@ -2219,7 +2264,8 @@ namespace SteerLoggerUser
                 // Start process
                 using (Process process = Process.Start(startCmd))
                 {
-                    MessageBox.Show("Python script starting.");
+                    MessageBox.Show("Python script starting.","Python Script Starting",
+                                    MessageBoxButtons.OK,MessageBoxIcon.Information);
                 }
             }
             // If user doesn't select a script, return
@@ -2229,7 +2275,8 @@ namespace SteerLoggerUser
                 // Read processed data output by python script
                 LogProc tempLogProc = ReadProcCsv(dirPath + @"\proc.csv");
                 // Allow user to merge processed data with current data or overwrite data in the display
-                DialogResult dialogResult = MessageBox.Show("Combine processed data with data in the grid?", "Combine Data?", MessageBoxButtons.YesNo);
+                DialogResult dialogResult = MessageBox.Show("Combine processed data with data in the grid?", "Combine Data?",
+                                                            MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                 if (dialogResult == DialogResult.Yes)
                 {
                     DAP.MergeLogs(tempLogProc, "Processed");
@@ -2251,7 +2298,8 @@ namespace SteerLoggerUser
             catch (FileNotFoundException)
             {
                 MessageBox.Show("Processing failed. Make sure your Python script outputs a proc.csv file.\n" +
-                                "Also make sure that activate.bat is stored at C:\\Users\\<Your_User>\\anaconda3\\Scripts\\activate.bat", "Processing Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                "Also make sure that activate.bat is stored at C:\\Users\\<Your_User>\\anaconda3\\Scripts\\activate.bat", 
+                                "Processing Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 File.Delete(dirPath + @"\temp.csv");
             }
         }
@@ -2292,7 +2340,8 @@ namespace SteerLoggerUser
             // Make sure there is data to be graphed
             if (DAP.logsProcessing.Count == 0)
             {
-                MessageBox.Show("No log data to process, please import log data and try again.");
+                MessageBox.Show("No log data to process, please import log data and try again.", "No Data",
+                                MessageBoxButtons.OK,MessageBoxIcon.Warning);
                 return;
             }
             // Make sure scripts and files are in appData
@@ -2312,7 +2361,8 @@ namespace SteerLoggerUser
                 if (File.Exists(condaPath) == false)
                 {
                     MessageBox.Show("activate.bat is not the the location expected. Please change the settings to correct the activate.bat location."
-                                    + Environment.NewLine + "Expected location: " + condaPath);
+                                    + Environment.NewLine + "Expected location: " + condaPath, "Cannot Find activate.bat",
+                                    MessageBoxButtons.OK,MessageBoxIcon.Warning);
                     return;
                 }
                 // Construct the argument to pass to the command shell
@@ -2328,7 +2378,8 @@ namespace SteerLoggerUser
                 // Start process
                 using (Process process = Process.Start(startCmd))
                 {
-                    MessageBox.Show("Python script starting.");
+                    MessageBox.Show("Python script starting.","Python Script Starting",
+                                    MessageBoxButtons.OK,MessageBoxIcon.Information);
                 }
                 // No data needs to be returned as nothing is processed
                 // Python script handles displaying the graph and allowing user to save it
@@ -2518,11 +2569,13 @@ namespace SteerLoggerUser
             // Catch connection errors
             catch (SocketException)
             {
-                MessageBox.Show("An error occurred in the connection, please reconnect.");
+                MessageBox.Show("An error occurred in the connection, please reconnect.","Connection Error",
+                                MessageBoxButtons.OK,MessageBoxIcon.Error);
             }
             catch (InvalidDataException)
             {
-                MessageBox.Show("You need to be connected to a logger to do that!");
+                MessageBox.Show("You need to be connected to a logger to do that!","Not Connected",
+                                MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
