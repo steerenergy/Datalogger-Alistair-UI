@@ -671,7 +671,7 @@ namespace SteerLoggerUser
                         date = metaData[6],
                         time = decimal.Parse(metaData[7]),
                         loggedBy = metaData[8],
-                        downloadedBy = metaData[9],
+                        raw = metaData[9],
                         description = metaData[10],
                     };
                     // Check for pending cancellation
@@ -754,9 +754,8 @@ namespace SteerLoggerUser
                         InitialiseAppData();
                     }
                     // Get path of file on Pi and set path for file to be downloaded onto computer
-                    received = TCPReceive();
-                    string path = @"/home/pi/Github/Datalogger-Alistair-Pi/" + received;
-                    string temp = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger\" + Path.GetFileName(received);
+                    string path = @"/home/pi/Github/Datalogger-Alistair-Pi/" + tempLog.raw;
+                    string temp = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger\" + Path.GetFileName(tempLog.raw);
                     // Check for cancellation and report progress percentage
                     if (worker.CancellationPending)
                     {
@@ -1625,10 +1624,8 @@ namespace SteerLoggerUser
             metadata.Append(newLog.workPack + "\u001f");
             metadata.Append(newLog.jobSheet + "\u001f");
             metadata.Append(newLog.name + "\u001f");
-            metadata.Append(newLog.date + "\u001f");
             metadata.Append(newLog.time + "\u001f");
             metadata.Append(newLog.loggedBy + "\u001f");
-            metadata.Append(newLog.downloadedBy + "\u001f");
             metadata.Append(newLog.description);
             TCPSend(metadata.ToString());
             // Enumerate through pin array and send settings for each Pin to logger
