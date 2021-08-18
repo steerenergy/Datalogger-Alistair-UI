@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace SteerLoggerUser
 {
-    class DownloadAndProcess
+    public class DownloadAndProcess
     {
         // Stores logs waiting to be processed
         public Queue<LogMeta> logsToProc = new Queue<LogMeta>();
@@ -27,7 +27,7 @@ namespace SteerLoggerUser
             // Counters is used to store the index of each log
             int[] counters = { 0, 0 };
 
-
+            // Sort out header collisions by adding the mergeName to the logToMerge headers
             for (int i = 2; i < logProc.procheaders.Count; i++)
             {
                 for (int j = 2; j < logToMerge.procheaders.Count; j++)
@@ -35,14 +35,13 @@ namespace SteerLoggerUser
                     if (logProc.procheaders[i] == logToMerge.procheaders[j])
                     {
                         string[] header = logToMerge.procheaders[j].Split('|');
-                        logToMerge.procheaders[j] = string.Format("{0} {1} | {2}", header[0], mergeName, header[1]);                    }
+                        logToMerge.procheaders[j] = string.Format("{0} {1} | {2}", header[0], mergeName, header[1]);                    
+                    }
                 }
             }
-
             // Create headers from current log and imported log
             tempProcessLog.procheaders = logProc.procheaders;
             tempProcessLog.procheaders.AddRange(logToMerge.procheaders.Skip(2));
-
             // Initialise the procData using the number of columns of logs being merged
             int columnNum = logProc.procData.Count();
             columnNum += logToMerge.procData.Count();
@@ -54,7 +53,6 @@ namespace SteerLoggerUser
             {
                 start = RoundDateTime(logToMerge.timestamp[0]);
             }
-
             // Set latest common time as finish time
             DateTime finish = RoundDateTime(logProc.timestamp.Last());
             if (RoundDateTime(logToMerge.timestamp.Last()) < finish)
@@ -163,6 +161,7 @@ namespace SteerLoggerUser
         // Test if a merge is possible
         public bool TestMerge(DateTime start, DateTime end)
         {
+            // See if earliest timestamp of first log is before the last timestamp of the other and vice versa
             if (this.logProc.timestamp.First() < end && start < this.logProc.timestamp.Last())
             {
                 return true;

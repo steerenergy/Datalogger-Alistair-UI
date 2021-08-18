@@ -16,6 +16,7 @@ namespace SteerLoggerUser
         public Dictionary<string,Pin> configPins;
         public Dictionary<string, List<string>> variationDict;
 
+        // Stores program config settings
         public ProgConfig()
         {
             this.units = new List<string>();

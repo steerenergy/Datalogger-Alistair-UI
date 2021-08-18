@@ -78,7 +78,7 @@ namespace SteerLoggerUser
             this.Name = "ReceiveProgressForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "ReceiveProgessFrom";
-            this.Load += new System.EventHandler(this.ReceiveProgessFrom_Load);
+            this.Load += new System.EventHandler(this.ReceiveProgressForm_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 

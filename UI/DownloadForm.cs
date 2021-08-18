@@ -32,15 +32,14 @@ namespace SteerLoggerUser
             this.TCPSend = TCPSend;
         }
 
+
         // Show logs to user and allow them to select which ones to download
-        // Objectives 4, 8.3 and 13.2
         private void DownloadForm_Load(object sender, EventArgs e)
         {
+            // Setup labels
             lblDownload.Text = "Select " + item + " to Download";
             cmdDownload.Text = "Download " + item;
-
-            // Add available logs to list
-
+            // Add logs to data grid view
             for (int i = 0; i < numLogs; i++)
             {
                 string[] response = TCPReceive().Split('\u001f');
@@ -59,9 +58,9 @@ namespace SteerLoggerUser
                 };
                 dgvDownload.Rows.Add(rowData);
             }
-
             cmdDownload.Width = dgvDownload.Width;
         }
+
 
         // Sends the selected log ids to the logger
         private void cmdDownload_Click(object sender, EventArgs e)
@@ -69,7 +68,7 @@ namespace SteerLoggerUser
             this.cancelled = false;
             string logNames = "";
             int num = 0;
-
+            // Add selected log id's to a string of logNames
             foreach (DataGridViewRow row in dgvDownload.Rows)
             {
                 if (Convert.ToBoolean(row.Cells[0].Value) == true)

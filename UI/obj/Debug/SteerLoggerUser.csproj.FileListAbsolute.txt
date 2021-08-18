@@ -109,3 +109,4 @@ C:\Users\aryan\OneDrive\Documents\GitHub\Datalogger-Alistair-UI\UI\bin\Debug\con
 C:\Users\aryan\OneDrive\Documents\GitHub\Datalogger-Alistair-UI\UI\obj\Debug\SteerLoggerUser.ReceiveProgressForm.resources
 C:\Users\aryan\OneDrive\Documents\GitHub\Datalogger-Alistair-UI\UI\obj\Debug\SteerLoggerUser.ChangeUserForm.resources
 C:\Users\aryan\OneDrive\Documents\GitHub\Datalogger-Alistair-UI\UI\obj\Debug\SteerLoggerUser.csproj.AssemblyReference.cache
+C:\Users\aryan\OneDrive\Documents\GitHub\Datalogger-Alistair-UI\UI\obj\Debug\SteerLoggerUser.RenameForm.resources

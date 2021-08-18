@@ -14,6 +14,7 @@ namespace SteerLoggerUser
         public List<double> time = new List<double>();
         public List<List<double>> procData = new List<List<double>>();
 
+        // Used to store the log data when it is being processed
         public LogProc()
         {
             this.procheaders = new List<string>();
