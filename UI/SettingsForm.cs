@@ -105,7 +105,8 @@ namespace SteerLoggerUser
                 // Alert user if the file they select is not called activate.bat
                 if (ofdFindActivate.SafeFileName != "activate.bat")
                 {
-                    MessageBox.Show("The file you selected was not called activate.bat, please check this is correct.");
+                    MessageBox.Show("The file you selected was not called activate.bat, please check this is correct.", "Check Filename",
+                                    MessageBoxButtons.OK,MessageBoxIcon.Warning);
                 }
                 // Set activate path to the location of activate.bat
                 config.activatePath = ofdFindActivate.FileName;
@@ -120,7 +121,8 @@ namespace SteerLoggerUser
             // Make sure user inputs a unit to add
             if (txtAddUnit.Text == "")
             {
-                MessageBox.Show("Please write a new unit to add in the textbox!");
+                MessageBox.Show("Please write a new unit to add in the textbox!","No Unit",
+                                MessageBoxButtons.OK,MessageBoxIcon.Warning);
                 return;
             }
             // Add new unit to program config and update combo box
@@ -136,7 +138,8 @@ namespace SteerLoggerUser
             // Make sure user inputs a hostname to add
             if (txtLogger.Text == "")
             {
-                MessageBox.Show("Please write a new logger to add in the textbox!");
+                MessageBox.Show("Please write a new logger to add in the textbox!","No Logger",
+                                MessageBoxButtons.OK,MessageBoxIcon.Warning);
                 return;
             }
             // Add new logger to program config and update combo box
@@ -158,17 +161,20 @@ namespace SteerLoggerUser
             // Make sure name, bottom volt and top volt are all valid
             if (txtName.Text == "")
             {
-                MessageBox.Show("Please write the name for the new input type in the textbox!");
+                MessageBox.Show("Please write the name for the new input type in the textbox!","No Input Name",
+                                MessageBoxButtons.OK,MessageBoxIcon.Warning);
                 return;
             }
             if (Double.TryParse(txtBottomVolt.Text, out double bottomVolt) == false)
             {
-                MessageBox.Show("Please makes sure your bottom voltage value is an integer or decimal.");
+                MessageBox.Show("Please makes sure your bottom voltage value is an integer or decimal.",
+                                "No Bottom Voltage", MessageBoxButtons.OK,MessageBoxIcon.Warning);
                 return;
             }
             if (Double.TryParse(txtTopVolt.Text, out double topVolt) == false)
             {
-                MessageBox.Show("Please makes sure your top voltage value is an integer or decimal.");
+                MessageBox.Show("Please makes sure your top voltage value is an integer or decimal.",
+                                "No Top Voltage",MessageBoxButtons.OK,MessageBoxIcon.Warning);
                 return;
             }
             // Add to program config and update combo box
@@ -271,7 +277,8 @@ namespace SteerLoggerUser
                         if (cell.Value == null)
                         {
                             MessageBox.Show("Make sure all preset cells have values filled in.\n" +
-                                            "If there is no variation, please put N/A in the variation cell.");
+                                            "If there is no variation, please put N/A in the variation cell.",
+                                            "Unfilled Cells",MessageBoxButtons.OK,MessageBoxIcon.Warning);
                             return;
                         }
                         // If value is N/A, add nothing, otherwise add value of cell
@@ -319,21 +326,25 @@ namespace SteerLoggerUser
                             writer.WriteLine(TCPReceive().Replace(',', ';').Replace('\u001f', ','));
                         }
                     }
-                    MessageBox.Show("Exported Successfully.");
+                    MessageBox.Show("Exported Successfully.", "Exported Successfully",
+                                    MessageBoxButtons.OK,MessageBoxIcon.Information);
                 }
             }
             // Catch connection errors
             catch (SocketException)
             {
-                MessageBox.Show("An error occurred in the connection, please reconnect.");
+                MessageBox.Show("An error occurred in the connection, please reconnect.","Connection Error",
+                                MessageBoxButtons.OK,MessageBoxIcon.Error);
             }
             catch (InvalidDataException)
             {
-                MessageBox.Show("You need to be connected to a logger to do that!");
+                MessageBox.Show("You need to be connected to a logger to do that!","Not Connected",
+                                MessageBoxButtons.OK,MessageBoxIcon.Warning);
             }
             catch (TimeoutException)
             {
-                MessageBox.Show("Connection timed out, please reconnect.");
+                MessageBox.Show("Connection timed out, please reconnect.","Timeout Error",
+                                MessageBoxButtons.OK,MessageBoxIcon.Error);
             }
         }
 
@@ -410,7 +421,8 @@ namespace SteerLoggerUser
                         // Create a zip archive from the temporary zip directory
                         // Save zip archive to path specified by user
                         ZipFile.CreateFromDirectory(dirPath, sfdSaveDatabase.FileName);
-                        MessageBox.Show("Files zipped successfully.");
+                        MessageBox.Show("Files zipped successfully.","Zip Successful",
+                                        MessageBoxButtons.OK,MessageBoxIcon.Information);
                     }
                 }));
                 // Set apartment state to STA is necessary otherwise error occurs
@@ -423,16 +435,22 @@ namespace SteerLoggerUser
             catch (SocketException)
             {
                 worker.ReportProgress(100, "Error occurred, aborting!");
-                MessageBox.Show("Error occurred in connection, please reconnect.");
-                MessageBox.Show("Failed to download, check that Pi has FTP/SSH enabled.");
+                MessageBox.Show("Error occurred in connection, please reconnect.","Connection Error",
+                                MessageBoxButtons.OK,MessageBoxIcon.Error);
+                MessageBox.Show("Failed to download, check that Pi has FTP/SSH enabled.","Download Failed",
+                                MessageBoxButtons.OK,MessageBoxIcon.Warning);
                 return;
             }
             catch (Exception exp)
             {
                 worker.ReportProgress(100, "Error occurred, aborting!");
-                MessageBox.Show(exp.Message);
-                MessageBox.Show(exp.ToString());
-                MessageBox.Show("Failed to download, check that Pi has FTP/SSH enabled.");
+                String errorMessage;
+                errorMessage = "Error: ";
+                errorMessage = String.Concat(errorMessage, exp.Message);
+                errorMessage = String.Concat(errorMessage, " Line: ");
+                errorMessage = String.Concat(errorMessage, exp.Source);
+                MessageBox.Show(errorMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(String.Format("Full error: {0}", exp.ToString()), "Full Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
         }

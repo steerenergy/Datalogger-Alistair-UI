@@ -56,7 +56,8 @@ namespace SteerLoggerUser
                 catch (SocketException)
                 {
                     MessageBox.Show("Failed to connect to the logger.\n" +
-                        "Make sure the name is typed correctly or try using scan to find available loggers.");
+                                    "Make sure the name is typed correctly or try using scan to find available loggers.",
+                                    "Connection Failed",MessageBoxButtons.OK,MessageBoxIcon.Warning);
                     logger = "";
                     return;
                 }
@@ -143,7 +144,8 @@ namespace SteerLoggerUser
             // If no loggers can be found, alert user
             if (cmbLogger.Items.Count == 0)
             {
-                MessageBox.Show("No loggers found online.");
+                MessageBox.Show("No loggers found online.", "No Loggers Online",
+                                MessageBoxButtons.OK,MessageBoxIcon.Warning);
             }
             else
             {

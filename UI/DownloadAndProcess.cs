@@ -130,7 +130,8 @@ namespace SteerLoggerUser
             // If no common timestamps are found, do not merge and return
             if (tempProcessLog.timestamp.Count == 0)
             {
-                MessageBox.Show("No common timestamps found.");
+                MessageBox.Show("No common timestamps found. Import logs separately.","No Common Timestamp",
+                                MessageBoxButtons.OK,MessageBoxIcon.Warning);
                 return;
             }
             // Set current logProc to the merged logs

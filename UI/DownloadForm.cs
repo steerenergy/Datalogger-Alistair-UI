@@ -86,7 +86,8 @@ namespace SteerLoggerUser
             // If more than one log selected when only one can be downloaded, alert user
             else if (this.one == true && num > 1)
             {
-                MessageBox.Show("Please only select one item as only one can be downloaded in this instance.");
+                MessageBox.Show("Please only select one item as only one can be downloaded in this instance.",
+                                "Only Select One",MessageBoxButtons.OK,MessageBoxIcon.Warning);
                 return;
             }
             else

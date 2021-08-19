@@ -32,7 +32,7 @@ namespace SteerLoggerUser
             if (txtUser.Text == "")
             {
                 DialogResult result = MessageBox.Show("No username input, do you want to continue with no username?"
-                                                      ,"No Input",MessageBoxButtons.YesNo);
+                                                      ,"No Input",MessageBoxButtons.YesNo,MessageBoxIcon.Question);
                 if (result == DialogResult.No)
                 {
                     return;

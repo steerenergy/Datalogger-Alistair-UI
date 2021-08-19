@@ -140,7 +140,8 @@ namespace SteerLoggerUser
                 excel.UserControl = true;
                 excel.Visible = true;
 
-                MessageBox.Show("Exported Successfully!");
+                MessageBox.Show("Exported Successfully!","Export Successful",
+                                MessageBoxButtons.OK,MessageBoxIcon.Information);
                 this.Close();
             }
             // Catch any exceptions and report to user
@@ -152,8 +153,9 @@ namespace SteerLoggerUser
                 errorMessage = String.Concat(errorMessage, " Line: ");
                 errorMessage = String.Concat(errorMessage, theException.Source);
 
-                MessageBox.Show(errorMessage, "Error");
-                MessageBox.Show(theException.ToString());
+                MessageBox.Show(errorMessage, "Error",MessageBoxButtons.OK,MessageBoxIcon.Error);
+                MessageBox.Show(String.Format("Full Error: {0}",theException.ToString()),"Full Error",
+                                MessageBoxButtons.OK,MessageBoxIcon.Error);
             }  
         }
 
@@ -231,7 +233,7 @@ namespace SteerLoggerUser
                 message += procheader + ": " + GetColumn(colNum) + Environment.NewLine;
                 colNum += 1;
             }
-            MessageBox.Show(message);
+            MessageBox.Show(message,"Help",MessageBoxButtons.OK,MessageBoxIcon.Information);
         }
 
 
@@ -241,12 +243,14 @@ namespace SteerLoggerUser
             // Make sure user has written a formula and it is written correctly
             if (txtFormula.Text == "")
             {
-                MessageBox.Show("Please write a formula into the formula box.");
+                MessageBox.Show("Please write a formula into the formula box.","No Formula",
+                                MessageBoxButtons.OK,MessageBoxIcon.Warning);
                 return;
             }
             else if (txtFormula.Text[0] != '=')
             {
-                MessageBox.Show("Please make sure your formula starts with an \'=\' sign.");
+                MessageBox.Show("Please make sure your formula starts with an \'=\' sign.","Incorrect Formula",
+                                MessageBoxButtons.OK,MessageBoxIcon.Warning);
                 return;
             }
 
@@ -255,7 +259,7 @@ namespace SteerLoggerUser
             // Allow formula column to be used for graphing
             cmbXAxis.Items.Add(txtColTitle.Text);
             cmbYAxis.Items.Add(txtColTitle.Text);
-            MessageBox.Show("Column added successfully!");
+            MessageBox.Show("Column added successfully!", "Column Added", MessageBoxButtons.OK, MessageBoxIcon.Information);
             // Reset formula controls
             txtFormula.Text = "";
             txtColTitle.Text = "";
@@ -289,7 +293,7 @@ namespace SteerLoggerUser
                 if (Path.GetExtension(path) != ".xlsx")
                 {
                     // Alert user if they don't import an Excel file
-                    MessageBox.Show("File input isn't an Excel file ( *.xlsx)!");
+                    MessageBox.Show("File input isn't an Excel file ( *.xlsx)!", "Not Excel File", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
             }
@@ -319,8 +323,9 @@ namespace SteerLoggerUser
                 errorMessage = String.Concat(errorMessage, theException.Message);
                 errorMessage = String.Concat(errorMessage, " Line: ");
                 errorMessage = String.Concat(errorMessage, theException.Source);
-                MessageBox.Show(errorMessage, "Error");
-                MessageBox.Show(theException.ToString());
+                MessageBox.Show(errorMessage, "Error",MessageBoxButtons.OK,MessageBoxIcon.Error);
+                MessageBox.Show(String.Format("Full error: {0}",theException.ToString()),"Full Error",
+                                MessageBoxButtons.OK,MessageBoxIcon.Error);
             }
         }
 
@@ -405,7 +410,8 @@ namespace SteerLoggerUser
             string name = txtSheetName.Text;
             if (name == "")
             {
-                MessageBox.Show("Please input a name for the new sheet.");
+                MessageBox.Show("Please input a name for the new sheet.","No Sheet Name",
+                                MessageBoxButtons.OK,MessageBoxIcon.Warning);
                 return;
             }
             // Open workbook
@@ -424,7 +430,8 @@ namespace SteerLoggerUser
 
                     if (worksheet.Name == name)
                     {
-                        MessageBox.Show("There is already a sheet with that name.");
+                        MessageBox.Show("There is already a sheet with that name.","Name Not Unique",
+                                        MessageBoxButtons.OK,MessageBoxIcon.Warning);
                         workbook.Close();
                         System.Runtime.InteropServices.Marshal.FinalReleaseComObject(workbook);
                         return;
@@ -454,7 +461,7 @@ namespace SteerLoggerUser
                 // Give user control of workbook
                 excel.Visible = true;
                 excel.UserControl = true;
-                MessageBox.Show("Exported Successfully!");
+                MessageBox.Show("Exported Successfully!", "Export Successful", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 this.Close();
             }
             // Catch any exceptions and report to user
@@ -465,8 +472,9 @@ namespace SteerLoggerUser
                 errorMessage = String.Concat(errorMessage, theException.Message);
                 errorMessage = String.Concat(errorMessage, " Line: ");
                 errorMessage = String.Concat(errorMessage, theException.Source);
-                MessageBox.Show(errorMessage, "Error");
-                MessageBox.Show(theException.ToString());
+                MessageBox.Show(errorMessage, "Error",MessageBoxButtons.OK,MessageBoxIcon.Error);
+                MessageBox.Show(String.Format("Full Error: {0}",theException.ToString()),"Full Error",
+                                MessageBoxButtons.OK,MessageBoxIcon.Error);
             }
         }
 
@@ -491,8 +499,8 @@ namespace SteerLoggerUser
 
                 if (template == new Excel.Worksheet())
                 {
-                    MessageBox.Show("Cannot find a sheet called " + cmbTemplate.SelectedItem.ToString() 
-                                 +  "  in workbook, make sure there is a template sheet called Template.");
+                    MessageBox.Show(String.Format("Cannot find a sheet called {0} in workbook, make sure there is a template sheet called {0}.", 
+                                    cmbTemplate.SelectedItem.ToString()), "Cannot Find Sheet", MessageBoxButtons.OK, MessageBoxIcon.Error );
                 }
 
                 // Create copy of template sheet data
@@ -538,8 +546,9 @@ namespace SteerLoggerUser
                 errorMessage = String.Concat(errorMessage, " Line: ");
                 errorMessage = String.Concat(errorMessage, theException.Source);
 
-                MessageBox.Show(errorMessage, "Error");
-                MessageBox.Show(theException.ToString());
+                MessageBox.Show(errorMessage, "Error",MessageBoxButtons.OK,MessageBoxIcon.Error);
+                MessageBox.Show(String.Format("Full Error: {0}",theException.ToString()),"Full Error",
+                                MessageBoxButtons.OK,MessageBoxIcon.Error);
             }
         }
     }
