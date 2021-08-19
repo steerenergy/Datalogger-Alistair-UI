@@ -2762,6 +2762,12 @@ namespace SteerLoggerUser
         // Allows user to rename a log locally if naming error has been made
         private void cmdRename_Click(object sender, EventArgs e)
         {
+            // Check if there are logs to rename
+            if (DAP.logsProcessing.Count == 0)
+            {
+                MessageBox.Show("No logs to rename.", "No Logs Imported",
+                                MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
             // Show rename form
             RenameForm renameForm = new RenameForm(DAP);
             renameForm.ShowDialog();
@@ -2770,6 +2776,225 @@ namespace SteerLoggerUser
             renameForm.Dispose();
             // Update display to reflect new name
             lblLogDisplay.Text = String.Format("Displaying: {0} {1}", DAP.logsProcessing[0].name, DAP.logsProcessing[0].testNumber);
+        }
+
+        private void mainForm_SizeChanged(object sender, EventArgs e)
+        {
+            if (this.Size.Width > 1425 && this.Size.Height > 800)
+            {
+                Font = new Font(FontFamily.GenericSansSerif, 12, FontStyle.Regular, GraphicsUnit.Point, 0, false);
+                cmdCtrlConf.Location = new Point(13, 12);
+                cmdCtrlConf.Size = new Size(150, 30);
+                cmdDataProc.Location = new Point(169, 12);
+                cmdDataProc.Size = new Size(155, 30);
+                cmdSettings.Location = new Point(330, 12);
+                cmdSettings.Size = new Size(137, 30);
+                cmdAbt.Location = new Point(473, 12);
+                cmdAbt.Size = new Size(125, 30);
+                cmdConnect.Location = new Point(this.Width - 37 - 105, 12);
+                cmdConnect.Size = new Size(105, 30);
+                cmdChangeUser.Location = new Point(cmdConnect.Location.X - 6 - 105, 12);
+                cmdChangeUser.Size = new Size(105, 30);
+                lblConnection.Location = new Point(604, 17);
+                lblConnection.Size = new Size(cmdChangeUser.Location.X - (cmdAbt.Location.X + cmdAbt.Width) - 10, 21);
+                pnlCtrlConf.Location = new Point(13, cmdCtrlConf.Location.Y + cmdCtrlConf.Height + 6);
+                pnlCtrlConf.Size = new Size(this.Width - 50, this.Height - 110);
+                lblProject.Location = new Point(15, 14);
+                lblProject.Size = new Size(53, 18);
+                nudProject.Location = new Point(lblProject.Location.X, lblProject.Location.Y + lblProject.Height + 10);
+                nudProject.Size = new Size(67, 25);
+                nudWorkPack.Location = new Point(nudProject.Location.X + nudProject.Width + 6, nudProject.Location.Y);
+                nudWorkPack.Size = new Size(80, 25);
+                lblWorkPack.Location = new Point(nudWorkPack.Location.X - 4, 14);
+                lblWorkPack.Size = new Size(74, 13);
+                nudJobSheet.Location = new Point(nudWorkPack.Location.X + nudWorkPack.Width + 6, nudWorkPack.Location.Y);
+                nudJobSheet.Size = new Size(82, 25);
+                lblJobSheet.Location = new Point(nudJobSheet.Location.X - 4, 14);
+                lblJobSheet.Size = new Size(68, 13);
+                pnlSimpleConfig.Location = new Point(nudJobSheet.Location.X + nudJobSheet.Width + 11, 0);
+                pnlSimpleConfig.Size = new Size(pnlCtrlConf.Width - pnlSimpleConfig.Location.X, pnlCtrlConf.Height);
+                dgvInputSetup.Location = pnlSimpleConfig.Location;
+                dgvInputSetup.Size = pnlSimpleConfig.Size;
+                lblPin.Location = new Point(3, 14);
+                lblPin.Size = new Size(30, 18);
+                cmbPin.Location = new Point(3, lblPin.Location.Y + lblPin.Height + 8);
+                cmbPin.Size = new Size(140, 30);
+                cmbSensor.Location = new Point(cmbPin.Location.X + cmbPin.Width + 6, cmbPin.Location.Y);
+                cmbSensor.Size = new Size(140, 30);
+                lblSensor.Location = new Point(cmbSensor.Location.X - 3, lblPin.Location.Y);
+                lblSensor.Size = new Size(48, 18);
+                cmbVar.Location = new Point(cmbSensor.Location.X + cmbSensor.Width + 6, cmbPin.Location.Y);
+                cmbVar.Size = new Size(140, 30);
+                lblVar.Location = new Point(cmbVar.Location.X - 3, lblPin.Location.Y);
+                lblVar.Size = new Size(56, 18);
+                txtLogPins.Location = new Point(3, cmbPin.Location.Y + cmbPin.Height + 6);
+                txtLogPins.Size = new Size(pnlSimpleConfig.Width - 6, pnlSimpleConfig.Height - txtLogPins.Location.Y - 3);
+                cmdRemovePin.Location = new Point(txtLogPins.Width - 97, cmbPin.Location.Y);
+                cmdRemovePin.Size = new Size(100, 30);
+                cmdAddPin.Location = new Point(cmdRemovePin.Location.X - 136, cmbPin.Location.Y);
+                cmdAddPin.Size = new Size(130, 30);
+                label1.Location = new Point(15, nudProject.Location.Y + nudProject.Height + 14);
+                label1.Size = new Size(65, 20);
+                txtLogName.Location = new Point(120, nudProject.Location.Y + nudProject.Height + 11);
+                txtLogName.Size = new Size(nudJobSheet.Location.X + nudJobSheet.Width - 120, 20);
+                nudInterval.Location = new Point(txtLogName.Location.X, txtLogName.Location.Y + txtLogName.Height + 6);
+                nudInterval.Size = new Size(txtLogName.Width, txtLogName.Height);
+                label2.Location = new Point(label1.Location.X, nudInterval.Location.Y + 2);
+                label2.Size = new Size(75, 20);
+                lblDescription.Location = new Point(label2.Location.X, label2.Location.Y + label2.Height + 6);
+                txtDescription.Location = new Point(lblDescription.Location.X, lblDescription.Location.Y + lblDescription.Height + 6);
+                txtDescription.Size = new Size(txtLogName.Location.X + txtLogName.Width - txtDescription.Location.X, 150);
+                cmdResetConfig.Location = new Point(txtDescription.Location.X, txtDescription.Location.Y + txtDescription.Height + 6);
+                cmdResetConfig.Size = new Size(txtDescription.Width, 30);
+                cmdConfigSwitch.Location = new Point(cmdResetConfig.Location.X, cmdResetConfig.Location.Y + cmdResetConfig.Height + 6);
+                cmdConfigSwitch.Size = new Size(cmdResetConfig.Width, 30);
+                cmdImportConfFile.Location = new Point(cmdResetConfig.Location.X, pnlCtrlConf.Height - 60);
+                cmdImportConfFile.Size = new Size(cmdResetConfig.Width / 2 - 3, 50);
+                cmdImportConfPi.Location = new Point(cmdImportConfFile.Location.X + cmdImportConfFile.Width + 6, pnlCtrlConf.Height - 60);
+                cmdImportConfPi.Size = new Size(cmdResetConfig.Width / 2 - 3, 50);
+                cmdSave.Location = new Point(cmdResetConfig.Location.X, cmdImportConfFile.Location.Y - 46);
+                cmdSave.Size = new Size(cmdImportConfFile.Width, 40);
+                cmdUpload.Location = new Point(cmdImportConfPi.Location.X, cmdImportConfFile.Location.Y - 46);
+                cmdUpload.Size = new Size(cmdImportConfPi.Width, 40);
+                cmdStartLog.Location = new Point(cmdResetConfig.Location.X, cmdSave.Location.Y - 46);
+                cmdStartLog.Size = new Size(cmdImportConfFile.Width, 40);
+                cmdStopLog.Location = new Point(cmdImportConfPi.Location.X, cmdSave.Location.Y - 46);
+                cmdStopLog.Size = new Size(cmdImportConfPi.Width, 40);
+                pnlDataProc.Location = new Point(13, cmdCtrlConf.Location.Y + cmdCtrlConf.Height + 6);
+                pnlDataProc.Size = new Size(this.Width - 50, this.Height - 110);
+                dgvDataProc.Location = new Point(260, 3);
+                dgvDataProc.Size = new Size(pnlDataProc.Width - 263, pnlDataProc.Height - 6);
+                lblLogDisplay.Location = new Point(19, 14);
+                lblLogDisplay.Size = new Size(100, 24);
+                lblLogDisplay.MaximumSize = new Size(dgvDataProc.Location.X - lblLogDisplay.Location.X - 6, 24);
+                cmdRename.Location = new Point(lblLogDisplay.Location.X, lblLogDisplay.Location.Y + lblLogDisplay.Height + 12);
+                cmdRename.Size = new Size(dgvDataProc.Location.X - lblLogDisplay.Location.X - 6, 30);
+                cmdPythonScript.Location = new Point(cmdRename.Location.X, cmdRename.Location.Y + cmdRename.Height + 6);
+                cmdPythonScript.Size = new Size(cmdRename.Width, cmdRename.Height);
+                cmdPythonGraph.Location = new Point(cmdPythonScript.Location.X, cmdPythonScript.Location.Y + cmdPythonScript.Height + 6);
+                cmdPythonGraph.Size = new Size(cmdRename.Width, cmdRename.Height);
+                cmdReconvert.Location = new Point(cmdPythonGraph.Location.X, cmdPythonGraph.Location.Y + cmdPythonGraph.Height + 6);
+                cmdReconvert.Size = new Size(cmdRename.Width, cmdRename.Height);
+                cmdClearData.Location = new Point(cmdRename.Location.X, dgvDataProc.Location.Y + dgvDataProc.Height - 36);
+                cmdClearData.Size = new Size(cmdRename.Width, cmdRename.Height);
+                cmdExpExcel.Location = new Point(cmdRename.Location.X, cmdClearData.Location.Y - 36);
+                cmdExpExcel.Size = new Size(cmdRename.Width, cmdRename.Height);
+                cmdDwnldZip.Location = new Point(cmdRename.Location.X, cmdExpExcel.Location.Y- 36);
+                cmdDwnldZip.Size = new Size(cmdRename.Width, cmdRename.Height);
+                cmdDwnldCsv.Location = new Point(cmdRename.Location.X, cmdDwnldZip.Location.Y - 36);
+                cmdDwnldCsv.Size = new Size(cmdRename.Width, cmdRename.Height);
+                cmdImportLogFile.Location = new Point(cmdRename.Location.X, cmdDwnldCsv.Location.Y - 36);
+                cmdImportLogFile.Size = new Size(cmdRename.Width, cmdRename.Height);
+                cmdImportLogPi.Location = new Point(cmdRename.Location.X, cmdImportLogFile.Location.Y - 36);
+                cmdImportLogPi.Size = new Size(cmdRename.Width, cmdRename.Height);
+            }
+            else
+            {
+                this.Font = new Font(FontFamily.GenericSansSerif, 8.25f, FontStyle.Regular, GraphicsUnit.Point, 0, false);
+                cmdCtrlConf.Location = new Point(13, 12);
+                cmdCtrlConf.Size = new Size(125, 22);
+                cmdDataProc.Location = new Point(144, 12);
+                cmdDataProc.Size = new Size(130, 22);
+                cmdSettings.Location = new Point(281, 12);
+                cmdSettings.Size = new Size(112, 22);
+                cmdAbt.Location = new Point(399, 12);
+                cmdAbt.Size = new Size(100, 22);
+                cmdConnect.Location = new Point(this.Width - 37 - 80, 12);
+                cmdConnect.Size = new Size(80, 22);
+                cmdChangeUser.Location = new Point(cmdConnect.Location.X - 6 - 80, 12);
+                cmdChangeUser.Size = new Size(80, 22);
+                lblConnection.Location = new Point(505, 17);
+                lblConnection.Size = new Size(cmdChangeUser.Location.X - (cmdAbt.Location.X + cmdAbt.Width) - 10, 21);
+                pnlCtrlConf.Location = new Point(13, 40);
+                lblProject.Location = new Point(15, 14);
+                lblProject.Size = new Size(43, 13);
+                nudProject.Location = new Point(17, 31);
+                nudProject.Size = new Size(57, 20);
+                lblWorkPack.Location = new Point(76, 14);
+                lblWorkPack.Size = new Size(64, 13);
+                nudWorkPack.Location = new Point(80, 31);
+                nudWorkPack.Size = new Size(61, 20);
+                lblJobSheet.Location = new Point(144, 14);
+                lblJobSheet.Size = new Size(58, 13);
+                nudJobSheet.Location = new Point(147, 31);
+                nudJobSheet.Size = new Size(56, 20);
+                pnlSimpleConfig.Location = new Point(214, 0);
+                pnlSimpleConfig.Size = new Size(pnlCtrlConf.Width - pnlSimpleConfig.Location.X, pnlCtrlConf.Height);
+                dgvInputSetup.Location = pnlSimpleConfig.Location;
+                dgvInputSetup.Size = pnlSimpleConfig.Size;
+                lblPin.Location = new Point(3, 14);
+                lblPin.Size = new Size(25, 13);
+                cmbPin.Location = new Point(3, 32);
+                cmbPin.Size = new Size(121, 21);
+                cmbSensor.Location = new Point(130,32);
+                cmbSensor.Size = new Size(121,21);
+                lblSensor.Location = new Point(127,14);
+                lblSensor.Size = new Size(43,13);
+                cmbVar.Location = new Point(257, 32);
+                cmbVar.Size = new Size(121, 21);
+                lblVar.Location = new Point(254, 14);
+                lblVar.Size = new Size(51, 13);
+                txtLogPins.Location = new Point(3, 59);
+                txtLogPins.Size = new Size(pnlSimpleConfig.Width - 6, pnlSimpleConfig.Height - txtLogPins.Location.Y - 3);
+                cmdRemovePin.Location = new Point(txtLogPins.Width - 90, 31);
+                cmdRemovePin.Size = new Size(93,22);
+                cmdAddPin.Location = new Point(cmdRemovePin.Location.X - 126, 31);
+                cmdAddPin.Size = new Size(120, 22);
+                label1.Location = new Point(15,65);
+                label1.Size = new Size(59,13);
+                txtLogName.Location = new Point(97,62);
+                txtLogName.Size = new Size(106,20);
+                nudInterval.Location = new Point(97,87);
+                nudInterval.Size = new Size(106,20);
+                label2.Location = new Point(14,89);
+                label2.Size = new Size(71,13);
+                lblDescription.Location = new Point(15,112);
+                lblDescription.Size = new Size(63, 13);
+                txtDescription.Location = new Point(18,128);
+                txtDescription.Size = new Size(185,63);
+                cmdResetConfig.Location = new Point(17, 197);
+                cmdResetConfig.Size = new Size(186, 25);
+                cmdConfigSwitch.Location = new Point(17, 228);
+                cmdConfigSwitch.Size = new Size(186, 23);
+                cmdImportConfFile.Location = new Point(cmdResetConfig.Location.X, pnlCtrlConf.Height - 43);
+                cmdImportConfFile.Size = new Size(cmdResetConfig.Width / 2 - 3, 33);
+                cmdImportConfPi.Location = new Point(cmdImportConfFile.Location.X + cmdImportConfFile.Width + 6, pnlCtrlConf.Height - 43);
+                cmdImportConfPi.Size = new Size(cmdResetConfig.Width / 2 - 3, 33);
+                cmdSave.Location = new Point(cmdResetConfig.Location.X, cmdImportConfFile.Location.Y - 39);
+                cmdSave.Size = new Size(cmdImportConfFile.Width, 33);
+                cmdUpload.Location = new Point(cmdImportConfPi.Location.X, cmdImportConfFile.Location.Y - 39);
+                cmdUpload.Size = new Size(cmdImportConfPi.Width, 33);
+                cmdStartLog.Location = new Point(cmdResetConfig.Location.X, cmdSave.Location.Y - 39);
+                cmdStartLog.Size = new Size(cmdImportConfFile.Width, 33);
+                cmdStopLog.Location = new Point(cmdImportConfPi.Location.X, cmdSave.Location.Y - 39);
+                cmdStopLog.Size = new Size(cmdImportConfPi.Width, 33);
+                pnlDataProc.Location = new Point(13, 40);
+                dgvDataProc.Location = new Point(210, 3);
+                dgvDataProc.Size = new Size(pnlDataProc.Width - 213, pnlDataProc.Height - 6);
+                lblLogDisplay.Location = new Point(19, 14);
+                lblLogDisplay.Size = new Size(93, 14);
+                lblLogDisplay.MaximumSize = new Size(185, 14);
+                cmdRename.Location = new Point(17, 37);
+                cmdRename.Size = new Size(186, 25);
+                cmdPythonScript.Location = new Point(17, 68);
+                cmdPythonScript.Size = new Size(186,25);
+                cmdPythonGraph.Location = new Point(17, 99);
+                cmdPythonGraph.Size = new Size(186,25);
+                cmdReconvert.Location = new Point(17, 130);
+                cmdReconvert.Size = new Size(186,25);
+                cmdClearData.Location = new Point(cmdRename.Location.X, dgvDataProc.Location.Y + dgvDataProc.Height - 31);
+                cmdClearData.Size = new Size(cmdRename.Width, cmdRename.Height);
+                cmdExpExcel.Location = new Point(cmdRename.Location.X, cmdClearData.Location.Y - 31);
+                cmdExpExcel.Size = new Size(cmdRename.Width, cmdRename.Height);
+                cmdDwnldZip.Location = new Point(cmdRename.Location.X, cmdExpExcel.Location.Y - 31);
+                cmdDwnldZip.Size = new Size(cmdRename.Width, cmdRename.Height);
+                cmdDwnldCsv.Location = new Point(cmdRename.Location.X, cmdDwnldZip.Location.Y - 31);
+                cmdDwnldCsv.Size = new Size(cmdRename.Width, cmdRename.Height);
+                cmdImportLogFile.Location = new Point(cmdRename.Location.X, cmdDwnldCsv.Location.Y - 31);
+                cmdImportLogFile.Size = new Size(cmdRename.Width, cmdRename.Height);
+                cmdImportLogPi.Location = new Point(cmdRename.Location.X, cmdImportLogFile.Location.Y - 31);
+                cmdImportLogPi.Size = new Size(cmdRename.Width, cmdRename.Height);
+            }
         }
     }
 }

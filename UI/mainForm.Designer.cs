@@ -76,6 +76,7 @@
             this.cmdSettings = new System.Windows.Forms.Button();
             this.cmdAbt = new System.Windows.Forms.Button();
             this.pnlDataProc = new System.Windows.Forms.Panel();
+            this.cmdRename = new System.Windows.Forms.Button();
             this.cmdReconvert = new System.Windows.Forms.Button();
             this.lblLogDisplay = new System.Windows.Forms.Label();
             this.cmdClearData = new System.Windows.Forms.Button();
@@ -95,7 +96,6 @@
             this.sfdLog = new System.Windows.Forms.SaveFileDialog();
             this.ofdPythonScript = new System.Windows.Forms.OpenFileDialog();
             this.cmdChangeUser = new System.Windows.Forms.Button();
-            this.cmdRename = new System.Windows.Forms.Button();
             this.pnlCtrlConf.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.nudProject)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudWorkPack)).BeginInit();
@@ -112,6 +112,7 @@
             this.pnlCtrlConf.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.pnlCtrlConf.BackColor = System.Drawing.SystemColors.Control;
             this.pnlCtrlConf.Controls.Add(this.lblJobSheet);
             this.pnlCtrlConf.Controls.Add(this.lblWorkPack);
             this.pnlCtrlConf.Controls.Add(this.lblProject);
@@ -206,7 +207,7 @@
             // 
             this.cmdImportConfFile.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.cmdImportConfFile.AutoEllipsis = true;
-            this.cmdImportConfFile.Location = new System.Drawing.Point(18, 336);
+            this.cmdImportConfFile.Location = new System.Drawing.Point(17, 336);
             this.cmdImportConfFile.Name = "cmdImportConfFile";
             this.cmdImportConfFile.Size = new System.Drawing.Size(94, 33);
             this.cmdImportConfFile.TabIndex = 23;
@@ -282,7 +283,7 @@
             this.cmdImportConfPi.AutoEllipsis = true;
             this.cmdImportConfPi.Location = new System.Drawing.Point(118, 336);
             this.cmdImportConfPi.Name = "cmdImportConfPi";
-            this.cmdImportConfPi.Size = new System.Drawing.Size(85, 33);
+            this.cmdImportConfPi.Size = new System.Drawing.Size(86, 33);
             this.cmdImportConfPi.TabIndex = 7;
             this.cmdImportConfPi.Text = "Import From Pi";
             this.cmdImportConfPi.UseVisualStyleBackColor = true;
@@ -372,6 +373,7 @@
             this.pnlSimpleConfig.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.pnlSimpleConfig.BackColor = System.Drawing.SystemColors.Control;
             this.pnlSimpleConfig.Controls.Add(this.cmdRemovePin);
             this.pnlSimpleConfig.Controls.Add(this.cmbSensor);
             this.pnlSimpleConfig.Controls.Add(this.lblVar);
@@ -634,6 +636,16 @@
             this.pnlDataProc.Size = new System.Drawing.Size(821, 379);
             this.pnlDataProc.TabIndex = 5;
             // 
+            // cmdRename
+            // 
+            this.cmdRename.Location = new System.Drawing.Point(17, 37);
+            this.cmdRename.Name = "cmdRename";
+            this.cmdRename.Size = new System.Drawing.Size(186, 25);
+            this.cmdRename.TabIndex = 9;
+            this.cmdRename.Text = "Rename Log Locally";
+            this.cmdRename.UseVisualStyleBackColor = true;
+            this.cmdRename.Click += new System.EventHandler(this.cmdRename_Click);
+            // 
             // cmdReconvert
             // 
             this.cmdReconvert.Location = new System.Drawing.Point(18, 130);
@@ -814,16 +826,6 @@
             this.cmdChangeUser.LocationChanged += new System.EventHandler(this.lblConnection_TextChanged);
             this.cmdChangeUser.Click += new System.EventHandler(this.cmdChangeUser_Click);
             // 
-            // cmdRename
-            // 
-            this.cmdRename.Location = new System.Drawing.Point(17, 37);
-            this.cmdRename.Name = "cmdRename";
-            this.cmdRename.Size = new System.Drawing.Size(186, 25);
-            this.cmdRename.TabIndex = 9;
-            this.cmdRename.Text = "Rename Log Locally";
-            this.cmdRename.UseVisualStyleBackColor = true;
-            this.cmdRename.Click += new System.EventHandler(this.cmdRename_Click);
-            // 
             // mainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
@@ -836,13 +838,14 @@
             this.Controls.Add(this.cmdSettings);
             this.Controls.Add(this.cmdDataProc);
             this.Controls.Add(this.cmdCtrlConf);
-            this.Controls.Add(this.pnlDataProc);
             this.Controls.Add(this.pnlCtrlConf);
+            this.Controls.Add(this.pnlDataProc);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MinimumSize = new System.Drawing.Size(871, 489);
             this.Name = "mainForm";
             this.Text = "Steer Logger v1.0.4";
             this.Load += new System.EventHandler(this.mainForm_Load);
+            this.SizeChanged += new System.EventHandler(this.mainForm_SizeChanged);
             this.pnlCtrlConf.ResumeLayout(false);
             this.pnlCtrlConf.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.nudProject)).EndInit();
