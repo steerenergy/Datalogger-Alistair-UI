@@ -1966,6 +1966,12 @@ namespace SteerLoggerUser
         // Dowload log in separate CSV files
         private void cmdDwnldCsv_Click(object sender, EventArgs e)
         {
+            if (DAP.logsProcessing.Count == 0)
+            {
+                MessageBox.Show("There is no data to save, please import data and try again.",
+                                "No Data", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
             // Enumerate through logs that are being processed
             foreach (LogMeta log in DAP.logsProcessing)
             {
@@ -2071,7 +2077,7 @@ namespace SteerLoggerUser
                     // Catch any input/output errors
                     catch (IOException)
                     {
-                        MessageBox.Show("Error saving converted csv file. Make sure the file is not being used by another application and try again.",
+                        MessageBox.Show("Error saving processed csv file. Make sure the file is not being used by another application and try again.",
                                         "Error Saving File", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
@@ -2129,6 +2135,12 @@ namespace SteerLoggerUser
         // Download logs being processed in a zip file
         private void cmdDwnldZip_Click(object sender, EventArgs e)
         {
+            if (DAP.logsProcessing.Count == 0)
+            {
+                MessageBox.Show("There is no data to save, please import data and try again.",
+                                "No Data", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
             string dirPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger\zipDir";
             // If the temporary directory exists, delete it
             if (Directory.Exists(dirPath))
@@ -2427,8 +2439,9 @@ namespace SteerLoggerUser
         // Shows the about menu
         private void cmdAbt_Click(object sender, EventArgs e)
         {
-            // This is still a Work in Progress
-            MessageBox.Show("Epic new logger!!", "About", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            AboutForm aboutForm = new AboutForm();
+            aboutForm.ShowDialog();
+            aboutForm.Dispose();
         }
 
 
@@ -2785,6 +2798,7 @@ namespace SteerLoggerUser
             {
                 MessageBox.Show("No logs to rename.", "No Logs Imported",
                                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
             }
             // Show rename form
             RenameForm renameForm = new RenameForm(DAP);
