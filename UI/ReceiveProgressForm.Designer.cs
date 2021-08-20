@@ -30,6 +30,7 @@ namespace SteerLoggerUser
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ReceiveProgressForm));
             this.pbDownload = new System.Windows.Forms.ProgressBar();
             this.txtOuput = new System.Windows.Forms.TextBox();
             this.lblTime = new System.Windows.Forms.Label();
@@ -73,11 +74,12 @@ namespace SteerLoggerUser
             this.Controls.Add(this.lblTime);
             this.Controls.Add(this.txtOuput);
             this.Controls.Add(this.pbDownload);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximumSize = new System.Drawing.Size(404, 252);
             this.MinimumSize = new System.Drawing.Size(404, 252);
             this.Name = "ReceiveProgressForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "ReceiveProgessFrom";
+            this.Text = "ReceiveProgressForm";
             this.Load += new System.EventHandler(this.ReceiveProgressForm_Load);
             this.ResumeLayout(false);
             this.PerformLayout();

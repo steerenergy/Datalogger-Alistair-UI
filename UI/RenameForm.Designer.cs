@@ -29,6 +29,7 @@ namespace SteerLoggerUser
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(RenameForm));
             this.cmdRename = new System.Windows.Forms.Button();
             this.dgvRename = new System.Windows.Forms.DataGridView();
             this.oldName = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -94,6 +95,7 @@ namespace SteerLoggerUser
             this.Controls.Add(this.lblRename);
             this.Controls.Add(this.dgvRename);
             this.Controls.Add(this.cmdRename);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "RenameForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "RenameForm";

@@ -1830,6 +1830,12 @@ namespace SteerLoggerUser
                     }
                 }
             }
+
+            if (excel != null)
+            {
+                excel.Quit();
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(excel);
+            }
         }
 
 
@@ -1988,7 +1994,7 @@ namespace SteerLoggerUser
                     }
                 }
                 // If a log has raw data, allow user to save raw data csv on local machine
-                if (log.raw != null || log.raw != "")
+                if (log.raw != null && log.raw != "")
                 {
                     // Create filename from logMeta
                     sfdLog.FileName = "raw-" + log.name +
@@ -2017,7 +2023,7 @@ namespace SteerLoggerUser
                     }
                 }
                 // If a log has converted data, allow user to save conv data csv on local machine
-                if (log.conv != null || log.conv != "")
+                if (log.conv != null && log.conv != "")
                 {
                     // Create filename from logMeta
                     sfdLog.FileName = "converted-" + log.name + 
@@ -2142,7 +2148,7 @@ namespace SteerLoggerUser
                     SaveConfig(log, confPath);
                 }
                 // If raw file exists, add to zipDir
-                if (log.raw == null || log.raw == "")
+                if (log.raw != null && log.raw != "")
                 {
                     string rawPath = dirPath + @"\raw-" + log.name + ".csv";
                     try
@@ -2156,7 +2162,7 @@ namespace SteerLoggerUser
                     }
                 }
                 // If conv file exists, add to zipDir
-                if (log.conv == null || log.conv == "")
+                if (log.conv != null && log.conv != "")
                 {
                     string convPath = dirPath + @"\converted-" + log.name + ".csv";
                     try
@@ -2594,6 +2600,8 @@ namespace SteerLoggerUser
             // Create new logMeta to hold log
             LogMeta logMeta;
             ofdLog.Title = "Open Log Data";
+            ofdLog.DefaultExt = ".csv";
+            ofdLog.Filter = "Csv files (*.csv)|*.csv|All files (*.*)|*.*";
             // Allow user to select raw data file
             if (ofdLog.ShowDialog() == DialogResult.OK)
             {
@@ -2612,6 +2620,8 @@ namespace SteerLoggerUser
             List<Pin> enabled = new List<Pin>();
             // Import the config to use to convert raw data
             ofdConfig.Title = "Open Config Data";
+            ofdConfig.DefaultExt = ".ini";
+            ofdConfig.Filter = "Ini files (*.ini)|*.ini|All files|*.*";
             if (ofdConfig.ShowDialog() == DialogResult.OK)
             {
                 // Create stream object to use in StreamReader creation
@@ -2709,6 +2719,14 @@ namespace SteerLoggerUser
                 return;
             }
 
+            foreach(Pin pin in logMeta.config)
+            {
+                if (pin.enabled)
+                {
+                    enabled.Add(pin);
+                }
+            }
+
             // Read from the raw file selected
             using (StreamReader reader = new StreamReader(logMeta.raw))
             {
@@ -2778,6 +2796,10 @@ namespace SteerLoggerUser
             lblLogDisplay.Text = String.Format("Displaying: {0} {1}", DAP.logsProcessing[0].name, DAP.logsProcessing[0].testNumber);
         }
 
+
+        // This code controls reformatting the main UI when resized beyond a certain limit
+        // This means the font and subsequently all controls can be made bigger and fit together in the same way
+        // This can probably be done better
         private void mainForm_SizeChanged(object sender, EventArgs e)
         {
             if (this.Size.Width > 1425 && this.Size.Height > 800)
