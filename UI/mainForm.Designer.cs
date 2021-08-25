@@ -777,6 +777,7 @@
             // ofdConfig
             // 
             this.ofdConfig.DefaultExt = "ini";
+            this.ofdConfig.Filter = "Config files (*.ini)|*.ini|All files (*.*)|*.*";
             // 
             // lblConnection
             // 

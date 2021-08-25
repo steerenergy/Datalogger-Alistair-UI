@@ -14,9 +14,10 @@ namespace SteerLoggerUser
         BackgroundWorker worker;
 
         // Array of logger names passed as parameter to form
-        public ConnectForm(string[] logger_arr)
+        public ConnectForm(string[] logger_arr, string user)
         {
             loggers = logger_arr;
+            this.user = user;
             this.FormClosed += new FormClosedEventHandler(ConnectFormClosed);
             InitializeComponent();
         }
@@ -26,6 +27,7 @@ namespace SteerLoggerUser
         private void Form1_Load(object sender, EventArgs e)
         {
             pbScan.Value = 0;
+            txtUser.Text = user;
         }
 
 

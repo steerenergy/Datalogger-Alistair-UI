@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Text;
 using System.Windows.Forms;
 
 namespace SteerLoggerUser
@@ -49,7 +50,7 @@ namespace SteerLoggerUser
                     Convert.ToUInt32(response[0]),
                     response[1],
                     Convert.ToUInt32(response[2]),
-                    response[3],
+                    ParseDateTime(response[3]),
                     Convert.ToUInt32(response[4]),
                     Convert.ToUInt32(response[5]),
                     Convert.ToUInt32(response[6]),
@@ -61,6 +62,35 @@ namespace SteerLoggerUser
             cmdDownload.Width = dgvDownload.Width;
         }
 
+
+        // Parses date string to look nice
+        private DateTime ParseDateTime(string date)
+        {
+            date = date.Replace("-", "");
+            StringBuilder dateTime = new StringBuilder();
+            // Array for number of characters in each part of the DateTime
+            int[] counters = { 4, 2, 2, 2, 2, 2 };
+            // Array for separators between each part of the DateTime
+            char[] separators = { '/', '/', ' ', ':', ':'};
+            int pos = 0;
+            int sepPos = 0;
+            // Iterate through date string and add characters and separators in order
+            foreach (int counter in counters)
+            {
+                for (int i = 0; i < counter; i++)
+                {
+                    dateTime.Append(date[pos]);
+                    pos += 1;
+                }
+
+                if (pos < date.Length - 1)
+                {
+                    dateTime.Append(separators[sepPos]);
+                    sepPos += 1;
+                }
+            }
+            return Convert.ToDateTime(dateTime.ToString());
+        }
 
         // Sends the selected log ids to the logger
         private void cmdDownload_Click(object sender, EventArgs e)

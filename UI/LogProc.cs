@@ -26,27 +26,39 @@ namespace SteerLoggerUser
         // Sets the LogProc values to match the values for converted data of LogData
         public void CreateProcFromConv(string convPath)
         {
-            using (StreamReader reader = new StreamReader(convPath))
+            try
             {
-                // Read the headerline and set convheaders
-                this.procheaders = reader.ReadLine().Split(',').ToList();
-                this.timestamp = new List<DateTime>();
-                this.time = new List<double>();
-                // Initialise procData using the number of headers
-                this.InitProc(this.procheaders.Count - 2);
-                while (!reader.EndOfStream)
+                using (StreamReader reader = new StreamReader(convPath))
                 {
-                    // Read each line and store the data in the logData object
-                    string[] line = reader.ReadLine().Split(',');
-                    this.timestamp.Add(Convert.ToDateTime(line[0]));
-                    this.time.Add(Convert.ToDouble(line[1]));
-                    List<double> convData = new List<double>();
-                    for (int i = 2; i < line.Length; i++)
+                    // Read the headerline and set convheaders
+                    this.procheaders = reader.ReadLine().Split(',').ToList();
+                    // If there are less than 3 headers, the data file is likely incorrect
+                    if (procheaders.Count < 3)
                     {
-                        convData.Add(double.Parse(line[i]));
+                        throw new InvalidDataException();
                     }
-                    this.AddProcData(convData);
+                    this.timestamp = new List<DateTime>();
+                    this.time = new List<double>();
+                    // Initialise procData using the number of headers
+                    this.InitProc(this.procheaders.Count - 2);
+                    while (!reader.EndOfStream)
+                    {
+                        // Read each line and store the data in the logData object
+                        string[] line = reader.ReadLine().Split(',');
+                        this.timestamp.Add(Convert.ToDateTime(line[0]));
+                        this.time.Add(Convert.ToDouble(line[1]));
+                        List<double> convData = new List<double>();
+                        for (int i = 2; i < line.Length; i++)
+                        {
+                            convData.Add(double.Parse(line[i]));
+                        }
+                        this.AddProcData(convData);
+                    }
                 }
+            }
+            catch (FileNotFoundException)
+            {
+                throw new InvalidDataException();
             }
         }
 

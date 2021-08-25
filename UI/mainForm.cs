@@ -170,6 +170,15 @@ namespace SteerLoggerUser
                             listenerExit = true;
                             throw new IOException();
                         }
+                        else if (line == "Command not recognised")
+                        {
+                            MessageBox.Show("The logger didn't recognise that command.\n" +
+                                            "Please make sure that both the user program and logger program are up to date.\n" +
+                                            "If this error occurs repeatedly, notify Alistair Ryan.\n",
+                                            "Command Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            listenerExit = true;
+                            throw new IOException();
+                        }
                         tcpQueue.Enqueue(line);
                     }
                     // If the last position contains data (split packet), add to buffer
@@ -315,141 +324,155 @@ namespace SteerLoggerUser
         // Reads program config and presets
         private void ReadProgConfig()
         {
-            progConfig = new ProgConfig();
-            // Opens program config using StreamReader
-            using (StreamReader reader = new StreamReader(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger\progConf.ini"))
+            try
             {
-                string line = "";
-                char[] trimChars = new char[] { '\n', ' ' };
-                // headerNum used to keep track of which section is being read
-                int headerNum = 0;
-                while (!reader.EndOfStream)
+                progConfig = new ProgConfig();
+                // Opens program config using StreamReader
+                using (StreamReader reader = new StreamReader(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger\progConf.ini"))
                 {
-                    line = reader.ReadLine().Trim(trimChars);
-                    // Ignore empty lines or comments
-                    if (line != "" && line[0] != '#')
+                    string line = "";
+                    char[] trimChars = new char[] { '\n', ' ' };
+                    // headerNum used to keep track of which section is being read
+                    int headerNum = 0;
+                    while (!reader.EndOfStream)
                     {
-                        // Set which section is being read using section headers
-                        switch (line)
+                        line = reader.ReadLine().Trim(trimChars);
+                        // Ignore empty lines or comments
+                        if (line != "" && line[0] != '#')
                         {
-                            case "[unitTypes]":
-                                headerNum = 0;
-                                break;
-                            case "[inputTypes]":
-                                headerNum = 1;
-                                break;
-                            case "[gains]":
-                                headerNum = 2;
-                                break;
-                            case "[hostnames]":
-                                headerNum = 3;
-                                break;
-                            case "[activate]":
-                                headerNum = 4;
-                                break;
-                            default:
-                                // Store data in progConfig in correct variable depending on the section being read
-                                string[] data = line.Split(" = ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-                                switch (headerNum)
-                                {
-                                    case 0:
-                                        progConfig.units.Add(data[1]);
-                                        break;
-                                    case 1:
-                                        // For input types, parse the string and extract the bottom and top volt
-                                        string[] decimalData = data[1].Trim(new char[] { '(', ')' }).Split(',');
-                                        progConfig.inputTypes.Add(data[0], decimalData.Select(i => Convert.ToDouble(i)).ToArray());
-                                        break;
-                                    case 2:
-                                        progConfig.gains.Add(Convert.ToInt32(data[0]), Convert.ToDouble(data[1]));
-                                        break;
-                                    case 3:
-                                        progConfig.loggers.Add(data[1]);
-                                        break;
-                                    case 4:
-                                        // If there is no set anaconda path, try to find in usual install location
-                                        if (data.Length == 1)
-                                        {
-                                            // If found in usual location, set activatePath
-                                            if (File.Exists(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + @"\anaconda3\Scripts\activate.bat"))
+                            // Set which section is being read using section headers
+                            switch (line)
+                            {
+                                case "[unitTypes]":
+                                    headerNum = 0;
+                                    break;
+                                case "[inputTypes]":
+                                    headerNum = 1;
+                                    break;
+                                case "[gains]":
+                                    headerNum = 2;
+                                    break;
+                                case "[hostnames]":
+                                    headerNum = 3;
+                                    break;
+                                case "[activate]":
+                                    headerNum = 4;
+                                    break;
+                                default:
+                                    // Store data in progConfig in correct variable depending on the section being read
+                                    string[] data = line.Split(" = ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+                                    switch (headerNum)
+                                    {
+                                        case 0:
+                                            progConfig.units.Add(data[1]);
+                                            break;
+                                        case 1:
+                                            // For input types, parse the string and extract the bottom and top volt
+                                            string[] decimalData = data[1].Trim(new char[] { '(', ')' }).Split(',');
+                                            progConfig.inputTypes.Add(data[0], decimalData.Select(i => Convert.ToDouble(i)).ToArray());
+                                            break;
+                                        case 2:
+                                            progConfig.gains.Add(Convert.ToInt32(data[0]), Convert.ToDouble(data[1]));
+                                            break;
+                                        case 3:
+                                            progConfig.loggers.Add(data[1]);
+                                            break;
+                                        case 4:
+                                            // If there is no set anaconda path, try to find in usual install location
+                                            if (data.Length == 1)
                                             {
-                                                progConfig.activatePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) 
-                                                                          + @"\anaconda3\Scripts\activate.bat";
+                                                // If found in usual location, set activatePath
+                                                if (File.Exists(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + @"\anaconda3\Scripts\activate.bat"))
+                                                {
+                                                    progConfig.activatePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
+                                                                              + @"\anaconda3\Scripts\activate.bat";
+                                                }
+                                                // If no in usual location, alert user and continue
+                                                else
+                                                {
+                                                    MessageBox.Show("Cannot find activate.bat for Anaconda,"
+                                                                    + "please edit settings and give the location of activate.bat.", "Cannot Find activate.bat",
+                                                                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                                    progConfig.activatePath = "";
+                                                }
                                             }
-                                            // If no in usual location, alert user and continue
+                                            // If there is set anaconda path, check that activate.bat exists there
                                             else
                                             {
-                                                MessageBox.Show("Cannot find activate.bat for Anaconda," 
-                                                                + "please edit settings and give the location of activate.bat.","Cannot Find activate.bat",
-                                                                MessageBoxButtons.OK,MessageBoxIcon.Warning);
-                                                progConfig.activatePath = "";
+                                                if (File.Exists(data[1]))
+                                                {
+                                                    progConfig.activatePath = data[1];
+                                                }
+                                                // If activate.bat not in set location, alert user and continue
+                                                else
+                                                {
+                                                    MessageBox.Show("Cannot find activate.bat for Anaconda, please edit settings and give the location of activate.bat.",
+                                                                    "Cannot Find activate.bat", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                                    progConfig.activatePath = "";
+                                                }
                                             }
-                                        }
-                                        // If there is set anaconda path, check that activate.bat exists there
-                                        else
-                                        {
-                                            if (File.Exists(data[1]))
-                                            {
-                                                progConfig.activatePath = data[1];
-                                            }
-                                            // If activate.bat not in set location, alert user and continue
-                                            else
-                                            {
-                                                MessageBox.Show("Cannot find activate.bat for Anaconda, please edit settings and give the location of activate.bat.",
-                                                                "Cannot Find activate.bat", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                                                progConfig.activatePath = "";
-                                            }
-                                        }
-                                        break;
-                                }
-                                break;
+                                            break;
+                                    }
+                                    break;
+                            }
                         }
                     }
                 }
-            }
-            // Read in simple config pins from configPresets.csv
-            using (StreamReader reader = new StreamReader(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) 
-                                                          + @"\SteerLogger\configPresets.csv"))
-            {
-                // Read header line and ignore
-                reader.ReadLine();
-                char[] trimChars = new char[] { '\n', ' ' };
-                string line = "";
-                // Read and process lines until at the end of the file
-                while (!reader.EndOfStream)
+                // Read in simple config pins from configPresets.csv
+                using (StreamReader reader = new StreamReader(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)
+                                                              + @"\SteerLogger\configPresets.csv"))
                 {
-                    line = reader.ReadLine().Trim(trimChars);
-                    string[] pinData = line.Split(',');
-                    // Add sensor name and variation to variationDict (used for populating cmb menus)
-                    // If sensor not already in the dictionary and it has a variation, add new sensor and variation to dictionary
-                    if (!progConfig.variationDict.Keys.Contains(pinData[0]) && pinData[1] != "")
+                    // Read header line and ignore
+                    reader.ReadLine();
+                    char[] trimChars = new char[] { '\n', ' ' };
+                    string line = "";
+                    // Read and process lines until at the end of the file
+                    while (!reader.EndOfStream)
                     {
-                        progConfig.variationDict.Add(pinData[0], new List<string> { pinData[1] });
-                    }
-                    // If sensor is in dictionary and has a variation, add new variation to sensor
-                    else if (pinData[1] != "")
-                    {
-                        progConfig.variationDict[pinData[0]].Add(pinData[1]);
-                    }
-                    // If sensor isn't in dictionary and has no variation, add sensor and N/A variation to dictionary
-                    else if (!progConfig.variationDict.Keys.Contains(pinData[0]))
-                    {
-                        progConfig.variationDict.Add(pinData[0], new List<string> { "N/A" });
-                    }
+                        line = reader.ReadLine().Trim(trimChars);
+                        string[] pinData = line.Split(',');
+                        // Add sensor name and variation to variationDict (used for populating cmb menus)
+                        // If sensor not already in the dictionary and it has a variation, add new sensor and variation to dictionary
+                        if (!progConfig.variationDict.Keys.Contains(pinData[0]) && pinData[1] != "")
+                        {
+                            progConfig.variationDict.Add(pinData[0], new List<string> { pinData[1] });
+                        }
+                        // If sensor is in dictionary and has a variation, add new variation to sensor
+                        else if (pinData[1] != "")
+                        {
+                            progConfig.variationDict[pinData[0]].Add(pinData[1]);
+                        }
+                        // If sensor isn't in dictionary and has no variation, add sensor and N/A variation to dictionary
+                        else if (!progConfig.variationDict.Keys.Contains(pinData[0]))
+                        {
+                            progConfig.variationDict.Add(pinData[0], new List<string> { "N/A" });
+                        }
 
-                    // Add preset to dict of preset pins
-                    string presetName = pinData[0] + ',' + pinData[1];
-                    Pin tempPin = new Pin
-                    {
-                        fName = pinData[2],
-                        inputType = pinData[3],
-                        gain = Convert.ToInt32(pinData[4]),
-                        scaleMin = Convert.ToDouble(pinData[5]),
-                        scaleMax = Convert.ToDouble(pinData[6]),
-                        units = pinData[7]
-                    };
-                    progConfig.configPins.Add(presetName, tempPin);
+                        // Add preset to dict of preset pins
+                        string presetName = pinData[0] + ',' + pinData[1];
+                        Pin tempPin = new Pin
+                        {
+                            fName = pinData[2],
+                            inputType = pinData[3],
+                            gain = Convert.ToInt32(pinData[4]),
+                            scaleMin = Convert.ToDouble(pinData[5]),
+                            scaleMax = Convert.ToDouble(pinData[6]),
+                            units = pinData[7]
+                        };
+                        progConfig.configPins.Add(presetName, tempPin);
+                    }
                 }
+            }
+            // If files in appData have been deleted, copy from programFiles direcotry
+            catch (FileNotFoundException)
+            {
+                InitialiseAppData();
+                ReadProgConfig();
+            }
+            catch(DirectoryNotFoundException)
+            {
+                InitialiseAppData();
+                ReadProgConfig();
             }
 
             // If configPresets have been deleted, retrieve version from programFiles
@@ -478,10 +501,22 @@ namespace SteerLoggerUser
             {
                 string output = dirPath + @"\" + filename;
                 string file = Application.StartupPath + @"\" + filename;
-                if (!File.Exists(output))
+                try
                 {
-                    File.Copy(file, output);
+                    if (!File.Exists(output))
+                    {
+                        File.Copy(file, output);
+                    }
                 }
+                catch (FileNotFoundException exp)
+                {
+                    MessageBox.Show(String.Format("Error: {0}. " +
+                        "\nPlease check your installation and reinstall if files are missing." +
+                        "\nThe application will now exit.", exp.Message),
+                        "File Not Found", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Application.Exit();
+                }
+                
             }
 
             // If SteerLogger\pythonScripts directory doesn't exist in appData, create it
@@ -515,7 +550,7 @@ namespace SteerLoggerUser
             ReadProgConfig();
             SetupSimpleConf();
             // Starts the connect form, which searches for loggers and allows user to connect to one
-            ConnectForm connectForm = new ConnectForm(progConfig.loggers.ToArray());
+            ConnectForm connectForm = new ConnectForm(progConfig.loggers.ToArray(), "");
             connectForm.ShowDialog();
             // If logger is null, close application as user has closed the connect form
             if (connectForm.logger == null)
@@ -847,7 +882,17 @@ namespace SteerLoggerUser
                                 DAP.logsProcessing.Add(tempLog);
                                 // Create tempProc from log downloaded and merge new tempProc
                                 LogProc tempProc = new LogProc();
-                                tempProc.CreateProcFromConv(tempLog.conv);
+                                try
+                                {
+                                    tempProc.CreateProcFromConv(tempLog.conv);
+                                }
+                                catch (InvalidDataException)
+                                {
+                                    MessageBox.Show(String.Format("Error parsing data from data file {0}.\n" +
+                                        "Check imported files and redownload if necessary.", tempLog.conv),
+                                         "Error Parsing Data", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    DAP.logsProcessing.Remove(tempLog);
+                                }
                                 DAP.MergeLogs(tempProc, tempLog.name);
                                 // Update lblLogDisplay and re-populate dgvDataProc
                                 this.Invoke(new Action(() => { lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name + " " + DAP.logsProcessing[0].testNumber; }));
@@ -878,7 +923,18 @@ namespace SteerLoggerUser
                             // Dequeue and display next log
                             DAP.logsProcessing.Clear();
                             DAP.logsProcessing.Add(DAP.logsToProc.Dequeue());
-                            DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].conv);
+                            try
+                            {
+                                DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].conv);
+                            }
+                            catch (InvalidDataException)
+                            {
+                                MessageBox.Show(String.Format("Error parsing data from data file {0}.\n" +
+                                    "Check imported files and redownload if necessary.", DAP.logsProcessing[0].conv),
+                                    "Error Parsing Data", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                DAP.logsProcessing.Remove(DAP.logsProcessing[0]);
+                            }
+                            
                             // Update lblLogDisplay and re-populate dgvDataProc
                             this.Invoke(new Action(() => { lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name + " " + DAP.logsProcessing[0].testNumber; }));
                             this.Invoke(new Action(() => { PopulateDataViewProc(DAP.logProc); }));
@@ -1072,6 +1128,7 @@ namespace SteerLoggerUser
             nudWorkPack.Value = 0;
             nudJobSheet.Value = 0;
             int number = 1;
+            dgvInputSetup.Rows.Clear();
             // Create 16 default pins and add to dgvInputSetup
             for (int i = 0; i <= 3; i++)
             {
@@ -1148,37 +1205,57 @@ namespace SteerLoggerUser
             // Delete temporary files from appData directory
             foreach (LogMeta log in DAP.logsProcessing)
             {
-                if (log.raw != null)
+                if (File.Exists(log.raw))
                 {
                     File.Delete(log.raw);
                 }
-                if (log.conv != null)
+                if (File.Exists(log.conv))
                 {
                     File.Delete(log.conv);
                 }                
             }
             DAP.saved = false;
             DAP.processing = false;
-            // If there is a log in the processing queue, display that log
-            if (DAP.logsToProc.Count > 0)
+            bool valid = false;
+            while (!valid)
             {
-                // Clear current log from DAP.logsProcessing
-                DAP.logsProcessing.Clear();
-                // Display new log in dgvDataProc
-                DAP.logsProcessing.Add(DAP.logsToProc.Dequeue());
-                DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].conv);
-                lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name + " " + DAP.logsProcessing[0].testNumber;
-                PopulateDataViewProc(DAP.logProc);
-            }
-            // If there is no log in the processing queue, clear grid and don't repopulate
-            else
-            {
-                DAP.logsProcessing.Clear();
-                lblLogDisplay.Text = "No Log Displaying";
-                DAP.processing = false;
-                dgvDataProc.DataSource = null;
-                dgvDataProc.Rows.Clear();
-                dgvDataProc.Columns.Clear();
+                try
+                {
+
+                    // If there is a log in the processing queue, display that log
+                    if (DAP.logsToProc.Count > 0)
+                    {
+                        // Clear current log from DAP.logsProcessing
+                        DAP.logsProcessing.Clear();
+                        // Display new log in dgvDataProc
+                        DAP.logsProcessing.Add(DAP.logsToProc.Dequeue());
+                        DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].conv);
+
+                        lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name + " " + DAP.logsProcessing[0].testNumber;
+                        PopulateDataViewProc(DAP.logProc);
+                        valid = true;
+                    }
+                    // If there is no log in the processing queue, clear grid and don't repopulate
+                    else
+                    {
+                        valid = true;
+                        DAP.logsProcessing.Clear();
+                        lblLogDisplay.Text = "No Log Displaying";
+                        DAP.processing = false;
+                        dgvDataProc.DataSource = null;
+                        dgvDataProc.Rows.Clear();
+                        dgvDataProc.Columns.Clear();
+                    }
+                }
+                catch (InvalidDataException)
+                {
+                    MessageBox.Show(String.Format("Error parsing data from data file {0} from log {1} {2}.\n" +
+                        "Check imported files and redownload if necessary.", DAP.logsProcessing[0].conv, 
+                        DAP.logsProcessing[0].name, DAP.logsProcessing[0].testNumber),
+                        "Error Parsing Data", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    DAP.logsProcessing.Remove(DAP.logsProcessing[0]);
+                    valid = false;
+                }
             }
         }
 
@@ -1282,6 +1359,17 @@ namespace SteerLoggerUser
         {
             if (ofdConfig.ShowDialog() == DialogResult.OK)
             {
+                // Check file is a .ini file, if not, check with user that this is correct
+                if (!ofdConfig.SafeFileName.Contains(".ini"))
+                {
+                    DialogResult dialogResult = MessageBox.Show(String.Format("{0} is not a .ini file. Do you still want to try to import?",
+                        ofdConfig.SafeFileName),"Not Config File",MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                    if (dialogResult == DialogResult.No)
+                    {
+                        return;
+                    }
+                }
+
                 // Create stream object to use in StreamReader creation
                 var fileStream = ofdConfig.OpenFile();
                 bool general = false;
@@ -1294,86 +1382,105 @@ namespace SteerLoggerUser
                     // Reads lines one at a time until the end of the file
                     while (reader.EndOfStream == false)
                     {
-                        string line = reader.ReadLine().Trim();
-                        if (line != "")
+                        try
                         {
-                            if (line == "[General]")
+                            string line = reader.ReadLine().Trim();
+                            if (line != "")
                             {
-                                general = true;
-                            }
-                            // Indicates that a new pin header has been reached
-                            else if (line[0] == '[')
-                            {
-                                // Increase pin number by one to move one row down on the grid
-                                pinNumber += 1;
-                                general = false;
-                                // Reset cell number to start in first column on grid
-                                cellNumber = 0;
-                                dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = pinNumber + 1;
-                                // Cell number increased by one each time a value is changed to change column
-                                cellNumber += 1;
-                                // Get pin name from pin header
-                                string pinName = line.Replace("[", "").Replace("]", "");
-                                dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = pinName;
-                                cellNumber += 1;
-                            }
-                            // If general is true, import config metadata
-                            else if (general == true)
-                            {
-                                string[] data = line.Split(new string[] { " = " }, StringSplitOptions.RemoveEmptyEntries);
-                                // Import config metadata depending on variable
-                                switch (data[0])
+                                if (line == "[General]")
                                 {
-                                    case "name":
-                                        txtLogName.Text = data[1];
-                                        break;
-                                    case "timeinterval":
-                                        nudInterval.Value = Convert.ToDecimal(data[1]);
-                                        break;
-                                    case "description":
-                                        txtDescription.Text = data[1].Replace(";", "\r\n");
-                                        break;
-                                    case "project":
-                                        nudProject.Value = Convert.ToInt16(data[1]);
-                                        break;
-                                    case "workpack":
-                                        nudWorkPack.Value = Convert.ToInt16(data[1]);
-                                        break;
-                                    case "jobsheet":
-                                        nudJobSheet.Value = Convert.ToInt16(data[1]);
-                                        break;
+                                    general = true;
                                 }
-                            }
-                            else
-                            {
-                                string[] data = line.Split(new string[] { " = " }, StringSplitOptions.None);
-                                // As enabled has to be a bool, a special case for conversion is used
-                                if (data[0] == "enabled")
+                                // Indicates that a new pin header has been reached
+                                else if (line[0] == '[')
                                 {
-                                    bool enabled = data[1] == "True";
-                                    dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = enabled;
+                                    // Increase pin number by one to move one row down on the grid
+                                    pinNumber += 1;
+                                    general = false;
+                                    // Reset cell number to start in first column on grid
+                                    cellNumber = 0;
+                                    dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = pinNumber + 1;
+                                    // Cell number increased by one each time a value is changed to change column
+                                    cellNumber += 1;
+                                    // Get pin name from pin header
+                                    string pinName = line.Replace("[", "").Replace("]", "");
+                                    dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = pinName;
                                     cellNumber += 1;
                                 }
-                                // Values are not set, set to default
-                                else if (data[0] == "inputtype" && data[1] == "Edit Me")
+                                // If general is true, import config metadata
+                                else if (general == true)
                                 {
-                                    dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = "4-20mA";
-                                    cellNumber += 1;
+                                    string[] data = line.Split(new string[] { " = " }, StringSplitOptions.RemoveEmptyEntries);
+                                    // Import config metadata depending on variable
+                                    switch (data[0])
+                                    {
+                                        case "name":
+                                            txtLogName.Text = data[1];
+                                            break;
+                                        case "timeinterval":
+                                            nudInterval.Value = Convert.ToDecimal(data[1]);
+                                            break;
+                                        case "description":
+                                            txtDescription.Text = data[1].Replace(";", "\r\n");
+                                            break;
+                                        case "project":
+                                            nudProject.Value = Convert.ToInt16(data[1]);
+                                            break;
+                                        case "workpack":
+                                            nudWorkPack.Value = Convert.ToInt16(data[1]);
+                                            break;
+                                        case "jobsheet":
+                                            nudJobSheet.Value = Convert.ToInt16(data[1]);
+                                            break;
+                                    }
                                 }
-                                // Values are not set, set to default
-                                else if (data[0] == "unit" && data[1] == "Edit Me")
+                                else
                                 {
-                                    dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = "V";
-                                    cellNumber += 1;
-                                }
-                                // All other values are imported as are, m and c values are ignored
-                                else if (data[0] != "m" && data[0] != "c")
-                                {
-                                    dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = data[1];
-                                    cellNumber += 1;
+                                    string[] data = line.Split(new string[] { " = " }, StringSplitOptions.None);
+                                    // As enabled has to be a bool, a special case for conversion is used
+                                    if (data[0] == "enabled")
+                                    {
+                                        bool enabled = data[1] == "True";
+                                        dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = enabled;
+                                        cellNumber += 1;
+                                    }
+                                    // Values are not set, set to default
+                                    else if (data[0] == "inputtype" && data[1] == "Edit Me")
+                                    {
+                                        dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = "4-20mA";
+                                        cellNumber += 1;
+                                    }
+                                    // Values are not set, set to default
+                                    else if (data[0] == "unit" && data[1] == "Edit Me")
+                                    {
+                                        dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = "V";
+                                        cellNumber += 1;
+                                    }
+                                    // All other values are imported as are, m and c values are ignored
+                                    else if (data[0] != "m" && data[0] != "c")
+                                    {
+                                        dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = data[1];
+                                        cellNumber += 1;
+                                    }
                                 }
                             }
                         }
+                        // Catch errors caused by loading a non-config file as a config file
+                        catch (ArgumentOutOfRangeException)
+                        {
+                            MessageBox.Show(String.Format("{0} does not appear to contain config data.\n" +
+                                "Please check {0} and try again.",ofdConfig.SafeFileName), "Error Importing", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            LoadDefaultConfig();
+                            return;
+                        }
+                    }
+                    // Alert user if config file doesn't contain data for all pins
+                    if (pinNumber != 15)
+                    {
+                        MessageBox.Show(String.Format("{0} only contained data for {1} pins.\n" +
+                            "Config has been imported, but after pin {1}, pin settings won't have changed",ofdConfig.SafeFileName,pinNumber + 1)
+                            , "Incomplete Config", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
                     }
                 }
                 // Setup simple config menu to reflect pins enabled
@@ -1398,6 +1505,12 @@ namespace SteerLoggerUser
                     {
                         SaveConfig(newLog, sfdConfig.FileName);
                     }
+                }
+                // Catch any input/output errors
+                catch (IOException)
+                {
+                    MessageBox.Show("Error saving config file. Make sure the file is not being used by another application and try again.",
+                                    "Error Saving File", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
                 catch (InvalidDataException)
                 {
@@ -1765,10 +1878,7 @@ namespace SteerLoggerUser
                 TCPTearDown();
             }
             // Create new connectForm to search for available loggers
-            ConnectForm connectForm = new ConnectForm(progConfig.loggers.ToArray())
-            {
-                user = user
-            };
+            ConnectForm connectForm = new ConnectForm(progConfig.loggers.ToArray(), user);
             connectForm.ShowDialog();
             // Get logger and user from connectForm
             logger = connectForm.logger;
@@ -1815,22 +1925,25 @@ namespace SteerLoggerUser
             }
 
             // Delete any temporary raw/converted data files from SteerLogger appData directory
-            string[] filePaths = Directory.GetFiles(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger");
-            foreach (string filename in filePaths)
+            if (Directory.Exists(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger"))
             {
-                if (filename.Contains("raw") || filename.Contains("converted"))
+                string[] filePaths = Directory.GetFiles(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger");
+                foreach (string filename in filePaths)
                 {
-                    try
+                    if (filename.Contains("raw") || filename.Contains("converted"))
                     {
-                        File.Delete(filename);
-                    }
-                    catch
-                    {
-                        // Ignore errors as Form closing and this operation is non essential
+                        try
+                        {
+                            File.Delete(filename);
+                        }
+                        catch
+                        {
+                            // Ignore errors as Form closing and this operation is non essential
+                        }
                     }
                 }
             }
-
+            // Close excel application if there is an instance of it, stops artifacts being left on the computer
             if (excel != null)
             {
                 excel.Quit();
@@ -1844,8 +1957,20 @@ namespace SteerLoggerUser
         {
             // Create new logMeta hold log and to add to DAP.logsToProc
             LogMeta logMeta;
+            ofdLog.Filter = "CSV files (*.csv)|*.csv|All files (*.*)|*.*";
             if (ofdLog.ShowDialog() == DialogResult.OK)
             {
+                // Check file is a .csv file, if not, check with user that this is correct
+                if (!ofdLog.SafeFileName.Contains(".csv"))
+                {
+                    DialogResult dialogResult = MessageBox.Show(String.Format("{0} is not a .csv file. Do you still want to try to import?",
+                        ofdLog.SafeFileName), "Not CSV File", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                    if (dialogResult == DialogResult.No)
+                    {
+                        return;
+                    }
+                }
+
                 // Set log name to name of file imported, removing "raw-", "converted-" and ".csv" from filename
                 // Set logMeta.conv to location of file
                 logMeta = new LogMeta
@@ -1864,7 +1989,18 @@ namespace SteerLoggerUser
                         // If select to merge, create new logProc from imported log
                         DAP.logsProcessing.Add(logMeta);
                         LogProc tempProc = new LogProc();
-                        tempProc.CreateProcFromConv(logMeta.conv);
+                        try
+                        {
+                            tempProc.CreateProcFromConv(logMeta.conv);
+                        }
+                        catch (InvalidDataException)
+                        {
+                            MessageBox.Show(String.Format("Error parsing data from data file {0}.\n" +
+                                "Check imported files and redownload if necessary.", logMeta.conv), "Error Parsing Data",
+                                MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            DAP.logsProcessing.Remove(logMeta);
+                            return;
+                        }
                         // Merge logs together
                         DAP.MergeLogs(tempProc, logMeta.name);
                         // Update data display
@@ -1887,7 +2023,19 @@ namespace SteerLoggerUser
                     {
                         DAP.logsProcessing.Clear();
                         DAP.logsProcessing.Add(DAP.logsToProc.Dequeue());
-                        DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].conv);
+                        try
+                        {
+                            DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].conv);
+                        }
+                        catch (InvalidDataException)
+                        {
+                            MessageBox.Show(String.Format("Error parsing data from data file {0}.\n" +
+                                "Check imported files and redownload if necessary.", DAP.logsProcessing[0].conv), 
+                                "Error Parsing Data",MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            DAP.logsProcessing.Remove(DAP.logsProcessing[0]);
+                            return;
+                        }
+                        
                         // Update data display
                         lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name + " " + DAP.logsProcessing[0].testNumber;
                         PopulateDataViewProc(DAP.logProc);
@@ -2202,7 +2350,15 @@ namespace SteerLoggerUser
             {
                 // Create a zip archive from the temporary zip directory
                 // Save zip archive to path specified by user
-                ZipFile.CreateFromDirectory(dirPath, sfdLog.FileName);
+                try
+                {
+                    ZipFile.CreateFromDirectory(dirPath, sfdLog.FileName);
+                }
+                catch (IOException)
+                {
+                    MessageBox.Show("Error creating Zip archive, make sure the file is not in use by another applicaiton and try again.",
+                        "Error Creating Archive", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
                 MessageBox.Show("Files zipped successfully.","Zip Successful",
                                 MessageBoxButtons.OK,MessageBoxIcon.Information);
             }
@@ -2758,8 +2914,15 @@ namespace SteerLoggerUser
                     while (!reader.EndOfStream)
                     {
                         string[] line = reader.ReadLine().Split(',');
-                        StringBuilder output = new StringBuilder(String.Format("{0},{1}", line[0], line[1]));
+                        if (line.Count() != enabled.Count() + 2)
+                        {
+                            MessageBox.Show("The number of enabled pins doesn't equal the number of data columns in the raw data.\n" +
+                                "Please check that the config file and the raw data file are correct and try again.",
+                                "Error Converting File", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            return;
+                        }
 
+                        StringBuilder output = new StringBuilder(String.Format("{0},{1}", line[0], line[1]));
                         for (int j = 2; j < line.Length; j++)
                         {
                             output.AppendFormat(",{0}", double.Parse(line[j]) * enabled[j - 2].m + enabled[j - 2].c);
@@ -2782,7 +2945,18 @@ namespace SteerLoggerUser
                 {
                     DAP.logsProcessing.Clear();
                     DAP.logsProcessing.Add(DAP.logsToProc.Dequeue());
-                    DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].conv);
+                    try
+                    {
+                        DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].conv);
+                    }
+                    catch (InvalidDataException)
+                    {
+                        MessageBox.Show(String.Format("Error parsing data from data file {0}.\n" +
+                            "Check imported files and redownload if necessary.", DAP.logsProcessing[0].conv), 
+                            "Error Parsing Data",MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        DAP.logsProcessing.Remove(DAP.logsProcessing[0]);
+                        return;
+                    }
                     lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name + " " + DAP.logsProcessing[0].testNumber;
                     PopulateDataViewProc(DAP.logProc);
                 }

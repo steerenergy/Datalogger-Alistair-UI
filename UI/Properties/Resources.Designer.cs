@@ -63,16 +63,6 @@ namespace SteerLoggerUser.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap amogus {
-            get {
-                object obj = ResourceManager.GetObject("amogus", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
         internal static System.Drawing.Bitmap steer {
             get {
                 object obj = ResourceManager.GetObject("steer", resourceCulture);

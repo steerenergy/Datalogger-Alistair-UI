@@ -187,8 +187,8 @@ namespace SteerLoggerUser
         }
 
 
-        // Save settings by rewriting progConf.ini and configPresets.csv
-        private void cmdSave_Click(object sender, EventArgs e)
+        // Reads progConf data for saving changes
+        private List<string> ReadConfig()
         {
             List<string> lines = new List<string>();
             // Opens config using StreamReader
@@ -204,6 +204,74 @@ namespace SteerLoggerUser
                     {
                         lines.Add(line);
                     }
+                }
+            }
+            return lines;
+        }
+
+        // Save settings by rewriting progConf.ini and configPresets.csv
+        private void cmdSave_Click(object sender, EventArgs e)
+        {
+            List<string> lines = new List<string>();
+            try
+            {
+                lines = ReadConfig();
+            }
+            // If progConf.ini doesn't exist, get from programFiles directory
+            catch (FileNotFoundException)
+            {
+                // If SteerLogger directory doesn't exist in appData, create it
+                string dirPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger";
+                if (!Directory.Exists(dirPath))
+                {
+                    Directory.CreateDirectory(dirPath);
+                }
+
+                string output = dirPath + @"\progConf.ini";
+                string file = Application.StartupPath + @"\progConf.ini";
+                try
+                {
+                    if (!File.Exists(output))
+                    {
+                        File.Copy(file, output);
+                        lines = ReadConfig();
+                    }
+                }
+                catch (FileNotFoundException exp)
+                {
+                    MessageBox.Show(String.Format("Error: {0}. " +
+                        "\nPlease check your installation and reinstall if files are missing." +
+                        "\nThe application will now exit.", exp.Message),
+                        "File Not Found", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Application.Exit();
+                }
+            }
+            catch (DirectoryNotFoundException)
+            {
+                // If SteerLogger directory doesn't exist in appData, create it
+                string dirPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger";
+                if (!Directory.Exists(dirPath))
+                {
+                    Directory.CreateDirectory(dirPath);
+                }
+
+                string output = dirPath + @"\progConf.ini";
+                string file = Application.StartupPath + @"\progConf.ini";
+                try
+                {
+                    if (!File.Exists(output))
+                    {
+                        File.Copy(file, output);
+                        lines = ReadConfig();
+                    }
+                }
+                catch (FileNotFoundException exp)
+                {
+                    MessageBox.Show(String.Format("Error: {0}. " +
+                        "\nPlease check your installation and reinstall if files are missing." +
+                        "\nThe application will now exit.", exp.Message),
+                        "File Not Found", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Application.Exit();
                 }
             }
             // Opens progConf.ini using StreamWriter to write new settings
@@ -330,6 +398,12 @@ namespace SteerLoggerUser
                                     MessageBoxButtons.OK,MessageBoxIcon.Information);
                 }
             }
+            // Catch file input/output errors
+            catch (IOException)
+            {
+                MessageBox.Show("Error saving database csv file. Make sure the file is not being used by another application and try again.",
+                "Error Saving File", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
             // Catch connection errors
             catch (SocketException)
             {
@@ -420,9 +494,17 @@ namespace SteerLoggerUser
                     {
                         // Create a zip archive from the temporary zip directory
                         // Save zip archive to path specified by user
-                        ZipFile.CreateFromDirectory(dirPath, sfdSaveDatabase.FileName);
+                        try
+                        {
+                            ZipFile.CreateFromDirectory(dirPath, sfdSaveDatabase.FileName);
+                        }
+                        catch (IOException)
+                        {
+                            MessageBox.Show("Error creating Zip archive, make sure the file is not in use by another applicaiton and try again.",
+                                "Error Creating Archive", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
                         MessageBox.Show("Files zipped successfully.","Zip Successful",
-                                        MessageBoxButtons.OK,MessageBoxIcon.Information);
+                            MessageBoxButtons.OK,MessageBoxIcon.Information);
                     }
                 }));
                 // Set apartment state to STA is necessary otherwise error occurs
