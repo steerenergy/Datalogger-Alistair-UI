@@ -11,5 +11,5 @@
 /.vs/VSWorkspaceState.json
 /UI/UpgradeLog.htm
 /SteerLoggerInstaller/SteerLoggerInstaller.back.aip
-UI/.vs/SteerLoggerUser/v16/.suo
-UI/obj/Debug/DesignTimeResolveAssemblyReferences.cache
+/UI/.vs/SteerLoggerUser/v16/.suo
+/UI/obj/Debug/DesignTimeResolveAssemblyReferences.cache
