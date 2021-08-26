@@ -1,4 +1,4 @@
-# Datalogger-Alistair
+# Datalogger-Alistair-UI
 The GUI application for interfacing with a Steer Energy Datalogger using a local PC
 
 ## Table of Contents
