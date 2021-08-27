@@ -29,6 +29,7 @@ namespace SteerLoggerUser
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ChangeUserForm));
             this.txtUser = new System.Windows.Forms.TextBox();
             this.cmdChangeUser = new System.Windows.Forms.Button();
             this.lblUser = new System.Windows.Forms.Label();
@@ -72,8 +73,10 @@ namespace SteerLoggerUser
             this.Controls.Add(this.lblUser);
             this.Controls.Add(this.cmdChangeUser);
             this.Controls.Add(this.txtUser);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MinimumSize = new System.Drawing.Size(222, 122);
             this.Name = "ChangeUserForm";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Change User";
             this.ResumeLayout(false);
             this.PerformLayout();

@@ -21,6 +21,8 @@ using System.ComponentModel;
 
 namespace SteerLoggerUser
 {
+    // This code controls the main functions of the UI program
+    // It controls the creation of all other forms used in the UI
     public partial class mainForm : Form
     {
         // Define public/private variables to be used within the form 
@@ -29,11 +31,10 @@ namespace SteerLoggerUser
         private ProgConfig progConfig = new ProgConfig();
         public TcpClient client;
         public NetworkStream stream;
-        DownloadAndProcess DAP = new DownloadAndProcess();
+        private DownloadAndProcess DAP = new DownloadAndProcess();
         private ConcurrentQueue<string> tcpQueue = new ConcurrentQueue<string>();
         private Thread listener;
         private bool listenerExit = false;
-        public ConcurrentQueue<string> dataQueue = new ConcurrentQueue<string>();
         public Excel.Application excel = null;
 
         // Initialises the form
@@ -44,14 +45,14 @@ namespace SteerLoggerUser
             InitializeComponent();
         }
 
+
         // Used to send a command/data to the logger using TCP
         public void TCPSend(string command)
         {
             // Make sure connected to logger before trying to send
             if (logger == "")
             {
-                //MessageBox.Show("You need to be connected to a logger to do that!");
-                // Maybe change this to InvalidDataException to differentiate from connection error
+                // Throw exception which will be caught by the calling function
                 throw new InvalidDataException();
             }
             try
@@ -61,7 +62,7 @@ namespace SteerLoggerUser
                 stream.Write(data, 0, data.Length);
             }
             // If there is an error, IOException is thrown
-            // Close connection and then throw SocketException which is caught by code calling TCPSend
+            // Close connection and then throw SocketException which is caught by the calling function
             catch (IOException)
             {
                 TCPTearDown();
@@ -129,44 +130,58 @@ namespace SteerLoggerUser
             try
             {
                 string buffer = "";
+                // While connection is not set to be closed, listen for incoming data
                 while (!listenerExit)
                 {
+                    // If not connected, throw socket exception
                     if (!IsConnected)
                     {
                         throw new SocketException();
                     }
+                    // Receive data
                     List<string> data = new List<string>();
                     Byte[] byteData = new Byte[2048];
                     Int32 bytes = stream.Read(byteData, 0, byteData.Length);
                     string response = Encoding.UTF8.GetString(byteData, 0, bytes);
+                    // Connection returns b'' when it closes
                     if (response == "")
                     {
                         // Connection closed
                         throw new SocketException();
                     }
+                    // Split separate packets by '\u0004' delimiter
                     foreach (string line in response.Split('\u0004'))
                     {
                         data.Add(line);
                     }
+                    // If there is data in the buffer, prepend to data
                     if (buffer != "")
                     {
                         data[0] = buffer + data[0];
                         buffer = "";
                     }
+                    // Add all but last packet to dataQueue
                     for (int i = 0; i < data.Count - 1; i++)
                     {
                         string line = data[i].TrimEnd('\u0004');
-                        //if (line == null)
-                        //{
-                        //    throw new Exception();
-                        //}
+                        // If server sends Close, close connection
                         if (line == "Close")
                         {
                             listenerExit = true;
                             throw new IOException();
                         }
+                        else if (line == "Command not recognised")
+                        {
+                            MessageBox.Show("The logger didn't recognise that command.\n" +
+                                            "Please make sure that both the user program and logger program are up to date.\n" +
+                                            "If this error occurs repeatedly, notify Alistair Ryan.\n",
+                                            "Command Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            listenerExit = true;
+                            throw new IOException();
+                        }
                         tcpQueue.Enqueue(line);
                     }
+                    // If the last position contains data (split packet), add to buffer
                     if (data.Last() != "")
                     {
                         buffer = data.Last();
@@ -193,7 +208,8 @@ namespace SteerLoggerUser
                 if (listenerExit == false)
                 {
                     this.BeginInvoke(new Action(() => { lblConnection.Text = "You're not connected to a logger."; }));
-                    MessageBox.Show("An error occured in the connection, please reconnect.");
+                    MessageBox.Show("An error occured in the connection, please reconnect.","Connection Error",
+                                    MessageBoxButtons.OK,MessageBoxIcon.Error);
                 }
             }
             catch (SocketException)
@@ -216,35 +232,43 @@ namespace SteerLoggerUser
                 if (listenerExit == false)
                 {
                     this.BeginInvoke(new Action(() => { lblConnection.Text = "You're not connected to a logger."; }));
-                    MessageBox.Show("An error occured in the connection, please reconnect.");
+                    MessageBox.Show("An error occured in the connection, please reconnect.","Connection Error",
+                                    MessageBoxButtons.OK,MessageBoxIcon.Error);
                 }
             }
             return;
         }
 
+
         // Used to dequeue first item in tcpQueue
         // tcpQueue contains data sent from logger in order
         public string TCPReceive()
         {
+            // If not connected to server, close connection
             if (!IsConnected)
             {
                 TCPTearDown();
                 throw new SocketException();
             }
+            // Use DateTime to calculate timeout
             DateTime start = DateTime.Now;
             try
             {
                 string response;
+                // Dequeue response tcpQueue
                 while (tcpQueue.TryDequeue(out response) == false)
                 {
+                    // Timeout set to 30 seconds
                     if (DateTime.Now.Subtract(start).TotalSeconds > 30)
                     {
+                        // If no response in 30 seconds, close connection
                         TCPTearDown();
                         throw new TimeoutException();
                     }
                 }
                 return response;
             }
+            // If tcpQueue is set to null due to closed connection, catch and throw SocketException
             catch (NullReferenceException)
             {
                 throw new SocketException();
@@ -260,15 +284,14 @@ namespace SteerLoggerUser
             Int32 port = 13000;
             client = new TcpClient(logger, port);
             stream = client.GetStream();
-
+            // Reset tcpQueue for new connection
             tcpQueue = new ConcurrentQueue<string>();
-
             // Start listener thread so data can be received in parallel
             listenerExit = false;
             listener = new Thread(TCPListen);
             listener.Start();
             TCPSend(user);
-
+            // Update lblConnection to show new connection to logger
             lblConnection.Text = String.Format("You are connected to {0} as {1}", logger, user);
         }
 
@@ -287,140 +310,169 @@ namespace SteerLoggerUser
             {
                 client.Close();
             }
-
-
+            // Dispose to free resources
             stream.Dispose();
             client.Dispose();
-
+            // Set tcpQueue to null
             tcpQueue = null;
             logger = "";
+            // Update lblConnection to show no connection
             this.BeginInvoke(new Action(() => { lblConnection.Text = "You're not connected to a logger."; }));
         }
+
 
         // Reads program config and presets
         private void ReadProgConfig()
         {
-            progConfig = new ProgConfig();
-            // Opens config using StreamReader
-            using (StreamReader reader = new StreamReader(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger\progConf.ini"))
+            try
             {
-                string line = "";
-                char[] trimChars = new char[] { '\n', ' ' };
-                // headerNum used to keep track of which section is being read
-                int headerNum = 0;
-                while (!reader.EndOfStream)
+                progConfig = new ProgConfig();
+                // Opens program config using StreamReader
+                using (StreamReader reader = new StreamReader(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger\progConf.ini"))
                 {
-                    line = reader.ReadLine().Trim(trimChars);
-                    // Ignore empty lines or comments
-                    if (line != "" && line[0] != '#')
+                    string line = "";
+                    char[] trimChars = new char[] { '\n', ' ' };
+                    // headerNum used to keep track of which section is being read
+                    int headerNum = 0;
+                    while (!reader.EndOfStream)
                     {
-                        // Set which section is being read from using section headers
-                        switch (line)
+                        line = reader.ReadLine().Trim(trimChars);
+                        // Ignore empty lines or comments
+                        if (line != "" && line[0] != '#')
                         {
-                            case "[unitTypes]":
-                                headerNum = 0;
-                                break;
-                            case "[inputTypes]":
-                                headerNum = 1;
-                                break;
-                            case "[gains]":
-                                headerNum = 2;
-                                break;
-                            case "[hostnames]":
-                                headerNum = 3;
-                                break;
-                            case "[activate]":
-                                headerNum = 4;
-                                break;
-                            default:
-                                // Store data in progConfig in correct variable depending on the section being read
-                                string[] data = line.Split(" = ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-                                switch (headerNum)
-                                {
-                                    case 0:
-                                        progConfig.units.Add(data[1]);
-                                        break;
-                                    case 1:
-                                        string[] decimalData = data[1].Trim(new char[] { '(', ')' }).Split(',');
-                                        progConfig.inputTypes.Add(data[0], decimalData.Select(i => Convert.ToDouble(i)).ToArray());
-                                        break;
-                                    case 2:
-                                        progConfig.gains.Add(Convert.ToInt32(data[0]), Convert.ToDouble(data[1]));
-                                        break;
-                                    case 3:
-                                        progConfig.loggers.Add(data[1]);
-                                        break;
-                                    case 4:
-                                        if (data.Length == 1)
-                                        {
-                                            if (File.Exists(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + @"\anaconda3\Scripts\activate.bat"))
+                            // Set which section is being read using section headers
+                            switch (line)
+                            {
+                                case "[unitTypes]":
+                                    headerNum = 0;
+                                    break;
+                                case "[inputTypes]":
+                                    headerNum = 1;
+                                    break;
+                                case "[gains]":
+                                    headerNum = 2;
+                                    break;
+                                case "[hostnames]":
+                                    headerNum = 3;
+                                    break;
+                                case "[activate]":
+                                    headerNum = 4;
+                                    break;
+                                default:
+                                    // Store data in progConfig in correct variable depending on the section being read
+                                    string[] data = line.Split(" = ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+                                    switch (headerNum)
+                                    {
+                                        case 0:
+                                            progConfig.units.Add(data[1]);
+                                            break;
+                                        case 1:
+                                            // For input types, parse the string and extract the bottom and top volt
+                                            string[] decimalData = data[1].Trim(new char[] { '(', ')' }).Split(',');
+                                            progConfig.inputTypes.Add(data[0], decimalData.Select(i => Convert.ToDouble(i)).ToArray());
+                                            break;
+                                        case 2:
+                                            progConfig.gains.Add(Convert.ToInt32(data[0]), Convert.ToDouble(data[1]));
+                                            break;
+                                        case 3:
+                                            progConfig.loggers.Add(data[1]);
+                                            break;
+                                        case 4:
+                                            // If there is no set anaconda path, try to find in usual install location
+                                            if (data.Length == 1)
                                             {
-                                                progConfig.activatePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + @"\anaconda3\Scripts\activate.bat";
+                                                // If found in usual location, set activatePath
+                                                if (File.Exists(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + @"\anaconda3\Scripts\activate.bat"))
+                                                {
+                                                    progConfig.activatePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
+                                                                              + @"\anaconda3\Scripts\activate.bat";
+                                                }
+                                                // If no in usual location, alert user and continue
+                                                else
+                                                {
+                                                    MessageBox.Show("Cannot find activate.bat for Anaconda,"
+                                                                    + "please edit settings and give the location of activate.bat.", "Cannot Find activate.bat",
+                                                                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                                    progConfig.activatePath = "";
+                                                }
                                             }
+                                            // If there is set anaconda path, check that activate.bat exists there
                                             else
                                             {
-                                                MessageBox.Show("Cannot find activate.bat for Anaconda, please edit settings and give the location of activate.bat.");
-                                                progConfig.activatePath = "";
+                                                if (File.Exists(data[1]))
+                                                {
+                                                    progConfig.activatePath = data[1];
+                                                }
+                                                // If activate.bat not in set location, alert user and continue
+                                                else
+                                                {
+                                                    MessageBox.Show("Cannot find activate.bat for Anaconda, please edit settings and give the location of activate.bat.",
+                                                                    "Cannot Find activate.bat", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                                    progConfig.activatePath = "";
+                                                }
                                             }
-                                        }
-                                        else
-                                        {
-                                            if (File.Exists(data[1]))
-                                            {
-                                                progConfig.activatePath = data[1];
-                                            }
-                                            else
-                                            {
-                                                MessageBox.Show("Cannot find activate.bat for Anaconda, please edit settings and give the location of activate.bat.");
-                                                progConfig.activatePath = "";
-                                            }
-                                        }
-                                        break;
-                                }
-                                break;
+                                            break;
+                                    }
+                                    break;
+                            }
                         }
                     }
                 }
-            }
-            // Read in simple config pins
-            using (StreamReader reader = new StreamReader(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger\configPresets.csv"))
-            {
-                // Read header line and ignore
-                reader.ReadLine();
-                char[] trimChars = new char[] { '\n', ' ' };
-                string line = "";
-                string prevSensor = "";
-                while (!reader.EndOfStream)
+                // Read in simple config pins from configPresets.csv
+                using (StreamReader reader = new StreamReader(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)
+                                                              + @"\SteerLogger\configPresets.csv"))
                 {
-                    line = reader.ReadLine().Trim(trimChars);
-                    string[] pinData = line.Split(',');
-                    // Add sensor name and variation to variationDict (used for populating cmb menus)
-                    if (pinData[0] != prevSensor && pinData[1] != "")
+                    // Read header line and ignore
+                    reader.ReadLine();
+                    char[] trimChars = new char[] { '\n', ' ' };
+                    string line = "";
+                    // Read and process lines until at the end of the file
+                    while (!reader.EndOfStream)
                     {
-                        progConfig.variationDict.Add(pinData[0], new List<string> { pinData[1] });
-                    }
-                    else if (pinData[1] != "")
-                    {
-                        progConfig.variationDict[pinData[0]].Add(pinData[1]);
-                    }
-                    else if (pinData[0] != prevSensor)
-                    {
-                        progConfig.variationDict.Add(pinData[0], new List<string> { "N/A" });
-                    }
+                        line = reader.ReadLine().Trim(trimChars);
+                        string[] pinData = line.Split(',');
+                        // Add sensor name and variation to variationDict (used for populating cmb menus)
+                        // If sensor not already in the dictionary and it has a variation, add new sensor and variation to dictionary
+                        if (!progConfig.variationDict.Keys.Contains(pinData[0]) && pinData[1] != "")
+                        {
+                            progConfig.variationDict.Add(pinData[0], new List<string> { pinData[1] });
+                        }
+                        // If sensor is in dictionary and has a variation, add new variation to sensor
+                        else if (pinData[1] != "")
+                        {
+                            progConfig.variationDict[pinData[0]].Add(pinData[1]);
+                        }
+                        // If sensor isn't in dictionary and has no variation, add sensor and N/A variation to dictionary
+                        else if (!progConfig.variationDict.Keys.Contains(pinData[0]))
+                        {
+                            progConfig.variationDict.Add(pinData[0], new List<string> { "N/A" });
+                        }
 
-                    // Add preset to dict of preset pins
-                    string presetName = pinData[0] + ',' + pinData[1];
-                    Pin tempPin = new Pin();
-                    tempPin.fName = pinData[2];
-                    tempPin.inputType = pinData[3];
-                    tempPin.gain = Convert.ToInt32(pinData[4]);
-                    tempPin.scaleMin = Convert.ToDouble(pinData[5]);
-                    tempPin.scaleMax = Convert.ToDouble(pinData[6]);
-                    tempPin.units = pinData[7];
-
-                    progConfig.configPins.Add(presetName, tempPin);
-                    prevSensor = pinData[0];
+                        // Add preset to dict of preset pins
+                        string presetName = pinData[0] + ',' + pinData[1];
+                        Pin tempPin = new Pin
+                        {
+                            fName = pinData[2],
+                            inputType = pinData[3],
+                            gain = Convert.ToInt32(pinData[4]),
+                            scaleMin = Convert.ToDouble(pinData[5]),
+                            scaleMax = Convert.ToDouble(pinData[6]),
+                            units = pinData[7]
+                        };
+                        progConfig.configPins.Add(presetName, tempPin);
+                    }
                 }
+            }
+            // If files in appData have been deleted, copy from programFiles direcotry
+            catch (FileNotFoundException)
+            {
+                InitialiseAppData();
+                ReadProgConfig();
+            }
+            catch(DirectoryNotFoundException)
+            {
+                InitialiseAppData();
+                ReadProgConfig();
             }
 
             // If configPresets have been deleted, retrieve version from programFiles
@@ -433,41 +485,53 @@ namespace SteerLoggerUser
         }
 
 
+        // Sets up the appData directory and copies files from programFiles directory
         private void InitialiseAppData()
         {
-            // If SteerLogger directory doesn't exist in appData, crete it
+            // If SteerLogger directory doesn't exist in appData, create it
             string dirPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger";
             if (!Directory.Exists(dirPath))
             {
                 Directory.CreateDirectory(dirPath);
             }
 
-            // If progConf.ini and configPresets.csv are not in the appData directory, add them
+            // If progConf.ini and configPresets.csv are not in the appData directory, copy them from program files directory
             string[] files = { "progConf.ini", "configPresets.csv" };
             foreach (string filename in files)
             {
                 string output = dirPath + @"\" + filename;
                 string file = Application.StartupPath + @"\" + filename;
-                if (!File.Exists(output))
+                try
                 {
-                    File.Copy(file, output);
+                    if (!File.Exists(output))
+                    {
+                        File.Copy(file, output);
+                    }
                 }
+                catch (FileNotFoundException exp)
+                {
+                    MessageBox.Show(String.Format("Error: {0}. " +
+                        "\nPlease check your installation and reinstall if files are missing." +
+                        "\nThe application will now exit.", exp.Message),
+                        "File Not Found", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Application.Exit();
+                }
+                
             }
 
-            // If SteerLogger directory doesn't exist in appData, crete it
+            // If SteerLogger\pythonScripts directory doesn't exist in appData, create it
             dirPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger\pythonScripts";
             if (!Directory.Exists(dirPath))
             {
                 Directory.CreateDirectory(dirPath);
             }
 
-            // Add python files to appData directory
+            // Find files in pythonScripts directory
             string[] filePaths = Directory.GetFiles(Application.StartupPath + @"\pythonScripts");
+            // Add python files to appData directory
             foreach (var filename in filePaths)
             {
                 string file = filename.ToString();
-
-                //Do your job with "file"  
                 string output = dirPath + file.ToString().Replace(Application.StartupPath + @"\pythonScripts", "");
                 if (!File.Exists(output))
                 {
@@ -477,53 +541,38 @@ namespace SteerLoggerUser
         }
 
 
-        // Loads the mainForm
+        // Loads the mainForm of the UI
         private void mainForm_Load(object sender, EventArgs e)
         {
             // Initialises appData and copies required files there
             InitialiseAppData();
-
             // Reads the program config file
             ReadProgConfig();
             SetupSimpleConf();
-
             // Starts the connect form, which searches for loggers and allows user to connect to one
-            ConnectForm connectForm = new ConnectForm(progConfig.loggers.ToArray());
+            ConnectForm connectForm = new ConnectForm(progConfig.loggers.ToArray(), "");
             connectForm.ShowDialog();
-
             // If logger is null, close application as user has closed the connect form
             if (connectForm.logger == null)
             {
                 this.Close();
                 return;
             }
-
             // Set logger and name of user
             logger = connectForm.logger;
             user = connectForm.user;
             // Clear up resources
             connectForm.Dispose();
 
-            if (logger == "")
-            {
-                lblConnection.Text = "You are not connected to a logger.";
-            }
-            else
-            {
-                lblConnection.Text = String.Format("You are connected to {0} as {1}", logger, user);
-            }
-
-            // Use progConfig to populate the InputSetup grid view correctly
+            // Use progConfig to populate the InputSetup grid view dropdown menus correctly
             foreach (string key in progConfig.inputTypes.Keys)
             {
                 ((DataGridViewComboBoxColumn)dgvInputSetup.Columns["inputType"]).Items.Add(key);
             }
-
             foreach (int gain in progConfig.gains.Keys)
             {
                 ((DataGridViewComboBoxColumn)dgvInputSetup.Columns["gain"]).Items.Add(gain.ToString());
             }
-
             foreach (string value in progConfig.units)
             {
                 ((DataGridViewComboBoxColumn)dgvInputSetup.Columns["units"]).Items.Add(value);
@@ -544,9 +593,9 @@ namespace SteerLoggerUser
                 // If there is an issue connecting to Pi, catch error and continue without connection
                 catch (SocketException)
                 {
-                    MessageBox.Show("An error occured in the connection, please reconnect.");
-
                     TCPTearDown();
+                    MessageBox.Show("An error occured in the connection, please reconnect.","Connection Error",
+                                    MessageBoxButtons.OK,MessageBoxIcon.Error);
                     // Loads InputSetup grid with default values as cannot retrieve recent config
                     LoadDefaultConfig();
                     return;
@@ -554,7 +603,8 @@ namespace SteerLoggerUser
                 catch (TimeoutException)
                 {
                     TCPTearDown();
-                    MessageBox.Show("Connection timed out, please reconnect.");
+                    MessageBox.Show("Connection timed out, please reconnect.","Timeout Error",
+                                    MessageBoxButtons.OK,MessageBoxIcon.Error);
                     // Loads InputSetup grid with default values as cannot retrieve recent config
                     LoadDefaultConfig();
                     return;
@@ -562,11 +612,14 @@ namespace SteerLoggerUser
             }
             else
             {
+                // Update lblConnection to reflect connection status
+                lblConnection.Text = "You are not connected to a logger.";
                 // Loads InputSetup grid with default values as cannot retrieve recent config
                 LoadDefaultConfig();
             }
 
-            if (DAP.processing == false)
+            // If no logs are shown in processing grid, show CtrlConf panel
+            if (DAP.logsProcessing.Count == 0)
             {
                 pnlDataProc.Hide();
                 pnlCtrlConf.Show();
@@ -580,22 +633,23 @@ namespace SteerLoggerUser
             }
         }
 
-        // Used to get the logs the user hasn't downloaded
-        // Objective 4
+
+        // Gets the logs the user hasn't downloaded
         private void RequestRecentLogs()
         {
-            // Send command and username to logger
-            //TCPSend("Recent_Logs_To_Download");
+            // Send Search_Log command and username to logger
+            // Logger will search database for logs which haven't been downloaded by username
             TCPSend("Search_Log");
             TCPSend(new string('\u001f',7) + user);
-            List<LogMeta> logsAvailable = new List<LogMeta>();
             string response = TCPReceive();
-            // If no logs to download, exit
+            // If no logs to download, return
             if (response == "No Logs Match Criteria")
             {
-                MessageBox.Show("No new logs to download.");
+                MessageBox.Show("No new logs to download.","No Logs to Download",
+                                MessageBoxButtons.OK,MessageBoxIcon.Information);
                 return;
             }
+            // Get number of logs which match criteria
             int numLogs = Convert.ToInt16(response);
             // Show DownloadForm which allows user to select which logs to download
             DownloadForm download = new DownloadForm("Logs", false, TCPReceive, numLogs, TCPSend);
@@ -603,42 +657,49 @@ namespace SteerLoggerUser
             // Clear up resources
             download.Dispose();
 
-            BackgroundWorker worker = new BackgroundWorker();
-            worker.WorkerReportsProgress = true;
-            worker.WorkerSupportsCancellation = true;
-            
+            // Create BackgroundWorker to download logs in background
+            BackgroundWorker worker = new BackgroundWorker
+            {
+                WorkerReportsProgress = true,
+                WorkerSupportsCancellation = true
+            };
+            // Create progressForm to dispay download progress
             ReceiveProgressForm progressForm;
             progressForm = new ReceiveProgressForm(worker);
             progressForm.Show();
-       
+            // Setup DoWork and ProgressChanged event handlers
             worker.DoWork += (s, args) => ReceiveLog(s,args);
             worker.ProgressChanged += (s, e) => ProgressChanged(s,e,progressForm);
+            // Run worker asynchronously
             worker.RunWorkerAsync();
         }
 
-        // Receive a full log from the logger
+
+        // Receive a full log from the logger, this is the DoWork event for the Background worker
         private void ReceiveLog(object sender, EventArgs e)
         {
+            // Get the instance of the BackgroundWorker
             BackgroundWorker worker = sender as BackgroundWorker;
             try
             {
                 int current = 0;
                 int numLogs = Convert.ToInt16(TCPReceive());
-                // Continue receiving logs until all have been sent
+                // Download the set number of logs being sent from Logger
                 for (int i = 0; i < numLogs; i ++)
                 {
                     string received = TCPReceive();
                     prev = 0;
                     // Create a tempoary LogMeta to store log while its being received
                     LogMeta tempLog;
+                    // Check for pending cancellation
                     if (worker.CancellationPending)
                     {
                         worker.Dispose();
                         return;
                     }
+                    // Calculate progress percentage and report progress
                     current = CalcPercent(5, numLogs, current);
                     worker.ReportProgress(current, "Receiving metadata...");
-                    //progressForm.UpdateTextBox("Receiving meta data...");
                     // Receive meta data of log and set LogMeta variables
                     string[] metaData = received.Split('\u001f');
                     tempLog = new LogMeta
@@ -652,24 +713,25 @@ namespace SteerLoggerUser
                         date = metaData[6],
                         time = decimal.Parse(metaData[7]),
                         loggedBy = metaData[8],
-                        downloadedBy = metaData[9],
+                        raw = metaData[9],
                         description = metaData[10],
                     };
-
+                    // Check for pending cancellation
                     if (worker.CancellationPending)
                     {
                         worker.Dispose();
                         return;
                     }
+                    // Calculate progress percentage and report progress
                     current = CalcPercent(10, numLogs, current);
                     worker.ReportProgress(current, "Receiving config data...");
-                    received = TCPReceive();
-
-                    // Receive config settings of log and write to ConfigFile object
-                    tempLog.config = new ConfigFile(); 
+                    // Receive config settings of log and write to Pin array
+                    tempLog.config = new Pin[16]; 
                     for (int j = 0; j < 16; j++)
                     {
+                        received = TCPReceive();
                         string[] pinData = received.Split('\u001f');
+                        // Create a Pin object to store pinData in
                         Pin tempPin = new Pin
                         {
                             id = int.Parse(pinData[0]),
@@ -684,23 +746,23 @@ namespace SteerLoggerUser
                             m = double.Parse(pinData[9]),
                             c = double.Parse(pinData[10])
                         };
-                        tempLog.config.pinList.Add(tempPin);
-                        received = TCPReceive();
+                        // Add pin to Pin array
+                        tempLog.config[j] = tempPin;
                     }
-
+                    // Check for pending cancellation
                     if (worker.CancellationPending)
                     {
                         worker.Dispose();
                         return;
                     }
+                    // Calculate progress percentage and report progress
                     current = CalcPercent(20, numLogs, current);
                     worker.ReportProgress(current, "Receiving log data...");
-
                     // Set up convheaders for converted file
                     List<string> convHeaders = new List<string> { "Date/Time", "Time (seconds)" };
-                    // Use config file to write pin headers to convheaders
+                    // Use Pin array to write pin headers to convheaders
                     List<Pin> pins = new List<Pin>();
-                    foreach (Pin pin in tempLog.config.pinList)
+                    foreach (Pin pin in tempLog.config)
                     {
                         if (pin.enabled)
                         {
@@ -709,12 +771,12 @@ namespace SteerLoggerUser
                         }
                     }
 
+                    // Setup SFTP client
                     string host = logger;
                     string user = "pi";
                     string password = "raspberry";
-
                     SftpClient sftpclient = new SftpClient(host, 22, user, password);
-                    // Need to catch error when computer refuses connection
+                    // Catch error if logger refuses connection
                     try
                     {
                         sftpclient.Connect();
@@ -724,20 +786,20 @@ namespace SteerLoggerUser
                         TCPSend("Quit");
                         TCPTearDown();
                         worker.ReportProgress(100, "Error occurred, aborting!");
-                        MessageBox.Show("Failed to download, check that Pi has FTP/SSH enabled.");
+                        MessageBox.Show("Failed to download, check that Pi has FTP/SSH enabled.","Failed to Download",
+                                        MessageBoxButtons.OK,MessageBoxIcon.Error);
                         return;
                     }
-
-                    // If SteerLogger directory doesn't exist in appData, crete it
+                    // If SteerLogger directory doesn't exist in appData, create it
                     string dirPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger";
                     if (!Directory.Exists(dirPath))
                     {
-                        Directory.CreateDirectory(dirPath);
+                        InitialiseAppData();
                     }
-
-                    string path = @"/home/pi/Github/Datalogger-Alistair-Pi/" + received;
-                    string temp = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger\" + Path.GetFileName(received);
-
+                    // Get path of file on Pi and set path for file to be downloaded onto computer
+                    string path = @"/home/pi/Github/Datalogger-Alistair-Pi/" + tempLog.raw;
+                    string temp = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger\" + Path.GetFileName(tempLog.raw);
+                    // Check for cancellation and report progress percentage
                     if (worker.CancellationPending)
                     {
                         worker.Dispose();
@@ -745,14 +807,16 @@ namespace SteerLoggerUser
                     }
                     current = CalcPercent(40, numLogs, current);
                     worker.ReportProgress(current, "Downloading raw data...");
+                    // Create file stream and stream raw data file
                     using (FileStream stream = new FileStream(temp, FileMode.Create))
                     {
                         sftpclient.DownloadFile(path, stream);
                     }
+                    // Clear up resources
                     sftpclient.Dispose();
-
+                    // Set raw path to the location of downloaded file of local machine
                     tempLog.raw = temp;
-
+                    // Check for cancellation and report progress percentage
                     if (worker.CancellationPending)
                     {
                         worker.Dispose();
@@ -760,37 +824,42 @@ namespace SteerLoggerUser
                     }
                     current = CalcPercent(60, numLogs, current);
                     worker.ReportProgress(current, "Converting data...");
-
+                    // min and max used for calculating whether logs can be merged or not
                     DateTime min;
                     DateTime max;
-                    // Read from the file selected
+                    // Read from the downloaded raw data, convert it and save
                     using (StreamReader reader = new StreamReader(temp))
                     {
                         using (StreamWriter writer = new StreamWriter(temp.Replace("raw", "converted")))
                         {
                             // Read over header line
                             reader.ReadLine();
+                            // Write converted headers to file
                             writer.WriteLine(string.Join(",",convHeaders));
                             // Read each line and store the data in the logData object
                             string[] line = reader.ReadLine().Split(',');
+                            // Set min to earliest DateTime
                             min = Convert.ToDateTime(line[0]);
                             while (!reader.EndOfStream)
                             {
+                                // Add DateTime and Time interval to output
                                 StringBuilder output = new StringBuilder(String.Format("{0},{1}",line[0],line[1]));
-
+                                // Read in raw data and convert using pins downloaded from config
                                 for (int j = 2; j < line.Length; j++)
                                 {
                                     output.AppendFormat(",{0}", double.Parse(line[j]) * pins[j - 2].m + pins[j - 2].c);
                                 }
+                                // Write converted data to converted data file
                                 writer.WriteLine(output.ToString());
                                 line = reader.ReadLine().Split(',');
                             }
+                            // Set max to last DateTime
                             max = Convert.ToDateTime(line[0]);
                         }
                     }
-
+                    // Set conv file path to location of converted file
                     tempLog.conv = tempLog.raw.Replace("raw", "converted");
-
+                    // Check for cancellation and report progress percentage
                     if (worker.CancellationPending)
                     {
                         worker.Dispose();
@@ -798,54 +867,81 @@ namespace SteerLoggerUser
                     }
                     current = CalcPercent(80, numLogs, current);
                     worker.ReportProgress(current, "Finalising download...");
-                    // If there is already a log being processed, ask user if they want to merge logs
+                    // If there is already a log being processed, check if logs can be merged
                     if (dgvDataProc.DataSource != null)
                     {
                         if (DAP.TestMerge(min, max))
                         {
+                            // If logs can be merged, ask user
                             DialogResult dialogResult = MessageBox.Show("Would you like to merge the imported log with the current log?\n" +
                                                     "Otherwise the imported log will be added to the queue.",
-                                                    "Merge Logs?", MessageBoxButtons.YesNo);
+                                                    "Merge Logs?", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                             if (dialogResult == DialogResult.Yes)
                             {
-                                // If they want to merge, receive the log with merge argument set to true
+                                // If they want to merge, add log to the currently processing logs
                                 DAP.logsProcessing.Add(tempLog);
+                                // Create tempProc from log downloaded and merge new tempProc
                                 LogProc tempProc = new LogProc();
-                                tempProc.CreateProcFromConv(tempLog.conv);
-                                DAP.MergeLogs(tempProc);
+                                try
+                                {
+                                    tempProc.CreateProcFromConv(tempLog.conv);
+                                }
+                                catch (InvalidDataException)
+                                {
+                                    MessageBox.Show(String.Format("Error parsing data from data file {0}.\n" +
+                                        "Check imported files and redownload if necessary.", tempLog.conv),
+                                         "Error Parsing Data", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    DAP.logsProcessing.Remove(tempLog);
+                                }
+                                DAP.MergeLogs(tempProc, tempLog.name);
+                                // Update lblLogDisplay and re-populate dgvDataProc
                                 this.Invoke(new Action(() => { lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name + " " + DAP.logsProcessing[0].testNumber; }));
                                 this.Invoke(new Action(() => { PopulateDataViewProc(DAP.logProc); }));
                             }
                             else
                             {
-                                // Receive log with merge argument set to false
+                                // If they don't want to merge, enqueue the log to logsToProc
                                 DAP.logsToProc.Enqueue(tempLog);
                             }
                         }
                         else
                         {
-                            // Receive log with merge argument set to false
+                            // If logs can't be merged, enqueue the log to logsToProc
                             DAP.logsToProc.Enqueue(tempLog);
                         }
                     }
-                    // If no log to merge with, receive and add to queue
+                    // If no logs in dgvDataProc, enqueue log and immediately display next log
                     else
                     {
                         DAP.logsToProc.Enqueue(tempLog);
                         // Dequeue next log and display
                         if (DAP.logsToProc.Count > 0)
                         {
+                            // Show DataProc panel
                             this.Invoke(new Action(() => { pnlCtrlConf.Hide(); }));
                             this.Invoke(new Action(() => { pnlDataProc.Show(); }));
+                            // Dequeue and display next log
                             DAP.logsProcessing.Clear();
                             DAP.logsProcessing.Add(DAP.logsToProc.Dequeue());
-                            DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].conv);
+                            try
+                            {
+                                DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].conv);
+                            }
+                            catch (InvalidDataException)
+                            {
+                                MessageBox.Show(String.Format("Error parsing data from data file {0}.\n" +
+                                    "Check imported files and redownload if necessary.", DAP.logsProcessing[0].conv),
+                                    "Error Parsing Data", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                DAP.logsProcessing.Remove(DAP.logsProcessing[0]);
+                            }
+                            
+                            // Update lblLogDisplay and re-populate dgvDataProc
                             this.Invoke(new Action(() => { lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name + " " + DAP.logsProcessing[0].testNumber; }));
                             this.Invoke(new Action(() => { PopulateDataViewProc(DAP.logProc); }));
-                            //DAP.processing = true;
                         }
                     }
                 }
+                // Check for cancellation and report progress percentage
                 if (worker.CancellationPending)
                 {
                     worker.Dispose();
@@ -854,32 +950,44 @@ namespace SteerLoggerUser
                 worker.ReportProgress(100, "Download finished...");
                 worker.Dispose();
             }
+            // If there is a connection error, alert user
             catch (SocketException)
             {
                 TCPTearDown();
                 worker.ReportProgress(100, "Error occurred, aborting!");
-                MessageBox.Show("Error occurred in connection, please reconnect.");
-                MessageBox.Show("Failed to download, check that Pi has FTP/SSH enabled.");
+                MessageBox.Show("Error occurred in connection, please reconnect.",
+                                "Connection Error",MessageBoxButtons.OK,MessageBoxIcon.Error);
+                MessageBox.Show("Failed to download, check that Pi has FTP/SSH enabled.",
+                                "Download Failed",MessageBoxButtons.OK,MessageBoxIcon.Warning);
                 return;
             }
+            // If there is any other error, tell user error message
+            // This is necessary as BackgroundWorker will silently close on error otherwise
             catch (Exception exp)
             {
                 TCPTearDown();
                 worker.ReportProgress(100, "Error occurred, aborting!");
-                MessageBox.Show(exp.Message);
-                MessageBox.Show(exp.ToString());
-                MessageBox.Show("Failed to download, check that Pi has FTP/SSH enabled.");
+                String errorMessage;
+                errorMessage = "Error: ";
+                errorMessage = String.Concat(errorMessage, exp.Message);
+                errorMessage = String.Concat(errorMessage, " Line: ");
+                errorMessage = String.Concat(errorMessage, exp.Source);
+                MessageBox.Show(errorMessage, "Error", MessageBoxButtons.OK,MessageBoxIcon.Error);
+                MessageBox.Show(String.Format("Full error: {0}",exp.ToString()),"Full Error", MessageBoxButtons.OK,MessageBoxIcon.Error);
                 return;
             }  
         }
 
 
+        // Function runs when worker report progress
         private void ProgressChanged(object sender, ProgressChangedEventArgs e, ReceiveProgressForm progressForm)
-        {
+        {  
+            // If there is no message, set message to "" to avoid NullReferenceException
             if (e.UserState == null)
             {
                 progressForm.UpdateProgressBar(e.ProgressPercentage, "");
             }
+            // Update progress bar and send progress message to be displayed in textbox
             else
             {
                 progressForm.UpdateProgressBar(e.ProgressPercentage, e.UserState.ToString());
@@ -887,9 +995,11 @@ namespace SteerLoggerUser
         }
 
 
+        // Calculates percentage of work done
         private int prev = 0;
         private int CalcPercent(int value, int div, int current)
         {
+            // Add percentage of work done since previous calculation to current percentage
             int percent = Convert.ToInt32(Convert.ToDouble(current) + Convert.ToDouble(value - prev) * (1d / Convert.ToDouble(div)));
             prev = value;
             return percent;
@@ -897,15 +1007,17 @@ namespace SteerLoggerUser
 
 
         // Display logProc in DataProc grid
-        // Objectives 4.2 and 15.2
         DataTable table;
         private void PopulateDataViewProc(LogProc logToShow)
         {
+            // If table is already got data, dispose before recreation
             if (table != null)
             {
                 table.Dispose();
             }
+            // Create new DataTable()
             table = new DataTable();
+            // Create datatable columns from LogProc headers
             foreach (string header in logToShow.procheaders)
             {
                 if (header == "Date/Time")
@@ -918,20 +1030,20 @@ namespace SteerLoggerUser
                     {
                         table.Columns.Add(header, typeof(double));
                     }
+                    // If table already has a header with the name, make a new unique header
                     catch (DuplicateNameException)
                     {
-                        table.Columns.Add(header + " Processed", typeof(double));
+                        table.Columns.Add(header + " 1", typeof(double));
                     }
                 }
             }
-
-            // Enumerate through logProc and add data to grid
+            // Enumerate through logProc and add data to DataTable
             for (int i = 0; i < logToShow.timestamp.Count; i++)
             {
+                // Create each row from logProc object
                 object[] row = new object[table.Columns.Count];
                 row[0] = logToShow.timestamp[i];
                 row[1] = logToShow.time[i];
-                
                 int len = table.Columns.Count - 2;
                 for (int j = 0; j < len; j ++)
                 {
@@ -939,8 +1051,11 @@ namespace SteerLoggerUser
                 }
                 table.Rows.Add(row);
             }
+            // Set data source of dgvDataProc to datatable
+            // Populating the grid this way is a lot more efficient
             dgvDataProc.DataSource = table;
             dgvDataProc.Columns[0].DefaultCellStyle.Format = "yyyy/MM/dd HH:mm:ss.fff";
+            // Set saved to false as new data is in grid
             DAP.saved = false;
         }
 
@@ -956,7 +1071,8 @@ namespace SteerLoggerUser
             if (received == "No Config Found")
             {
                 LoadDefaultConfig();
-                MessageBox.Show("No recent config found, loading a default config.");
+                MessageBox.Show("No recent config found, loading a default config.",
+                                "No Recent Config", MessageBoxButtons.OK,MessageBoxIcon.Exclamation);
                 return;
             }
             // Receive metadata
@@ -971,10 +1087,11 @@ namespace SteerLoggerUser
             nudWorkPack.Value = Convert.ToInt32(received);
             received = TCPReceive();
             nudJobSheet.Value = Convert.ToInt32(received);
-            received = TCPReceive();
-            // Receive pin data until all data has been sent
-            while (received != "EoConfig")
+
+            // Receive pin data for all 16 pins
+            for (int i = 0; i < 16; i++)
             {
+                received = TCPReceive();
                 string[] pinData = received.Split('\u001f');
                 // Create new row from pin data and add to InputSetup grid
                 object[] rowData = new object[]
@@ -994,8 +1111,8 @@ namespace SteerLoggerUser
                     ((DataGridViewComboBoxColumn)dgvInputSetup.Columns["units"]).Items.Add(pinData[8]);
                 }
                 dgvInputSetup.Rows.Add(rowData);
-                received = TCPReceive();
             }
+            // Setup simple config menu
             SetupSimpleConf();
         }
 
@@ -1003,6 +1120,7 @@ namespace SteerLoggerUser
         // Populates InputSetup grid with default values if recent config can't be gotten
         private void LoadDefaultConfig()
         {
+            // Set all metadata input controls to default
             txtLogName.Text = "";
             nudInterval.Value = 1.0M;
             txtDescription.Text = "";
@@ -1010,6 +1128,8 @@ namespace SteerLoggerUser
             nudWorkPack.Value = 0;
             nudJobSheet.Value = 0;
             int number = 1;
+            dgvInputSetup.Rows.Clear();
+            // Create 16 default pins and add to dgvInputSetup
             for (int i = 0; i <= 3; i++)
             {
                 for (int j = 0; j <= 3; j++)
@@ -1036,10 +1156,10 @@ namespace SteerLoggerUser
         // Switch from DataProc panel to ControlConfig panel
         private void cmdCtrlConf_Click(object sender, EventArgs e)
         {
+            // Hide data processing panel and show control/config panel
             pnlDataProc.Hide();
             pnlCtrlConf.Show();
-
-            // Automatically adjust height of rows to fit nicely
+            // Automatically adjust height of InputSetup rows to fit nicely
             int height = dgvInputSetup.Height - dgvInputSetup.ColumnHeadersHeight - 1;
             foreach (DataGridViewRow row in dgvInputSetup.Rows)
             {
@@ -1051,6 +1171,7 @@ namespace SteerLoggerUser
         // Switch from ControlConfig panel to DataProc panel
         private void cmdDataProc_Click(object sender, EventArgs e)
         {
+            // Show control/config panel and hide data processing panel
             pnlCtrlConf.Hide();
             pnlDataProc.Show();
         }
@@ -1059,50 +1180,82 @@ namespace SteerLoggerUser
         // Clear data in the DataProc view
         private void cmdClearData_Click(object sender, EventArgs e)
         {
+            // If there is no data, return
             if (dgvDataProc.DataSource == null)
             {
                 return;
             }
+            // Check if data in dgvDataProc has been save or not
             if (DAP.saved == false)
             {
-                // If the data there is being processed, ask if user wants to save before clearing
-                DialogResult dialogResult = MessageBox.Show("Do you want to save data before clearing?", "Clear Data", MessageBoxButtons.YesNoCancel);
+                // If the data hasn't been saved, ask user if they want to save before clearing
+                DialogResult dialogResult = MessageBox.Show("Do you want to save data before clearing?", "Clear Data", 
+                                                            MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
                 if (dialogResult == DialogResult.Yes)
                 {
+                    // If they want to save, run DwnldCsv button click event
                     cmdDwnldCsv.PerformClick();
                 }
+                // If they cancel, return with clearing
                 else if (dialogResult == DialogResult.Cancel)
                 {
                     return;
                 }
             }
-
+            // Delete temporary files from appData directory
             foreach (LogMeta log in DAP.logsProcessing)
             {
-                File.Delete(log.raw);
-                File.Delete(log.conv);
+                if (File.Exists(log.raw))
+                {
+                    File.Delete(log.raw);
+                }
+                if (File.Exists(log.conv))
+                {
+                    File.Delete(log.conv);
+                }                
             }
-
             DAP.saved = false;
             DAP.processing = false;
+            bool valid = false;
+            while (!valid)
+            {
+                try
+                {
 
-            // If there is a log in the processing queue, display that log
-            if (DAP.logsToProc.Count > 0)
-            {
-                DAP.logsProcessing.Clear();
-                DAP.logsProcessing.Add(DAP.logsToProc.Dequeue());
-                DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].conv);
-                lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name + " " + DAP.logsProcessing[0].testNumber;
-                PopulateDataViewProc(DAP.logProc);
-            }
-            else
-            {
-                DAP.logsProcessing.Clear();
-                lblLogDisplay.Text = "No Log Displaying";
-                DAP.processing = false;
-                dgvDataProc.DataSource = null;
-                dgvDataProc.Rows.Clear();
-                dgvDataProc.Columns.Clear();
+                    // If there is a log in the processing queue, display that log
+                    if (DAP.logsToProc.Count > 0)
+                    {
+                        // Clear current log from DAP.logsProcessing
+                        DAP.logsProcessing.Clear();
+                        // Display new log in dgvDataProc
+                        DAP.logsProcessing.Add(DAP.logsToProc.Dequeue());
+                        DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].conv);
+
+                        lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name + " " + DAP.logsProcessing[0].testNumber;
+                        PopulateDataViewProc(DAP.logProc);
+                        valid = true;
+                    }
+                    // If there is no log in the processing queue, clear grid and don't repopulate
+                    else
+                    {
+                        valid = true;
+                        DAP.logsProcessing.Clear();
+                        lblLogDisplay.Text = "No Log Displaying";
+                        DAP.processing = false;
+                        dgvDataProc.DataSource = null;
+                        dgvDataProc.Rows.Clear();
+                        dgvDataProc.Columns.Clear();
+                    }
+                }
+                catch (InvalidDataException)
+                {
+                    MessageBox.Show(String.Format("Error parsing data from data file {0} from log {1} {2}.\n" +
+                        "Check imported files and redownload if necessary.", DAP.logsProcessing[0].conv, 
+                        DAP.logsProcessing[0].name, DAP.logsProcessing[0].testNumber),
+                        "Error Parsing Data", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    DAP.logsProcessing.Remove(DAP.logsProcessing[0]);
+                    valid = false;
+                }
             }
         }
 
@@ -1119,21 +1272,21 @@ namespace SteerLoggerUser
                 {
                     return;
                 }
-                List<LogMeta> logsAvailable = new List<LogMeta>();
                 string response = TCPReceive();
+                // If no logs match search criteria, alert user
                 if (response == "No Logs Match Criteria")
                 {
-                    MessageBox.Show("No logs match criteria.");
+                    MessageBox.Show("No logs match search criteria, try using fewer criteria.",
+                                    "No Logs Match Criteria",MessageBoxButtons.OK,MessageBoxIcon.Warning);
                     return;
                 }
-
                 // Receive number of logs that match criteria
                 int numLogs = Convert.ToInt16(response);
-
                 // Open new DownloadForm to allow user to download config from available logs
                 DownloadForm download = new DownloadForm("Config", true, TCPReceive, numLogs, TCPSend);
                 download.ShowDialog();
                 download.Dispose();
+                // If no logs selected to downloaded, return
                 response = TCPReceive();
                 if (response == "Config_Sent")
                 {
@@ -1142,7 +1295,7 @@ namespace SteerLoggerUser
 
                 // Clear InputSetup grid
                 dgvInputSetup.Rows.Clear();
-                // Receive time interval and set the nudInterval control's value to the time interval
+                // Receive config metadata
                 nudInterval.Value = Convert.ToDecimal(response);
                 response = TCPReceive();
                 txtDescription.Text = response.Replace(";", "\r\n");
@@ -1154,11 +1307,10 @@ namespace SteerLoggerUser
                 nudWorkPack.Value = Convert.ToInt32(response);
                 response = TCPReceive();
                 nudJobSheet.Value = Convert.ToInt32(response);
-                response = TCPReceive();
-
-                // Recevie data for each pin until all pins have been received
+                // Receive data for all 16 pins
                 for (int i = 0; i < 16; i++)
                 {
+                    response = TCPReceive();
                     string[] pinData = response.Split('\u001f');
                     // Create row from pin data and add to InputSetup grid
                     object[] rowData = new object[]
@@ -1178,22 +1330,26 @@ namespace SteerLoggerUser
                         ((DataGridViewComboBoxColumn)dgvInputSetup.Columns["units"]).Items.Add(pinData[8]);
                     }
                     dgvInputSetup.Rows.Add(rowData);
-                    response = TCPReceive();
                 }
+                // Setup simple config menu to reflect pins enabled
                 SetupSimpleConf();
             }
+            // Catch errors which can occur during the connection
             catch (SocketException)
             {
-                MessageBox.Show("An error occured in the connection, please reconnect.");
+                MessageBox.Show("An error occured in the connection, please reconnect.",
+                                "Connection Error",MessageBoxButtons.OK,MessageBoxIcon.Error);
                 return;
             }
             catch (InvalidDataException)
             {
-                MessageBox.Show("You need to be connected to a logger to do that!");
+                MessageBox.Show("You need to be connected to a logger to do that!",
+                                "Connect to a Logger",MessageBoxButtons.OK,MessageBoxIcon.Stop);
             }
             catch (TimeoutException)
             {
-                MessageBox.Show("Connection timed out, please reconnect.");
+                MessageBox.Show("Connection timed out, please reconnect.",
+                                "Timeout Error",MessageBoxButtons.OK,MessageBoxIcon.Error);
             }
         }
 
@@ -1203,104 +1359,137 @@ namespace SteerLoggerUser
         {
             if (ofdConfig.ShowDialog() == DialogResult.OK)
             {
+                // Check file is a .ini file, if not, check with user that this is correct
+                if (!ofdConfig.SafeFileName.Contains(".ini"))
+                {
+                    DialogResult dialogResult = MessageBox.Show(String.Format("{0} is not a .ini file. Do you still want to try to import?",
+                        ofdConfig.SafeFileName),"Not Config File",MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                    if (dialogResult == DialogResult.No)
+                    {
+                        return;
+                    }
+                }
+
                 // Create stream object to use in StreamReader creation
                 var fileStream = ofdConfig.OpenFile();
-
                 bool general = false;
                 // Used to select which data grid cell to change
                 // pinNumber represents row, cellNumber represents column
                 int pinNumber = -1;
                 int cellNumber = 0;
-
                 using (StreamReader reader = new StreamReader(fileStream))
                 {
                     // Reads lines one at a time until the end of the file
                     while (reader.EndOfStream == false)
                     {
-                        string line = reader.ReadLine().Trim();
-                        if (line != "")
+                        try
                         {
-                            if (line == "[General]")
+                            string line = reader.ReadLine().Trim();
+                            if (line != "")
                             {
-                                general = true;
-                            }
-                            // Indicates that a new pin header has been reached
-                            else if (line[0] == '[')
-                            {
-                                general = false;
-                                // Increase pin number by one to move one row down on the grid
-                                pinNumber += 1;
-                                // Reset cell number to start in first column on grid
-                                cellNumber = 0;
-                                dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = pinNumber + 1;
-                                // Cell number increased by one each time a value is changed to change column
-                                cellNumber += 1;
-
-                                string pinName = line.Replace("[", "").Replace("]", "");
-                                dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = pinName;
-                                cellNumber += 1;
-                            }
-                            else if (general == true)
-                            {
-                                string[] data = line.Split(new string[] { " = " }, StringSplitOptions.RemoveEmptyEntries);
-                                // Only time interval is imported from general settings
-                                switch (data[0])
+                                if (line == "[General]")
                                 {
-                                    case "name":
-                                        txtLogName.Text = data[1];
-                                        break;
-                                    case "timeinterval":
-                                        nudInterval.Value = Convert.ToDecimal(data[1]);
-                                        break;
-                                    case "description":
-                                        txtDescription.Text = data[1].Replace(";", "\r\n");
-                                        break;
-                                    case "project":
-                                        nudProject.Value = Convert.ToInt16(data[1]);
-                                        break;
-                                    case "workpack":
-                                        nudWorkPack.Value = Convert.ToInt16(data[1]);
-                                        break;
-                                    case "jobsheet":
-                                        nudJobSheet.Value = Convert.ToInt16(data[1]);
-                                        break;
+                                    general = true;
                                 }
-                            }
-                            else
-                            {
-                                string[] data = line.Split(new string[] { " = " }, StringSplitOptions.None);
-                                // As enabled has to be a bool, a special case for conversion is used
-                                if (data[0] == "enabled")
+                                // Indicates that a new pin header has been reached
+                                else if (line[0] == '[')
                                 {
-                                    bool enabled = data[1] == "True";
-                                    dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = enabled;
+                                    // Increase pin number by one to move one row down on the grid
+                                    pinNumber += 1;
+                                    general = false;
+                                    // Reset cell number to start in first column on grid
+                                    cellNumber = 0;
+                                    dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = pinNumber + 1;
+                                    // Cell number increased by one each time a value is changed to change column
+                                    cellNumber += 1;
+                                    // Get pin name from pin header
+                                    string pinName = line.Replace("[", "").Replace("]", "");
+                                    dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = pinName;
                                     cellNumber += 1;
                                 }
-                                else if (data[0] == "inputtype" && data[1] == "Edit Me")
+                                // If general is true, import config metadata
+                                else if (general == true)
                                 {
-                                    dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = "4-20mA";
-                                    cellNumber += 1;
+                                    string[] data = line.Split(new string[] { " = " }, StringSplitOptions.RemoveEmptyEntries);
+                                    // Import config metadata depending on variable
+                                    switch (data[0])
+                                    {
+                                        case "name":
+                                            txtLogName.Text = data[1];
+                                            break;
+                                        case "timeinterval":
+                                            nudInterval.Value = Convert.ToDecimal(data[1]);
+                                            break;
+                                        case "description":
+                                            txtDescription.Text = data[1].Replace(";", "\r\n");
+                                            break;
+                                        case "project":
+                                            nudProject.Value = Convert.ToInt16(data[1]);
+                                            break;
+                                        case "workpack":
+                                            nudWorkPack.Value = Convert.ToInt16(data[1]);
+                                            break;
+                                        case "jobsheet":
+                                            nudJobSheet.Value = Convert.ToInt16(data[1]);
+                                            break;
+                                    }
                                 }
-                                else if (data[0] == "unit" && data[1] == "Edit Me")
+                                else
                                 {
-                                    dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = "V";
-                                    cellNumber += 1;
-                                }
-                                else if (data[0] != "m" && data[0] != "c")
-                                {
-                                    dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = data[1];
-                                    cellNumber += 1;
+                                    string[] data = line.Split(new string[] { " = " }, StringSplitOptions.None);
+                                    // As enabled has to be a bool, a special case for conversion is used
+                                    if (data[0] == "enabled")
+                                    {
+                                        bool enabled = data[1] == "True";
+                                        dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = enabled;
+                                        cellNumber += 1;
+                                    }
+                                    // Values are not set, set to default
+                                    else if (data[0] == "inputtype" && data[1] == "Edit Me")
+                                    {
+                                        dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = "4-20mA";
+                                        cellNumber += 1;
+                                    }
+                                    // Values are not set, set to default
+                                    else if (data[0] == "unit" && data[1] == "Edit Me")
+                                    {
+                                        dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = "V";
+                                        cellNumber += 1;
+                                    }
+                                    // All other values are imported as are, m and c values are ignored
+                                    else if (data[0] != "m" && data[0] != "c")
+                                    {
+                                        dgvInputSetup.Rows[pinNumber].Cells[cellNumber].Value = data[1];
+                                        cellNumber += 1;
+                                    }
                                 }
                             }
                         }
+                        // Catch errors caused by loading a non-config file as a config file
+                        catch (ArgumentOutOfRangeException)
+                        {
+                            MessageBox.Show(String.Format("{0} does not appear to contain config data.\n" +
+                                "Please check {0} and try again.",ofdConfig.SafeFileName), "Error Importing", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            LoadDefaultConfig();
+                            return;
+                        }
+                    }
+                    // Alert user if config file doesn't contain data for all pins
+                    if (pinNumber != 15)
+                    {
+                        MessageBox.Show(String.Format("{0} only contained data for {1} pins.\n" +
+                            "Config has been imported, but after pin {1}, pin settings won't have changed",ofdConfig.SafeFileName,pinNumber + 1)
+                            , "Incomplete Config", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
                     }
                 }
+                // Setup simple config menu to reflect pins enabled
                 SetupSimpleConf();
             }
         }
 
 
-        // Save config
+        // Save config to local machine
         private void cmdSave_Click(object sender, EventArgs e)
         {
             // Validate config settings
@@ -1308,6 +1497,7 @@ namespace SteerLoggerUser
             {
                 try
                 {
+                    // Create config from validated settings
                     LogMeta newLog = CreateConfig();
                     sfdConfig.FileName = "logConf-" + newLog.name + ".ini";
                     // Allow user to save validated config to local machine
@@ -1316,9 +1506,17 @@ namespace SteerLoggerUser
                         SaveConfig(newLog, sfdConfig.FileName);
                     }
                 }
+                // Catch any input/output errors
+                catch (IOException)
+                {
+                    MessageBox.Show("Error saving config file. Make sure the file is not being used by another application and try again.",
+                                    "Error Saving File", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
                 catch (InvalidDataException)
                 {
-                    // Invalid scalemin or scalemax data
+                    // No pins enabled
+                    MessageBox.Show("Please set at least one pin to enabled.", "No Pins Enabled!",
+                                    MessageBoxButtons.OK,MessageBoxIcon.Warning);
                     return;
                 }
             }
@@ -1333,28 +1531,34 @@ namespace SteerLoggerUser
                 // Validate config settings
                 if (ValidateConfig())
                 {
+                    // Create and upload config to Logger
                     UploadConfig(CreateConfig());
                 }
             }
-            // Catch errors when uploading config to Pi
+            // Catch errors when uploading config to Logger
             catch (SocketException)
             {
-                MessageBox.Show("An error occured in the connection, please reconnect.");
+                MessageBox.Show("An error occured in the connection, please reconnect.","Connection Error",
+                                MessageBoxButtons.OK,MessageBoxIcon.Error);
                 return;
             }
             catch (InvalidDataException exp)
             {
+                // Show different message box depending on error message
                 if (exp.Message != "" && exp.Message == "No pins enabled")
                 {
-                    MessageBox.Show("Please set at least one pin to enabled.", "No Pins Enabled!");
+                    MessageBox.Show("Please set at least one pin to enabled.", "No Pins Enabled!",
+                                    MessageBoxButtons.OK,MessageBoxIcon.Warning);
                 }
                 else
                 {
-                    MessageBox.Show("You need to be connected to a logger to do that!");
+                    MessageBox.Show("You need to be connected to a logger to do that!", "Connect to a Logger",
+                                    MessageBoxButtons.OK, MessageBoxIcon.Stop);
                 }
                 return;
             }
         }
+
 
         // Validates the config settings
         private bool ValidateConfig()
@@ -1362,70 +1566,74 @@ namespace SteerLoggerUser
             // Make sure user has given the log a name
             if (txtLogName.Text == "")
             {
-                MessageBox.Show("Please input a value for the log name.");
+                MessageBox.Show("Please input a value for the log name.","No Log Name",
+                                MessageBoxButtons.OK,MessageBoxIcon.Warning);
                 return false;
             }
+            // Make sure user hasn't used invalid file name characters in the log name
             char[] invalidFileChars = Path.GetInvalidFileNameChars();
             foreach (char invalid in invalidFileChars)
             {
                 if (txtLogName.Text.Contains(invalid))
                 {
-                    MessageBox.Show(String.Format("The log name contains invalid character: {0}",invalid));
+                    MessageBox.Show(String.Format("The log name contains invalid character: {0}",invalid), 
+                        "Invalid Characters",MessageBoxButtons.OK,MessageBoxIcon.Warning);
                     return false;
                 }
             }
             // If user hasn't added description, ask if they want to add one
             if (txtDescription.Text == "")
             {
-                if (MessageBox.Show("No description. Press OK to continue without description or cancel to cancel upload and add description.","No Description!",MessageBoxButtons.OKCancel) != DialogResult.OK)
+                if (MessageBox.Show("No description. Continue without description?"
+                                    ,"No Description!",MessageBoxButtons.YesNo,MessageBoxIcon.Question) != DialogResult.Yes)
                 {
                     return false;
                 }
             }
-          
             // Make sure time interval is > 0.1 seconds
             if (nudInterval.Value < Convert.ToDecimal(0.1))
             {
                 MessageBox.Show("Time interval must be at least 0.1 seconds", "Time Interval Too Low", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
             }
-
+            // Make sure project, workpack and jobsheet are integers
             if (!(nudProject.Value % 1 == 0))
             {
-                MessageBox.Show("Project number must be a whole number.");
+                MessageBox.Show("Project number must be a whole number.","Project Not Integer", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
             }
-
             if (!(nudWorkPack.Value % 1 == 0))
             {
-                MessageBox.Show("Work pack number must be a whole number.");
+                MessageBox.Show("Work pack number must be a whole number.", "Work Pack Not Integer", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
             }
-
             if (!(nudJobSheet.Value % 1 == 0))
             {
-                MessageBox.Show("Job sheet number must be a whole number.");
+                MessageBox.Show("Job sheet number must be a whole number.", "Job Sheet Not Integer", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
             }
-
+            // Make sure scale min and scale max values are all decimals
             foreach (DataGridViewRow row in dgvInputSetup.Rows)
             {
                 if (!double.TryParse(row.Cells[6].Value.ToString(), out _))
                 {
-                    MessageBox.Show("Please check that all Scale Min values are deciamls.");
+                    MessageBox.Show("Please check that all Scale Min values are decimals.","Scale Min Not Decimal",
+                                    MessageBoxButtons.OK,MessageBoxIcon.Warning);
                     return false;
                 }
-
                 if (!double.TryParse(row.Cells[7].Value.ToString(), out _))
                 {
-                    MessageBox.Show("Please check that all Scale Min values are deciamls.");
+                    MessageBox.Show("Please check that all Scale Min values are decimals.","Scale Max Not Decimal",
+                                    MessageBoxButtons.OK,MessageBoxIcon.Warning);
                     return false;
                 }
             }
+            // Return true if all validation checks passed
             return true;
         }
 
 
+        // Create a config from dgvInputSetup
         private LogMeta CreateConfig()
         {
             // Create LogMeta to store settings
@@ -1439,22 +1647,25 @@ namespace SteerLoggerUser
                 loggedBy = user,
                 description = txtDescription.Text.Replace("\r\n",";")
             };
-
+            // Setup variables for populating new Pin array
             int enabled = 0;
-            ConfigFile newConfig = new ConfigFile();
+            newLog.config = new Pin[16];
+            int index = 0;
             foreach (DataGridViewRow row in dgvInputSetup.Rows)
             {
                 // Create a new Pin from each InputSetup row
-                Pin newPin = new Pin();
-                newPin.id = Convert.ToInt32(row.Cells[0].Value);
-                newPin.name = row.Cells[1].Value.ToString();
-                newPin.enabled = Convert.ToBoolean(row.Cells[2].Value);
-                newPin.fName = row.Cells[3].Value.ToString();
-                newPin.inputType = row.Cells[4].Value.ToString();
-                newPin.gain = Convert.ToInt32(row.Cells[5].Value);
-                newPin.scaleMin = Convert.ToDouble(row.Cells[6].Value);
-                newPin.scaleMax = Convert.ToDouble(row.Cells[7].Value);
-                newPin.units = row.Cells[8].Value.ToString();
+                Pin newPin = new Pin
+                {
+                    id = Convert.ToInt32(row.Cells[0].Value),
+                    name = row.Cells[1].Value.ToString(),
+                    enabled = Convert.ToBoolean(row.Cells[2].Value),
+                    fName = row.Cells[3].Value.ToString(),
+                    inputType = row.Cells[4].Value.ToString(),
+                    gain = Convert.ToInt32(row.Cells[5].Value),
+                    scaleMin = Convert.ToDouble(row.Cells[6].Value),
+                    scaleMax = Convert.ToDouble(row.Cells[7].Value),
+                    units = row.Cells[8].Value.ToString()
+                };
                 if (newPin.enabled == true)
                 {
                     // If pin is enabled, calculate m and c values for pin
@@ -1466,15 +1677,17 @@ namespace SteerLoggerUser
                     newPin.m = 0;
                     newPin.c = 0;
                 }
-                newConfig.pinList.Add(newPin);
+                // Add pin to pin array
+                newLog.config[index] = newPin;
+                index += 1;
             }
             if (enabled == 0)
             {
                 throw new InvalidDataException("No pins enabled");
             }
-            newLog.config = newConfig;
             return newLog;
         }
+
 
         // Calculates m and c values for a Pin using inputType, gain, scaleMin and scaleMax
         private Pin CalculateMandC(Pin pin)
@@ -1491,8 +1704,8 @@ namespace SteerLoggerUser
             return pin;
         }
 
+
         // Writes config to specified location on users computer
-        // Objective 10.1
         private void SaveConfig(LogMeta newLog, string path)
         {
             // Create new StreamWriter to write file
@@ -1509,7 +1722,7 @@ namespace SteerLoggerUser
                 writer.WriteLine();
 
                 // Enumerate through Pins and write each one to file
-                foreach (Pin pin in newLog.config.pinList)
+                foreach (Pin pin in newLog.config)
                 {
                     // Create new heading using Pin name
                     writer.WriteLine("[" + pin.name + "]");
@@ -1541,8 +1754,8 @@ namespace SteerLoggerUser
             }
         }
 
+
         // Uploads a new log config to the logger
-        // Objective 10.2
         private void UploadConfig(LogMeta newLog)
         {
             // Send command to logger so it can receive the config
@@ -1553,14 +1766,12 @@ namespace SteerLoggerUser
             metadata.Append(newLog.workPack + "\u001f");
             metadata.Append(newLog.jobSheet + "\u001f");
             metadata.Append(newLog.name + "\u001f");
-            metadata.Append(newLog.date + "\u001f");
             metadata.Append(newLog.time + "\u001f");
             metadata.Append(newLog.loggedBy + "\u001f");
-            metadata.Append(newLog.downloadedBy + "\u001f");
             metadata.Append(newLog.description);
             TCPSend(metadata.ToString());
-            // Enumerate through pinList and send settings for each Pin to logger
-            foreach (Pin pin in newLog.config.pinList)
+            // Enumerate through pin array and send settings for each Pin to logger
+            foreach (Pin pin in newLog.config)
             {
                 StringBuilder pindata = new StringBuilder();
                 pindata.Append(pin.id + "\u001f");
@@ -1586,21 +1797,25 @@ namespace SteerLoggerUser
             {
                 TCPSend("Start_Log");
                 // Show response (either logger started, or logger already running)
-                MessageBox.Show(TCPReceive());
+                MessageBox.Show(TCPReceive(),"Logger State",MessageBoxButtons.OK,MessageBoxIcon.Information);
             }
+            // Catch connection errors
             catch (SocketException)
             {
-                MessageBox.Show("An error occured in the connection, or you are not connected. Please reconnect.");
+                MessageBox.Show("An error occured in the connection, or you are not connected. Please reconnect.",
+                                "Connection Error",MessageBoxButtons.OK,MessageBoxIcon.Error);
                 return;
             }
             catch (InvalidDataException)
             {
-                MessageBox.Show("You need to be connected to a logger to do that!");
+                MessageBox.Show("You need to be connected to a logger to do that!","Not Connected",
+                                MessageBoxButtons.OK,MessageBoxIcon.Warning);
                 return;
             }
             catch (TimeoutException)
             {
-                MessageBox.Show("Connection timed out, please reconnect.");
+                MessageBox.Show("Connection timed out, please reconnect.", "Timeout Error",
+                                MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
         }
@@ -1613,20 +1828,24 @@ namespace SteerLoggerUser
             {
                 TCPSend("Stop_Log");
                 // Show response (either logger stopped, or logger already stopped)
-                MessageBox.Show(TCPReceive());
+                MessageBox.Show(TCPReceive(), "Logger State", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
+            // Catch connection errors
             catch (SocketException)
             {
-                MessageBox.Show("An error occured in the connection, or you are not connected. Please reconnect.");
+                MessageBox.Show("An error occured in the connection, or you are not connected. Please reconnect.",
+                                "Connection Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             catch (InvalidDataException)
             {
-                MessageBox.Show("You need to be connected to a logger to do that!");
+                MessageBox.Show("You need to be connected to a logger to do that!","Not Connected",
+                                MessageBoxButtons.OK,MessageBoxIcon.Warning);
                 return;
             }
             catch (TimeoutException)
             {
-                MessageBox.Show("Connection timed out, please reconnect.");
+                MessageBox.Show("Connection timed out, please reconnect.","Timeout Error",
+                                MessageBoxButtons.OK,MessageBoxIcon.Error);
                 return;
             }
         }
@@ -1635,11 +1854,14 @@ namespace SteerLoggerUser
         // Reset InputSetup grid to default values
         private void cmdResetConfig_Click(object sender, EventArgs e)
         {
-            DialogResult result = MessageBox.Show("This will clear all config data in the Simple/Advanced config menus. Continue?", "Continue?", MessageBoxButtons.OKCancel);
+            DialogResult result = MessageBox.Show("This will clear all config data in the Simple/Advanced config menus. Continue?", 
+                                                  "Continue?", MessageBoxButtons.OKCancel, MessageBoxIcon.Question);
             if (result == DialogResult.OK)
             {
+                // Clear simple config textbox and clear advanced setup grid
                 txtLogPins.Text = "";
                 dgvInputSetup.Rows.Clear();
+                // Repopulate grid with default config and setup simple config menu
                 LoadDefaultConfig();
                 SetupSimpleConf();
             }
@@ -1649,16 +1871,16 @@ namespace SteerLoggerUser
         // Allows user to reconnect to logger or connect to a different one
         private void cmdConnect_Click(object sender, EventArgs e)
         {
+            // If there is a connection currently, close that connection
             if (listener != null && listener.IsAlive)
             {
                 TCPSend("Quit");
                 TCPTearDown();
             }
-
             // Create new connectForm to search for available loggers
-            ConnectForm connectForm = new ConnectForm(progConfig.loggers.ToArray());
-            connectForm.user = user;
+            ConnectForm connectForm = new ConnectForm(progConfig.loggers.ToArray(), user);
             connectForm.ShowDialog();
+            // Get logger and user from connectForm
             logger = connectForm.logger;
             user = connectForm.user;
             // Try to connect to logger selected by user
@@ -1670,13 +1892,16 @@ namespace SteerLoggerUser
                 }
                 catch (SocketException)
                 {
-                    MessageBox.Show("An error occured in the connection, please reconnect.");
+                    MessageBox.Show("An error occured in the connection, please reconnect.","Connection Error",
+                                    MessageBoxButtons.OK,MessageBoxIcon.Error);
                     return;
                 }
             }
             else
             {
+                // If logger is null, set logger to ""
                 logger = "";
+                //lblConnection will have already been set to Not Connected in TCPTearDown
             }
         }
 
@@ -1699,20 +1924,30 @@ namespace SteerLoggerUser
                 TCPTearDown();
             }
 
-            string[] filePaths = Directory.GetFiles(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger");
-            foreach (string filename in filePaths)
+            // Delete any temporary raw/converted data files from SteerLogger appData directory
+            if (Directory.Exists(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger"))
             {
-                if (filename.Contains("raw") || filename.Contains("converted"))
+                string[] filePaths = Directory.GetFiles(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger");
+                foreach (string filename in filePaths)
                 {
-                    try
+                    if (filename.Contains("raw") || filename.Contains("converted"))
                     {
-                        File.Delete(filename);
-                    }
-                    catch
-                    {
-                        // Ignore errors
+                        try
+                        {
+                            File.Delete(filename);
+                        }
+                        catch
+                        {
+                            // Ignore errors as Form closing and this operation is non essential
+                        }
                     }
                 }
+            }
+            // Close excel application if there is an instance of it, stops artifacts being left on the computer
+            if (excel != null)
+            {
+                excel.Quit();
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(excel);
             }
         }
 
@@ -1720,33 +1955,54 @@ namespace SteerLoggerUser
         // Imports log data from a csv file
         private void cmdImportLogFile_Click(object sender, EventArgs e)
         {
-            // Create new logMeta and logData to hold log
+            // Create new logMeta hold log and to add to DAP.logsToProc
             LogMeta logMeta;
-            //logMeta.logData = new LogData();
+            ofdLog.Filter = "CSV files (*.csv)|*.csv|All files (*.*)|*.*";
             if (ofdLog.ShowDialog() == DialogResult.OK)
             {
-                // Set log name to name of file imported
+                // Check file is a .csv file, if not, check with user that this is correct
+                if (!ofdLog.SafeFileName.Contains(".csv"))
+                {
+                    DialogResult dialogResult = MessageBox.Show(String.Format("{0} is not a .csv file. Do you still want to try to import?",
+                        ofdLog.SafeFileName), "Not CSV File", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                    if (dialogResult == DialogResult.No)
+                    {
+                        return;
+                    }
+                }
+
+                // Set log name to name of file imported, removing "raw-", "converted-" and ".csv" from filename
+                // Set logMeta.conv to location of file
                 logMeta = new LogMeta
                 {
-                    name = ofdLog.SafeFileName.Replace("converted-", "").Replace(".csv", ""),
+                    name = ofdLog.SafeFileName.Replace("raw-","").Replace("converted-", "").Replace(".csv", ""),
                     conv = ofdLog.FileName
                 };
-
                 // If there is already a log being processed, allow user to merge logs
                 if (dgvDataProc.DataSource != null)
                 {
                     DialogResult dialogResult = MessageBox.Show("Would you like to merge the imported log with the current log?\n" +
                                                                 "Otherwise the imported log will be added to the queue.",
-                                                                "Merge Logs?", MessageBoxButtons.YesNo);
+                                                                "Merge Logs?", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                     if (dialogResult == DialogResult.Yes)
                     {
                         // If select to merge, create new logProc from imported log
                         DAP.logsProcessing.Add(logMeta);
                         LogProc tempProc = new LogProc();
-                        tempProc.CreateProcFromConv(logMeta.conv);
+                        try
+                        {
+                            tempProc.CreateProcFromConv(logMeta.conv);
+                        }
+                        catch (InvalidDataException)
+                        {
+                            MessageBox.Show(String.Format("Error parsing data from data file {0}.\n" +
+                                "Check imported files and redownload if necessary.", logMeta.conv), "Error Parsing Data",
+                                MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            DAP.logsProcessing.Remove(logMeta);
+                            return;
+                        }
                         // Merge logs together
-                        DAP.MergeLogs(tempProc);
-                        //dgvDataProc.Columns.Clear();
+                        DAP.MergeLogs(tempProc, logMeta.name);
                         // Update data display
                         lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name + " " + DAP.logsProcessing[0].testNumber;
                         PopulateDataViewProc(DAP.logProc);
@@ -1757,6 +2013,7 @@ namespace SteerLoggerUser
                         DAP.logsToProc.Enqueue(logMeta);
                     }
                 }
+                // If there is no log being processed, display new log
                 else
                 {
                     // Enqueue imported log
@@ -1766,7 +2023,20 @@ namespace SteerLoggerUser
                     {
                         DAP.logsProcessing.Clear();
                         DAP.logsProcessing.Add(DAP.logsToProc.Dequeue());
-                        DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].conv);
+                        try
+                        {
+                            DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].conv);
+                        }
+                        catch (InvalidDataException)
+                        {
+                            MessageBox.Show(String.Format("Error parsing data from data file {0}.\n" +
+                                "Check imported files and redownload if necessary.", DAP.logsProcessing[0].conv), 
+                                "Error Parsing Data",MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            DAP.logsProcessing.Remove(DAP.logsProcessing[0]);
+                            return;
+                        }
+                        
+                        // Update data display
                         lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name + " " + DAP.logsProcessing[0].testNumber;
                         PopulateDataViewProc(DAP.logProc);
                     }
@@ -1792,63 +2062,76 @@ namespace SteerLoggerUser
                 {
                     return;
                 }
-                List<LogMeta> logsAvailable = new List<LogMeta>();
                 string response = TCPReceive();
+                // If no logs match search criteria, tell user
                 if (response == "No Logs Match Criteria")
                 {
-                    MessageBox.Show("No logs match criteria.");
+                    MessageBox.Show("No logs match search criteria, trying searching with fewer criteria.",
+                                    "No Logs Match Criteria", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                     return;
                 }
-
                 // Get number of logs which match criteria
                 int numLogs = Convert.ToUInt16(response);
                 // Create new DownloadForm so user can select logs to download
                 DownloadForm download = new DownloadForm("Logs", false, TCPReceive, numLogs, TCPSend);
                 download.ShowDialog();
                 download.Dispose();
-
-                BackgroundWorker worker = new BackgroundWorker();
-                worker.WorkerReportsProgress = true;
-                worker.WorkerSupportsCancellation = true;
-
+                // Create new BackgroundWorker to download logs in the background
+                BackgroundWorker worker = new BackgroundWorker
+                {
+                    WorkerReportsProgress = true,
+                    WorkerSupportsCancellation = true
+                };
+                // Create new progress form to display download progress
                 ReceiveProgressForm progressForm;
                 progressForm = new ReceiveProgressForm(worker);
                 progressForm.Show();
-
-
+                // Setup DoWork and ProgressChanged event handlers for worker
                 worker.DoWork += (s,args) => ReceiveLog(s,args);
                 worker.ProgressChanged += (s, args) => ProgressChanged(s, args, progressForm);
+                // Run worker
                 worker.RunWorkerAsync();
-
             }
+            // Catch connection errors
             catch (SocketException)
             {
-                MessageBox.Show("An error occured in the connection, or you are not connected. Please reconnect.");
+                MessageBox.Show("An error occured in the connection, or you are not connected. Please reconnect.",
+                                "Connection Error",MessageBoxButtons.OK,MessageBoxIcon.Error);
             }
             catch (InvalidDataException)
             {
-                MessageBox.Show("You need to be connected to a logger to do that!");
+                MessageBox.Show("You need to be connected to a logger to do that!", "Not Connected",
+                                MessageBoxButtons.OK,MessageBoxIcon.Warning);
             }
             catch (TimeoutException)
             {
-                MessageBox.Show("Connection timed out, please reconnect.");
+                MessageBox.Show("Connection timed out, please reconnect.","Timeout Error",
+                                MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
 
-        // Dowload log CSV files
+        // Dowload log in separate CSV files
         private void cmdDwnldCsv_Click(object sender, EventArgs e)
         {
+            if (DAP.logsProcessing.Count == 0)
+            {
+                MessageBox.Show("There is no data to save, please import data and try again.",
+                                "No Data", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
             // Enumerate through logs that are being processed
             foreach (LogMeta log in DAP.logsProcessing)
             {
                 // If a log config exists, allow user to save it on local machine
                 if (log.config != null)
                 {
+                    // Create filename from logMeta holding config
                     sfdConfig.FileName = "logConf-" + log.name +
                                         (log.testNumber == 0 ? "" : String.Format("-{0}", log.testNumber)) +
-                                        (log.date == null ? "" : String.Format("-{0}", log.date)) + ".csv";
+                                        (log.date == null ? "" : String.Format("-{0}", log.date)) + ".ini";
                     sfdConfig.DefaultExt = "ini";
+                    sfdConfig.Filter = "Ini files (*.ini)|*.ini|All files (*.*)|*.*";
                     if (sfdConfig.ShowDialog() == DialogResult.OK)
                     {
                         try
@@ -1865,8 +2148,9 @@ namespace SteerLoggerUser
                     }
                 }
                 // If a log has raw data, allow user to save raw data csv on local machine
-                if (log.raw != null || log.raw != "")
+                if (log.raw != null && log.raw != "")
                 {
+                    // Create filename from logMeta
                     sfdLog.FileName = "raw-" + log.name +
                                         (log.testNumber == 0 ? "" : String.Format("-{0}", log.testNumber)) +
                                         (log.date == null ? "" : String.Format("-{0}", log.date)) + ".csv";
@@ -1893,8 +2177,9 @@ namespace SteerLoggerUser
                     }
                 }
                 // If a log has converted data, allow user to save conv data csv on local machine
-                if (log.conv != null || log.conv != "")
+                if (log.conv != null && log.conv != "")
                 {
+                    // Create filename from logMeta
                     sfdLog.FileName = "converted-" + log.name + 
                                       (log.testNumber == 0 ? "" : String.Format("-{0}",log.testNumber)) + 
                                       (log.date == null ? "" : String.Format("-{0}",log.date)) + ".csv";
@@ -1924,6 +2209,7 @@ namespace SteerLoggerUser
             // If the log is being processed, allow user to save processed data (data in data display)
             if (DAP.processing == true)
             {
+                // Create filename from first log in DAP.logsProcessing
                 sfdLog.FileName = "processed-" + DAP.logsProcessing[0].name +
                                     (DAP.logsProcessing[0].testNumber == 0 ? "" : String.Format("-{0}", DAP.logsProcessing[0].testNumber)) +
                                     (DAP.logsProcessing[0].date == null ? "" : String.Format("-{0}", DAP.logsProcessing[0].date)) + ".csv";
@@ -1939,21 +2225,25 @@ namespace SteerLoggerUser
                     // Catch any input/output errors
                     catch (IOException)
                     {
-                        MessageBox.Show("Error saving converted csv file. Make sure the file is not being used by another application and try again.",
+                        MessageBox.Show("Error saving processed csv file. Make sure the file is not being used by another application and try again.",
                                         "Error Saving File", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
             }
+            // Set save to true as log has been saved
             DAP.saved = true;
         }
 
 
+        // Saves csv to local machine
         private void SaveCsv(string temp, string output)
         {
+            // File is copied from application directory to location on local machine specified by user
             if (File.Exists(temp))
             {
                 File.Copy(temp, output);
             }
+            // If file doesn't exist in appData, throw FileNotFoundException
             else
             {
                 throw new FileNotFoundException();
@@ -1987,13 +2277,18 @@ namespace SteerLoggerUser
                     writer.WriteLine(line.ToString().Trim(','));
                 }
             }
-
         }
 
 
         // Download logs being processed in a zip file
         private void cmdDwnldZip_Click(object sender, EventArgs e)
         {
+            if (DAP.logsProcessing.Count == 0)
+            {
+                MessageBox.Show("There is no data to save, please import data and try again.",
+                                "No Data", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
             string dirPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger\zipDir";
             // If the temporary directory exists, delete it
             if (Directory.Exists(dirPath))
@@ -2002,18 +2297,18 @@ namespace SteerLoggerUser
             }
             // Create temporary directory to write files to and then zip
             Directory.CreateDirectory(dirPath);
-
             // Enumerate through logs being processed
-            // Save files for each log to zipDir
+            // Save files for each log to zipDir in appData
             foreach (LogMeta log in DAP.logsProcessing)
             {
+                // If config file exists for log, add to zipDir in appData
                 if (log.config != null)
                 {
                     string confPath = dirPath + @"\logConf-" + log.name + ".ini";
                     SaveConfig(log, confPath);
                 }
-
-                if (log.raw == null || log.raw == "")
+                // If raw file exists, add to zipDir
+                if (log.raw != null && log.raw != "")
                 {
                     string rawPath = dirPath + @"\raw-" + log.name + ".csv";
                     try
@@ -2026,8 +2321,8 @@ namespace SteerLoggerUser
                                         "Error Saving File", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
-
-                if (log.conv == null || log.conv == "")
+                // If conv file exists, add to zipDir
+                if (log.conv != null && log.conv != "")
                 {
                     string convPath = dirPath + @"\converted-" + log.name + ".csv";
                     try
@@ -2047,18 +2342,27 @@ namespace SteerLoggerUser
                 string procPath = dirPath + @"\processed-" + DAP.logsProcessing[0].name + ".csv";
                 SaveProcCsv(DAP.logProc, procPath);
             }
-
+            // Set zip filename based on log name and setup sfdLog settings for zip files
             sfdLog.FileName = DAP.logsProcessing[0].name + ".zip";
             sfdLog.DefaultExt = "zip";
             sfdLog.Filter = "Zip file (*.zip)|*.zip|All files (*.*)|*.*";
-
             if (sfdLog.ShowDialog() == DialogResult.OK)
             {
                 // Create a zip archive from the temporary zip directory
                 // Save zip archive to path specified by user
-                ZipFile.CreateFromDirectory(dirPath, sfdLog.FileName);
-                MessageBox.Show("Files zipped successfully.");
+                try
+                {
+                    ZipFile.CreateFromDirectory(dirPath, sfdLog.FileName);
+                }
+                catch (IOException)
+                {
+                    MessageBox.Show("Error creating Zip archive, make sure the file is not in use by another applicaiton and try again.",
+                        "Error Creating Archive", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                MessageBox.Show("Files zipped successfully.","Zip Successful",
+                                MessageBoxButtons.OK,MessageBoxIcon.Information);
             }
+            // Set save to true as logs have been saved
             DAP.saved = true;
         }
 
@@ -2066,8 +2370,8 @@ namespace SteerLoggerUser
         // Import data into an Excel spreadsheet
         private void cmdExpExcel_Click(object sender, EventArgs e)
         {
-            // Check if there is dat to export
-            if (DAP.logProc.timestamp.Count != 0)
+            // Check if there is data to export
+            if (dgvDataProc.DataSource != null)
             {
                 // Create new excelForm to allow user to select how to export data
                 ExcelForm excelForm = new ExcelForm(DAP.logProc, excel);
@@ -2078,11 +2382,14 @@ namespace SteerLoggerUser
                 catch (System.Runtime.InteropServices.COMException)
                 {
                     // Excel closed before form closed
+                    // Not a fatal error and doesn't need an alert
                 }
             }
+            // If there is no data to export, tell user
             else
             {
-                MessageBox.Show("No data to export, please import data into the processing view!");
+                MessageBox.Show("No data to export, please import data into the processing view!",
+                                "No Data", MessageBoxButtons.OK,MessageBoxIcon.Warning);
             }
         }
 
@@ -2091,12 +2398,12 @@ namespace SteerLoggerUser
         private void cmdPythonScript_Click(object sender, EventArgs e)
         {
             // Make sure there is data to process
-            if (DAP.logsProcessing.Count == 0)
+            if (dgvDataProc.DataSource == null)
             {
-                MessageBox.Show("No log data to process, please import log data and try again.");
+                MessageBox.Show("No log data to process, please import log data and try again.",
+                                "No Data", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-
             // Make sure scripts and files are in appData
             InitialiseAppData();
             string dirPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger";
@@ -2110,58 +2417,63 @@ namespace SteerLoggerUser
                 string script = ofdPythonScript.FileName;
                 // Get path to activate.bat
                 string condaPath = progConfig.activatePath;
+                // If activate.bat cannot be found, alert user and return
                 if (File.Exists(condaPath) == false)
                 {
-                    MessageBox.Show("activate.bat is not the the location expected. Please change the settings to correct the activate.bat location."
-                                    + Environment.NewLine + "Expected location: " + condaPath);
+                    MessageBox.Show("activate.bat is not at the location expected. Please change the settings to correct the activate.bat location."
+                                    + Environment.NewLine + "Expected location: " + condaPath, "Cannot Find activate.bat",
+                                    MessageBoxButtons.OK,MessageBoxIcon.Warning);
                     return;
                 }
                 // Construct the argument to pass to the command shell
                 string cmdArguments = "/c \"chdir " + dirPath + "\\ && call " + condaPath + " && python " + script + " " + dirPath + "\"";
-
-
-                ProcessStartInfo startCmd = new ProcessStartInfo();
-                // Setup Process arguements
-                startCmd.FileName = @"C:\Windows\System32\cmd.exe";
-                startCmd.Arguments = cmdArguments;
-                startCmd.UseShellExecute = false;
-                startCmd.CreateNoWindow = false;
+                ProcessStartInfo startCmd = new ProcessStartInfo
+                {
+                    // Setup Process parameters
+                    FileName = @"C:\Windows\System32\cmd.exe",
+                    Arguments = cmdArguments,
+                    UseShellExecute = false,
+                    CreateNoWindow = false
+                };
                 // Start process
-                // Objective 15.1
                 using (Process process = Process.Start(startCmd))
                 {
-                    MessageBox.Show("Python script starting.");
+                    MessageBox.Show("Python script starting.","Python Script Starting",
+                                    MessageBoxButtons.OK,MessageBoxIcon.Information);
                 }
             }
+            // If user doesn't select a script, return
             else { return; }
-
-
-            // Read processed data output by python script
             try
             {
+                // Read processed data output by python script
                 LogProc tempLogProc = ReadProcCsv(dirPath + @"\proc.csv");
                 // Allow user to merge processed data with current data or overwrite data in the display
-                // Objective 15.3
-                DialogResult dialogResult = MessageBox.Show("Combine processed data with data in the grid?", "Combine Data?", MessageBoxButtons.YesNo);
+                DialogResult dialogResult = MessageBox.Show("Combine processed data with data in the grid?", "Combine Data?",
+                                                            MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                 if (dialogResult == DialogResult.Yes)
                 {
-                    DAP.MergeLogs(tempLogProc);
+                    DAP.MergeLogs(tempLogProc, "Processed");
                 }
                 else
                 {
                     DAP.logProc = tempLogProc;
                 }
+                // Update data display
                 lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name + " " + DAP.logsProcessing[0].testNumber;
                 PopulateDataViewProc(DAP.logProc);
+                // Set processing to true as data has been processed
                 DAP.processing = true;
+                // Delete temporary files from appData
                 File.Delete(dirPath + @"\temp.csv");
                 File.Delete(dirPath + @"\proc.csv");
             }
-            // Fires if proc.csv cannot be found, usually means script failed
+            // Catch exception if proc.csv cannot be found, usually means script failed
             catch (FileNotFoundException)
             {
                 MessageBox.Show("Processing failed. Make sure your Python script outputs a proc.csv file.\n" +
-                                "Also make sure that activate.bat is stored at C:\\Users\\<Your_User>\\anaconda3\\Scripts\\activate.bat", "Processing Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                "Also make sure that activate.bat is stored at C:\\Users\\<Your_User>\\anaconda3\\Scripts\\activate.bat", 
+                                "Processing Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 File.Delete(dirPath + @"\temp.csv");
             }
         }
@@ -2202,10 +2514,10 @@ namespace SteerLoggerUser
             // Make sure there is data to be graphed
             if (DAP.logsProcessing.Count == 0)
             {
-                MessageBox.Show("No log data to process, please import log data and try again.");
+                MessageBox.Show("No log data to process, please import log data and try again.", "No Data",
+                                MessageBoxButtons.OK,MessageBoxIcon.Warning);
                 return;
             }
-
             // Make sure scripts and files are in appData
             InitialiseAppData();
             string dirPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger";
@@ -2219,28 +2531,34 @@ namespace SteerLoggerUser
                 string script = ofdPythonScript.FileName;
                 // Get the path to activate .bat
                 string condaPath = progConfig.activatePath;
+                // If activate.bat cannot be found, alert user and return
                 if (File.Exists(condaPath) == false)
                 {
                     MessageBox.Show("activate.bat is not the the location expected. Please change the settings to correct the activate.bat location."
-                                    + Environment.NewLine + "Expected location: " + condaPath);
+                                    + Environment.NewLine + "Expected location: " + condaPath, "Cannot Find activate.bat",
+                                    MessageBoxButtons.OK,MessageBoxIcon.Warning);
                     return;
                 }
                 // Construct the argument to pass to the command shell
                 string cmdArguments = "/c \"chdir " + dirPath + "\\ && call " + condaPath + " && python " + script + " " + dirPath + "\"";
-
-                ProcessStartInfo startCmd = new ProcessStartInfo();
-                // Set process arguments
-                startCmd.FileName = @"C:\Windows\System32\cmd.exe";
-                startCmd.Arguments = cmdArguments;
-                startCmd.UseShellExecute = false;
-                startCmd.CreateNoWindow = false;
+                ProcessStartInfo startCmd = new ProcessStartInfo
+                {
+                    // Set process arguments
+                    FileName = @"C:\Windows\System32\cmd.exe",
+                    Arguments = cmdArguments,
+                    UseShellExecute = false,
+                    CreateNoWindow = false
+                };
                 // Start process
                 using (Process process = Process.Start(startCmd))
                 {
-                    MessageBox.Show("Python script starting.");
+                    MessageBox.Show("Python script starting.","Python Script Starting",
+                                    MessageBoxButtons.OK,MessageBoxIcon.Information);
                 }
                 // No data needs to be returned as nothing is processed
                 // Python script handles displaying the graph and allowing user to save it
+                // Delete temporary files from appData
+                File.Delete(dirPath + @"\temp.csv");
             }
             else
             {
@@ -2248,6 +2566,8 @@ namespace SteerLoggerUser
             }
         }
 
+
+        // Handles resizing of dgvInputSetup rows when mainForm is resized
         private void dgvInputSetup_SizeChanged(object sender, EventArgs e)
         {
             // Automatically adjust height of rows to fit nicely
@@ -2258,21 +2578,33 @@ namespace SteerLoggerUser
             }
         }
 
+
+        // Shows Settings form and changes settings
         private void cmdSettings_Click(object sender, EventArgs e)
         {
+            // Create and show new settings form
             SettingsForm settings = new SettingsForm(progConfig, TCPSend, TCPReceive, logger);
             settings.ShowDialog();
+            settings.Dispose();
+            // Re-read settings files to make sure new changes are reflected
             ReadProgConfig();
             SetupSimpleConf();
         }
 
+
+        // Shows the about menu
         private void cmdAbt_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("Epic new logger!!", "About", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            AboutForm aboutForm = new AboutForm();
+            aboutForm.ShowDialog();
+            aboutForm.Dispose();
         }
 
+
+        // Switch from simple config to advanced config or vice versa
         private void cmdConfigSwitch_Click(object sender, EventArgs e)
         {
+            // Check which config menu is showing
             if (dgvInputSetup.Visible == false)
             {
                 // Hide simple config and show advanced config grid
@@ -2291,22 +2623,24 @@ namespace SteerLoggerUser
         }
 
 
+        // Populates simple config menu using program config
         private void SetupSimpleConf()
         {
+            // Clear and repopulate pin combo box
             cmbPin.Items.Clear();
             for (int i = 1; i <= 16; i++)
             {
                 cmbPin.Items.Add(i.ToString());
             }
             cmbPin.SelectedIndex = 0;
-
+            // Clear and repopulate sensor combo box
             cmbSensor.Items.Clear();
             foreach (string sensor in progConfig.variationDict.Keys)
             {
                 cmbSensor.Items.Add(sensor);
             }
             cmbSensor.SelectedIndex = 0;
-
+            // Clear and repopulate variation combo box
             cmbVar.Items.Clear();
             cmbVar.Enabled = true;
             foreach (string variation in progConfig.variationDict[cmbSensor.SelectedItem.ToString()])
@@ -2314,12 +2648,14 @@ namespace SteerLoggerUser
                 cmbVar.Items.Add(variation);
             }
             cmbVar.SelectedIndex = 0;
-
+            // If sensor has no variation, disable variation combo box
             if (cmbVar.SelectedItem.ToString() == "N/A")
             {
                 cmbVar.Enabled = false;
             }
+            // Clear textbox
             txtLogPins.Text = "";
+            // Go through input setup grid and list pins that are enabled in textbox
             foreach (DataGridViewRow row in dgvInputSetup.Rows)
             {
                 if (Convert.ToBoolean(row.Cells[2].Value) == true)
@@ -2330,31 +2666,40 @@ namespace SteerLoggerUser
             }
         }
 
+
+        // Changes variations in cmbVar to match the sensor currently selected
         private void cmbSensor_SelectedIndexChanged(object sender, EventArgs e)
         {
+            // Clear variations
             cmbVar.Items.Clear();
             cmbVar.Enabled = true;
+            // Repopulate with variations for the sensor
             foreach (string variation in progConfig.variationDict[cmbSensor.SelectedItem.ToString()])
             {
                 cmbVar.Items.Add(variation);
             }
             cmbVar.SelectedIndex = 0;
-
+            // If sensor has no variations, don't disable cmbVar
             if (cmbVar.SelectedItem.ToString() == "N/A")
             {
                 cmbVar.Enabled = false;
             }
         }
 
+
+        // Sets a pin to log in the simple config menu
         private void cmdAddPin_Click(object sender, EventArgs e)
         {
+            // Get preset for configPins dictionary
             StringBuilder preset = new StringBuilder(cmbSensor.SelectedItem.ToString() + ',');
             if (cmbVar.Enabled)
             {
                 preset.Append(cmbVar.SelectedItem.ToString());
             }
+            // Get pin settings for preset from configPins dictionary
             Pin pin = progConfig.configPins[preset.ToString()];
             int row = cmbPin.SelectedIndex;
+            // Add pin settings to dgvInputSetup
             dgvInputSetup.Rows[row].Cells[2].Value = true;
             dgvInputSetup.Rows[row].Cells[3].Value = pin.fName;
             dgvInputSetup.Rows[row].Cells[4].Value = pin.inputType;
@@ -2362,51 +2707,70 @@ namespace SteerLoggerUser
             dgvInputSetup.Rows[row].Cells[6].Value = pin.scaleMin.ToString();
             dgvInputSetup.Rows[row].Cells[7].Value = pin.scaleMax.ToString();
             dgvInputSetup.Rows[row].Cells[8].Value = pin.units;
-
+            // Verify in textbox that pin has been added
             txtLogPins.AppendText("Added " + cmbSensor.SelectedItem.ToString() +
                                   " " + (cmbVar.SelectedItem.ToString() == "N/A" ? "" : cmbVar.SelectedItem.ToString()) + 
                                   " to log." + Environment.NewLine);
         }
 
+
+        // Remove a pin from log using simple config setup
         private void cmdRemovePin_Click(object sender, EventArgs e)
         {
+            // Get the row to disable from cmbPin
             int row = cmbPin.SelectedIndex;
             dgvInputSetup.Rows[row].Cells[2].Value = false;
+            // Update textbox to show pin was removed
             txtLogPins.AppendText("Removed pin " + (row + 1).ToString() + ": " 
                                   + dgvInputSetup.Rows[row].Cells[3].Value + " from log." + Environment.NewLine);
         }
 
+
+        // Allows user to change their username during a session
         private void cmdChangeUser_Click(object sender, EventArgs e)
         {
             try
             {
                 TCPSend("Change_User");
+                // Show change user form
                 ChangeUserForm changeUserForm = new ChangeUserForm(TCPSend);
                 changeUserForm.ShowDialog();
+                // Update user variable and update lblConnection
                 user = changeUserForm.user;
                 lblConnection.Text = String.Format("You are connected to {0} as {1}", logger, user);
+                // Clear resources
                 changeUserForm.Dispose();
             }
+            // Catch connection errors
             catch (SocketException)
             {
-                MessageBox.Show("An error occurred in the connection, please reconnect.");
+                MessageBox.Show("An error occurred in the connection, please reconnect.","Connection Error",
+                                MessageBoxButtons.OK,MessageBoxIcon.Error);
             }
             catch (InvalidDataException)
             {
-                MessageBox.Show("You need to be connected to a logger to do that!");
+                MessageBox.Show("You need to be connected to a logger to do that!","Not Connected",
+                                MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
+
+        // Resize lblConnection when text changed so it will resize to as much text as possible
         private void lblConnection_TextChanged(object sender, EventArgs e)
         {
             lblConnection.Width = cmdChangeUser.Location.X - (cmdAbt.Location.X + cmdAbt.Width) - 10;
         }
 
+
+        // Allows user to reconvert raw data on local machine using config on local machine
+        // Means if config settings are input incorrectly for a log, it can be easily fixed
         private void cmdReconvert_Click(object sender, EventArgs e)
         {
             // Create new logMeta to hold log
             LogMeta logMeta;
             ofdLog.Title = "Open Log Data";
+            ofdLog.DefaultExt = ".csv";
+            ofdLog.Filter = "Csv files (*.csv)|*.csv|All files (*.*)|*.*";
             // Allow user to select raw data file
             if (ofdLog.ShowDialog() == DialogResult.OK)
             {
@@ -2425,19 +2789,18 @@ namespace SteerLoggerUser
             List<Pin> enabled = new List<Pin>();
             // Import the config to use to convert raw data
             ofdConfig.Title = "Open Config Data";
+            ofdConfig.DefaultExt = ".ini";
+            ofdConfig.Filter = "Ini files (*.ini)|*.ini|All files|*.*";
             if (ofdConfig.ShowDialog() == DialogResult.OK)
             {
                 // Create stream object to use in StreamReader creation
                 Stream fileStream = ofdConfig.OpenFile();
-
                 bool general = false;
-                // Used to select which data grid cell to change
-                // pinNumber represents row, cellNumber represents column
-                int pinNumber = 0;
-                logMeta.config = new ConfigFile();
+                // pinNumber used to index logMeta.config
+                int pinNumber = -1;
+                logMeta.config = new Pin[16];
                 using (StreamReader reader = new StreamReader(fileStream))
                 {
-                    Pin tempPin = new Pin();
                     // Reads lines one at a time until the end of the file
                     while (reader.EndOfStream == false)
                     {
@@ -2451,21 +2814,12 @@ namespace SteerLoggerUser
                             // Indicates that a new pin header has been reached
                             else if (line[0] == '[')
                             {
-                                if (tempPin.name != null)
-                                {
-                                    logMeta.config.pinList.Add(tempPin);
-                                    if (tempPin.enabled)
-                                    {
-                                        enabled.Add(tempPin);
-                                    }
-                                    tempPin = new Pin();
-                                }
-                                general = false;
-                                tempPin.id = pinNumber;
-                                tempPin.name = line.Replace("[", "").Replace("]", "");
-
-                                // Increase pin number by one to move one row down on the grid
+                                // Increase pin number by one
                                 pinNumber += 1;
+                                logMeta.config[pinNumber] = new Pin();
+                                general = false;
+                                logMeta.config[pinNumber].id = pinNumber;
+                                logMeta.config[pinNumber].name = line.Replace("[", "").Replace("]", "");
                             }
                             else if (general == true)
                             {
@@ -2493,44 +2847,39 @@ namespace SteerLoggerUser
                             else
                             {
                                 string[] data = line.Split(new string[] { " = " }, StringSplitOptions.None);
-                                // As enabled has to be a bool, a special case for conversion is used
+                                // Set pin settings from config file
                                 switch (data[0])
                                 {
                                     case "enabled":
-                                        tempPin.enabled = data[1] == "True";
+                                        logMeta.config[pinNumber].enabled = data[1] == "True";
                                         break;
                                     case "friendlyname":
-                                        tempPin.fName = data[1];
+                                        logMeta.config[pinNumber].fName = data[1];
                                         break;
                                     case "inputtype":
-                                        tempPin.inputType = data[1] == "Edit Me" ? "4-20mA" : data[1];
+                                        logMeta.config[pinNumber].inputType = data[1] == "Edit Me" ? "4-20mA" : data[1];
                                         break;
                                     case "gain":
-                                        tempPin.gain = Convert.ToInt16(data[1]);
+                                        logMeta.config[pinNumber].gain = Convert.ToInt16(data[1]);
                                         break;
                                     case "scalelow":
-                                        tempPin.scaleMin = Convert.ToDouble(data[1]);
+                                        logMeta.config[pinNumber].scaleMin = Convert.ToDouble(data[1]);
                                         break;
                                     case "scalehigh":
-                                        tempPin.scaleMax = Convert.ToDouble(data[1]);
+                                        logMeta.config[pinNumber].scaleMax = Convert.ToDouble(data[1]);
                                         break;
                                     case "unit":
-                                        tempPin.units = data[1] == "Edit Me" ? "V" : data[1];
+                                        logMeta.config[pinNumber].units = data[1] == "Edit Me" ? "V" : data[1];
                                         break;
                                     case "m":
-                                        tempPin.m = Convert.ToDouble(data[1]);
+                                        logMeta.config[pinNumber].m = Convert.ToDouble(data[1]);
                                         break;
                                     case "c":
-                                        tempPin.c = Convert.ToDouble(data[1]);
+                                        logMeta.config[pinNumber].c = Convert.ToDouble(data[1]);
                                         break;
                                 }
                             }
                         }
-                    }
-                    logMeta.config.pinList.Add(tempPin);
-                    if (tempPin.enabled)
-                    {
-                        enabled.Add(tempPin);
                     }
                 }
             }
@@ -2539,7 +2888,15 @@ namespace SteerLoggerUser
                 return;
             }
 
-            // Read from the file selected
+            foreach(Pin pin in logMeta.config)
+            {
+                if (pin.enabled)
+                {
+                    enabled.Add(pin);
+                }
+            }
+
+            // Read from the raw file selected
             using (StreamReader reader = new StreamReader(logMeta.raw))
             {
                 logMeta.conv = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + String.Format(@"\SteerLogger\converted-{0}.csv", logMeta.name);
@@ -2557,8 +2914,15 @@ namespace SteerLoggerUser
                     while (!reader.EndOfStream)
                     {
                         string[] line = reader.ReadLine().Split(',');
-                        StringBuilder output = new StringBuilder(String.Format("{0},{1}", line[0], line[1]));
+                        if (line.Count() != enabled.Count() + 2)
+                        {
+                            MessageBox.Show("The number of enabled pins doesn't equal the number of data columns in the raw data.\n" +
+                                "Please check that the config file and the raw data file are correct and try again.",
+                                "Error Converting File", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            return;
+                        }
 
+                        StringBuilder output = new StringBuilder(String.Format("{0},{1}", line[0], line[1]));
                         for (int j = 2; j < line.Length; j++)
                         {
                             output.AppendFormat(",{0}", double.Parse(line[j]) * enabled[j - 2].m + enabled[j - 2].c);
@@ -2581,10 +2945,265 @@ namespace SteerLoggerUser
                 {
                     DAP.logsProcessing.Clear();
                     DAP.logsProcessing.Add(DAP.logsToProc.Dequeue());
-                    DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].conv);
+                    try
+                    {
+                        DAP.logProc.CreateProcFromConv(DAP.logsProcessing[0].conv);
+                    }
+                    catch (InvalidDataException)
+                    {
+                        MessageBox.Show(String.Format("Error parsing data from data file {0}.\n" +
+                            "Check imported files and redownload if necessary.", DAP.logsProcessing[0].conv), 
+                            "Error Parsing Data",MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        DAP.logsProcessing.Remove(DAP.logsProcessing[0]);
+                        return;
+                    }
                     lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name + " " + DAP.logsProcessing[0].testNumber;
                     PopulateDataViewProc(DAP.logProc);
                 }
+            }
+        }
+
+
+        // Allows user to rename a log locally if naming error has been made
+        private void cmdRename_Click(object sender, EventArgs e)
+        {
+            // Check if there are logs to rename
+            if (DAP.logsProcessing.Count == 0)
+            {
+                MessageBox.Show("No logs to rename.", "No Logs Imported",
+                                MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            // Show rename form
+            RenameForm renameForm = new RenameForm(DAP);
+            renameForm.ShowDialog();
+            // Set DAP to updated DAP from renameForm
+            DAP = renameForm.DAP;
+            renameForm.Dispose();
+            // Update display to reflect new name
+            lblLogDisplay.Text = String.Format("Displaying: {0} {1}", DAP.logsProcessing[0].name, DAP.logsProcessing[0].testNumber);
+        }
+
+
+        // This code controls reformatting the main UI when resized beyond a certain limit
+        // This means the font and subsequently all controls can be made bigger and fit together in the same way
+        // This can probably be done better
+        private void mainForm_SizeChanged(object sender, EventArgs e)
+        {
+            if (this.Size.Width > 1425 && this.Size.Height > 800)
+            {
+                Font = new Font(FontFamily.GenericSansSerif, 12, FontStyle.Regular, GraphicsUnit.Point, 0, false);
+                cmdCtrlConf.Location = new Point(13, 12);
+                cmdCtrlConf.Size = new Size(150, 30);
+                cmdDataProc.Location = new Point(169, 12);
+                cmdDataProc.Size = new Size(155, 30);
+                cmdSettings.Location = new Point(330, 12);
+                cmdSettings.Size = new Size(137, 30);
+                cmdAbt.Location = new Point(473, 12);
+                cmdAbt.Size = new Size(125, 30);
+                cmdConnect.Location = new Point(this.Width - 37 - 105, 12);
+                cmdConnect.Size = new Size(105, 30);
+                cmdChangeUser.Location = new Point(cmdConnect.Location.X - 6 - 105, 12);
+                cmdChangeUser.Size = new Size(105, 30);
+                lblConnection.Location = new Point(604, 17);
+                lblConnection.Size = new Size(cmdChangeUser.Location.X - (cmdAbt.Location.X + cmdAbt.Width) - 10, 21);
+                pnlCtrlConf.Location = new Point(13, cmdCtrlConf.Location.Y + cmdCtrlConf.Height + 6);
+                pnlCtrlConf.Size = new Size(this.Width - 50, this.Height - 110);
+                lblProject.Location = new Point(15, 14);
+                lblProject.Size = new Size(53, 18);
+                nudProject.Location = new Point(lblProject.Location.X, lblProject.Location.Y + lblProject.Height + 10);
+                nudProject.Size = new Size(67, 25);
+                nudWorkPack.Location = new Point(nudProject.Location.X + nudProject.Width + 6, nudProject.Location.Y);
+                nudWorkPack.Size = new Size(80, 25);
+                lblWorkPack.Location = new Point(nudWorkPack.Location.X - 4, 14);
+                lblWorkPack.Size = new Size(74, 13);
+                nudJobSheet.Location = new Point(nudWorkPack.Location.X + nudWorkPack.Width + 6, nudWorkPack.Location.Y);
+                nudJobSheet.Size = new Size(82, 25);
+                lblJobSheet.Location = new Point(nudJobSheet.Location.X - 4, 14);
+                lblJobSheet.Size = new Size(68, 13);
+                pnlSimpleConfig.Location = new Point(nudJobSheet.Location.X + nudJobSheet.Width + 11, 0);
+                pnlSimpleConfig.Size = new Size(pnlCtrlConf.Width - pnlSimpleConfig.Location.X, pnlCtrlConf.Height);
+                dgvInputSetup.Location = pnlSimpleConfig.Location;
+                dgvInputSetup.Size = pnlSimpleConfig.Size;
+                lblPin.Location = new Point(3, 14);
+                lblPin.Size = new Size(30, 18);
+                cmbPin.Location = new Point(3, lblPin.Location.Y + lblPin.Height + 8);
+                cmbPin.Size = new Size(140, 30);
+                cmbSensor.Location = new Point(cmbPin.Location.X + cmbPin.Width + 6, cmbPin.Location.Y);
+                cmbSensor.Size = new Size(140, 30);
+                lblSensor.Location = new Point(cmbSensor.Location.X - 3, lblPin.Location.Y);
+                lblSensor.Size = new Size(48, 18);
+                cmbVar.Location = new Point(cmbSensor.Location.X + cmbSensor.Width + 6, cmbPin.Location.Y);
+                cmbVar.Size = new Size(140, 30);
+                lblVar.Location = new Point(cmbVar.Location.X - 3, lblPin.Location.Y);
+                lblVar.Size = new Size(56, 18);
+                txtLogPins.Location = new Point(3, cmbPin.Location.Y + cmbPin.Height + 6);
+                txtLogPins.Size = new Size(pnlSimpleConfig.Width - 6, pnlSimpleConfig.Height - txtLogPins.Location.Y - 3);
+                cmdRemovePin.Location = new Point(txtLogPins.Width - 97, cmbPin.Location.Y);
+                cmdRemovePin.Size = new Size(100, 30);
+                cmdAddPin.Location = new Point(cmdRemovePin.Location.X - 136, cmbPin.Location.Y);
+                cmdAddPin.Size = new Size(130, 30);
+                label1.Location = new Point(15, nudProject.Location.Y + nudProject.Height + 14);
+                label1.Size = new Size(65, 20);
+                txtLogName.Location = new Point(120, nudProject.Location.Y + nudProject.Height + 11);
+                txtLogName.Size = new Size(nudJobSheet.Location.X + nudJobSheet.Width - 120, 20);
+                nudInterval.Location = new Point(txtLogName.Location.X, txtLogName.Location.Y + txtLogName.Height + 6);
+                nudInterval.Size = new Size(txtLogName.Width, txtLogName.Height);
+                label2.Location = new Point(label1.Location.X, nudInterval.Location.Y + 2);
+                label2.Size = new Size(75, 20);
+                lblDescription.Location = new Point(label2.Location.X, label2.Location.Y + label2.Height + 6);
+                txtDescription.Location = new Point(lblDescription.Location.X, lblDescription.Location.Y + lblDescription.Height + 6);
+                txtDescription.Size = new Size(txtLogName.Location.X + txtLogName.Width - txtDescription.Location.X, 150);
+                cmdResetConfig.Location = new Point(txtDescription.Location.X, txtDescription.Location.Y + txtDescription.Height + 6);
+                cmdResetConfig.Size = new Size(txtDescription.Width, 30);
+                cmdConfigSwitch.Location = new Point(cmdResetConfig.Location.X, cmdResetConfig.Location.Y + cmdResetConfig.Height + 6);
+                cmdConfigSwitch.Size = new Size(cmdResetConfig.Width, 30);
+                cmdImportConfFile.Location = new Point(cmdResetConfig.Location.X, pnlCtrlConf.Height - 60);
+                cmdImportConfFile.Size = new Size(cmdResetConfig.Width / 2 - 3, 50);
+                cmdImportConfPi.Location = new Point(cmdImportConfFile.Location.X + cmdImportConfFile.Width + 6, pnlCtrlConf.Height - 60);
+                cmdImportConfPi.Size = new Size(cmdResetConfig.Width / 2 - 3, 50);
+                cmdSave.Location = new Point(cmdResetConfig.Location.X, cmdImportConfFile.Location.Y - 46);
+                cmdSave.Size = new Size(cmdImportConfFile.Width, 40);
+                cmdUpload.Location = new Point(cmdImportConfPi.Location.X, cmdImportConfFile.Location.Y - 46);
+                cmdUpload.Size = new Size(cmdImportConfPi.Width, 40);
+                cmdStartLog.Location = new Point(cmdResetConfig.Location.X, cmdSave.Location.Y - 46);
+                cmdStartLog.Size = new Size(cmdImportConfFile.Width, 40);
+                cmdStopLog.Location = new Point(cmdImportConfPi.Location.X, cmdSave.Location.Y - 46);
+                cmdStopLog.Size = new Size(cmdImportConfPi.Width, 40);
+                pnlDataProc.Location = new Point(13, cmdCtrlConf.Location.Y + cmdCtrlConf.Height + 6);
+                pnlDataProc.Size = new Size(this.Width - 50, this.Height - 110);
+                dgvDataProc.Location = new Point(260, 3);
+                dgvDataProc.Size = new Size(pnlDataProc.Width - 263, pnlDataProc.Height - 6);
+                lblLogDisplay.Location = new Point(19, 14);
+                lblLogDisplay.Size = new Size(100, 24);
+                lblLogDisplay.MaximumSize = new Size(dgvDataProc.Location.X - lblLogDisplay.Location.X - 6, 24);
+                cmdRename.Location = new Point(lblLogDisplay.Location.X, lblLogDisplay.Location.Y + lblLogDisplay.Height + 12);
+                cmdRename.Size = new Size(dgvDataProc.Location.X - lblLogDisplay.Location.X - 6, 30);
+                cmdPythonScript.Location = new Point(cmdRename.Location.X, cmdRename.Location.Y + cmdRename.Height + 6);
+                cmdPythonScript.Size = new Size(cmdRename.Width, cmdRename.Height);
+                cmdPythonGraph.Location = new Point(cmdPythonScript.Location.X, cmdPythonScript.Location.Y + cmdPythonScript.Height + 6);
+                cmdPythonGraph.Size = new Size(cmdRename.Width, cmdRename.Height);
+                cmdReconvert.Location = new Point(cmdPythonGraph.Location.X, cmdPythonGraph.Location.Y + cmdPythonGraph.Height + 6);
+                cmdReconvert.Size = new Size(cmdRename.Width, cmdRename.Height);
+                cmdClearData.Location = new Point(cmdRename.Location.X, dgvDataProc.Location.Y + dgvDataProc.Height - 36);
+                cmdClearData.Size = new Size(cmdRename.Width, cmdRename.Height);
+                cmdExpExcel.Location = new Point(cmdRename.Location.X, cmdClearData.Location.Y - 36);
+                cmdExpExcel.Size = new Size(cmdRename.Width, cmdRename.Height);
+                cmdDwnldZip.Location = new Point(cmdRename.Location.X, cmdExpExcel.Location.Y- 36);
+                cmdDwnldZip.Size = new Size(cmdRename.Width, cmdRename.Height);
+                cmdDwnldCsv.Location = new Point(cmdRename.Location.X, cmdDwnldZip.Location.Y - 36);
+                cmdDwnldCsv.Size = new Size(cmdRename.Width, cmdRename.Height);
+                cmdImportLogFile.Location = new Point(cmdRename.Location.X, cmdDwnldCsv.Location.Y - 36);
+                cmdImportLogFile.Size = new Size(cmdRename.Width, cmdRename.Height);
+                cmdImportLogPi.Location = new Point(cmdRename.Location.X, cmdImportLogFile.Location.Y - 36);
+                cmdImportLogPi.Size = new Size(cmdRename.Width, cmdRename.Height);
+            }
+            else
+            {
+                this.Font = new Font(FontFamily.GenericSansSerif, 8.25f, FontStyle.Regular, GraphicsUnit.Point, 0, false);
+                cmdCtrlConf.Location = new Point(13, 12);
+                cmdCtrlConf.Size = new Size(125, 22);
+                cmdDataProc.Location = new Point(144, 12);
+                cmdDataProc.Size = new Size(130, 22);
+                cmdSettings.Location = new Point(281, 12);
+                cmdSettings.Size = new Size(112, 22);
+                cmdAbt.Location = new Point(399, 12);
+                cmdAbt.Size = new Size(100, 22);
+                cmdConnect.Location = new Point(this.Width - 37 - 80, 12);
+                cmdConnect.Size = new Size(80, 22);
+                cmdChangeUser.Location = new Point(cmdConnect.Location.X - 6 - 80, 12);
+                cmdChangeUser.Size = new Size(80, 22);
+                lblConnection.Location = new Point(505, 17);
+                lblConnection.Size = new Size(cmdChangeUser.Location.X - (cmdAbt.Location.X + cmdAbt.Width) - 10, 21);
+                pnlCtrlConf.Location = new Point(13, 40);
+                lblProject.Location = new Point(15, 14);
+                lblProject.Size = new Size(43, 13);
+                nudProject.Location = new Point(17, 31);
+                nudProject.Size = new Size(57, 20);
+                lblWorkPack.Location = new Point(76, 14);
+                lblWorkPack.Size = new Size(64, 13);
+                nudWorkPack.Location = new Point(80, 31);
+                nudWorkPack.Size = new Size(61, 20);
+                lblJobSheet.Location = new Point(144, 14);
+                lblJobSheet.Size = new Size(58, 13);
+                nudJobSheet.Location = new Point(147, 31);
+                nudJobSheet.Size = new Size(56, 20);
+                pnlSimpleConfig.Location = new Point(214, 0);
+                pnlSimpleConfig.Size = new Size(pnlCtrlConf.Width - pnlSimpleConfig.Location.X, pnlCtrlConf.Height);
+                dgvInputSetup.Location = pnlSimpleConfig.Location;
+                dgvInputSetup.Size = pnlSimpleConfig.Size;
+                lblPin.Location = new Point(3, 14);
+                lblPin.Size = new Size(25, 13);
+                cmbPin.Location = new Point(3, 32);
+                cmbPin.Size = new Size(121, 21);
+                cmbSensor.Location = new Point(130,32);
+                cmbSensor.Size = new Size(121,21);
+                lblSensor.Location = new Point(127,14);
+                lblSensor.Size = new Size(43,13);
+                cmbVar.Location = new Point(257, 32);
+                cmbVar.Size = new Size(121, 21);
+                lblVar.Location = new Point(254, 14);
+                lblVar.Size = new Size(51, 13);
+                txtLogPins.Location = new Point(3, 59);
+                txtLogPins.Size = new Size(pnlSimpleConfig.Width - 6, pnlSimpleConfig.Height - txtLogPins.Location.Y - 3);
+                cmdRemovePin.Location = new Point(txtLogPins.Width - 90, 31);
+                cmdRemovePin.Size = new Size(93,22);
+                cmdAddPin.Location = new Point(cmdRemovePin.Location.X - 126, 31);
+                cmdAddPin.Size = new Size(120, 22);
+                label1.Location = new Point(15,65);
+                label1.Size = new Size(59,13);
+                txtLogName.Location = new Point(97,62);
+                txtLogName.Size = new Size(106,20);
+                nudInterval.Location = new Point(97,87);
+                nudInterval.Size = new Size(106,20);
+                label2.Location = new Point(14,89);
+                label2.Size = new Size(71,13);
+                lblDescription.Location = new Point(15,112);
+                lblDescription.Size = new Size(63, 13);
+                txtDescription.Location = new Point(18,128);
+                txtDescription.Size = new Size(185,63);
+                cmdResetConfig.Location = new Point(17, 197);
+                cmdResetConfig.Size = new Size(186, 25);
+                cmdConfigSwitch.Location = new Point(17, 228);
+                cmdConfigSwitch.Size = new Size(186, 23);
+                cmdImportConfFile.Location = new Point(cmdResetConfig.Location.X, pnlCtrlConf.Height - 43);
+                cmdImportConfFile.Size = new Size(cmdResetConfig.Width / 2 - 3, 33);
+                cmdImportConfPi.Location = new Point(cmdImportConfFile.Location.X + cmdImportConfFile.Width + 6, pnlCtrlConf.Height - 43);
+                cmdImportConfPi.Size = new Size(cmdResetConfig.Width / 2 - 3, 33);
+                cmdSave.Location = new Point(cmdResetConfig.Location.X, cmdImportConfFile.Location.Y - 39);
+                cmdSave.Size = new Size(cmdImportConfFile.Width, 33);
+                cmdUpload.Location = new Point(cmdImportConfPi.Location.X, cmdImportConfFile.Location.Y - 39);
+                cmdUpload.Size = new Size(cmdImportConfPi.Width, 33);
+                cmdStartLog.Location = new Point(cmdResetConfig.Location.X, cmdSave.Location.Y - 39);
+                cmdStartLog.Size = new Size(cmdImportConfFile.Width, 33);
+                cmdStopLog.Location = new Point(cmdImportConfPi.Location.X, cmdSave.Location.Y - 39);
+                cmdStopLog.Size = new Size(cmdImportConfPi.Width, 33);
+                pnlDataProc.Location = new Point(13, 40);
+                dgvDataProc.Location = new Point(210, 3);
+                dgvDataProc.Size = new Size(pnlDataProc.Width - 213, pnlDataProc.Height - 6);
+                lblLogDisplay.Location = new Point(19, 14);
+                lblLogDisplay.Size = new Size(93, 14);
+                lblLogDisplay.MaximumSize = new Size(185, 14);
+                cmdRename.Location = new Point(17, 37);
+                cmdRename.Size = new Size(186, 25);
+                cmdPythonScript.Location = new Point(17, 68);
+                cmdPythonScript.Size = new Size(186,25);
+                cmdPythonGraph.Location = new Point(17, 99);
+                cmdPythonGraph.Size = new Size(186,25);
+                cmdReconvert.Location = new Point(17, 130);
+                cmdReconvert.Size = new Size(186,25);
+                cmdClearData.Location = new Point(cmdRename.Location.X, dgvDataProc.Location.Y + dgvDataProc.Height - 31);
+                cmdClearData.Size = new Size(cmdRename.Width, cmdRename.Height);
+                cmdExpExcel.Location = new Point(cmdRename.Location.X, cmdClearData.Location.Y - 31);
+                cmdExpExcel.Size = new Size(cmdRename.Width, cmdRename.Height);
+                cmdDwnldZip.Location = new Point(cmdRename.Location.X, cmdExpExcel.Location.Y - 31);
+                cmdDwnldZip.Size = new Size(cmdRename.Width, cmdRename.Height);
+                cmdDwnldCsv.Location = new Point(cmdRename.Location.X, cmdDwnldZip.Location.Y - 31);
+                cmdDwnldCsv.Size = new Size(cmdRename.Width, cmdRename.Height);
+                cmdImportLogFile.Location = new Point(cmdRename.Location.X, cmdDwnldCsv.Location.Y - 31);
+                cmdImportLogFile.Size = new Size(cmdRename.Width, cmdRename.Height);
+                cmdImportLogPi.Location = new Point(cmdRename.Location.X, cmdImportLogFile.Location.Y - 31);
+                cmdImportLogPi.Size = new Size(cmdRename.Width, cmdRename.Height);
             }
         }
     }

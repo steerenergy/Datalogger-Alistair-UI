@@ -29,6 +29,7 @@ namespace SteerLoggerUser
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ExcelForm));
             this.cmbXAxis = new System.Windows.Forms.ComboBox();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
@@ -365,8 +366,10 @@ namespace SteerLoggerUser
             this.Controls.Add(this.cmdExport);
             this.Controls.Add(this.pnlTemplate);
             this.Controls.Add(this.pnlExportNew);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MinimumSize = new System.Drawing.Size(488, 502);
             this.Name = "ExcelForm";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "ExcelForm";
             this.Load += new System.EventHandler(this.ExcelForm_Load);
             this.pnlTemplate.ResumeLayout(false);

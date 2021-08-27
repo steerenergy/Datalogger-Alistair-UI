@@ -70,13 +70,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AboutForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="AboutForm.Designer.cs">
+      <DependentUpon>AboutForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="ChangeUserForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="ChangeUserForm.Designer.cs">
       <DependentUpon>ChangeUserForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="ConfigFile.cs" />
     <Compile Include="DatabaseSearchForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -103,7 +108,6 @@
       <DependentUpon>ExcelForm.cs</DependentUpon>
     </Compile>
     <Compile Include="LogProc.cs" />
-    <Compile Include="LogData.cs" />
     <Compile Include="LogMeta.cs" />
     <Compile Include="mainForm.cs">
       <SubType>Form</SubType>
@@ -121,12 +125,21 @@
     <Compile Include="ReceiveProgressForm.Designer.cs">
       <DependentUpon>ReceiveProgressForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="RenameForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="RenameForm.Designer.cs">
+      <DependentUpon>RenameForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="SettingsForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="SettingsForm.Designer.cs">
       <DependentUpon>SettingsForm.cs</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="AboutForm.resx">
+      <DependentUpon>AboutForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="ChangeUserForm.resx">
       <DependentUpon>ChangeUserForm.cs</DependentUpon>
     </EmbeddedResource>
@@ -158,6 +171,9 @@
     <EmbeddedResource Include="ReceiveProgressForm.resx">
       <DependentUpon>ReceiveProgressForm.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="RenameForm.resx">
+      <DependentUpon>RenameForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="SettingsForm.resx">
       <DependentUpon>SettingsForm.cs</DependentUpon>
     </EmbeddedResource>
@@ -184,6 +200,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="pythonScripts\moving_average.py">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="pythonScripts\template.py">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
@@ -224,6 +243,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="steer.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="steer.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <None Include="configPresets.csv">

@@ -15,7 +15,6 @@ namespace SteerLoggerUser
         }
 
         // Sends search criteria to logger so database can be searched
-        // Objectives 8.2 and 13.1
         private void cmdSearch_Click(object sender, EventArgs e)
         {
             try
@@ -25,6 +24,7 @@ namespace SteerLoggerUser
                 main.TCPSend("Search_Log");
 
                 // Get variables from Form controls
+                // If variable hasn't been set, set to ""
                 string name = txtName.Text;
                 string date = "";
                 if (ckbDate.Checked == true)
@@ -67,6 +67,8 @@ namespace SteerLoggerUser
             this.Close();
         }
 
+
+        // Enable or disable nudProject depending on ckbProject checkstate
         private void ckbProject_CheckedChanged(object sender, EventArgs e)
         {
             if (ckbProject.Checked)
@@ -79,6 +81,7 @@ namespace SteerLoggerUser
             }
         }
 
+        // Enable or disable nudWorkPack depending on ckbWorkPack checkstate
         private void ckbWorkPack_CheckedChanged(object sender, EventArgs e)
         {
             if (ckbWorkPack.Checked)
@@ -91,6 +94,7 @@ namespace SteerLoggerUser
             }
         }
 
+        // Enable or disable nudJobSheet depending on ckbJobSheet checkstate
         private void ckbJobSheet_CheckedChanged(object sender, EventArgs e)
         {
             if (ckbJobSheet.Checked)
@@ -103,6 +107,7 @@ namespace SteerLoggerUser
             }
         }
 
+        // Enable or disable dtpDate depending on ckbDate checkstate
         private void ckbDate_CheckedChanged(object sender, EventArgs e)
         {
             if (ckbDate.Checked)
@@ -115,6 +120,7 @@ namespace SteerLoggerUser
             }
         }
 
+        // When form loads, set controls to disabled and set ckbNotDownloaded text to reflect user
         private void DatabaseSearchForm_Load(object sender, EventArgs e)
         {
             dtpDate.Enabled = false;

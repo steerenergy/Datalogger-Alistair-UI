@@ -29,6 +29,7 @@ namespace SteerLoggerUser
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(SettingsForm));
             this.lblActivate = new System.Windows.Forms.Label();
             this.ofdFindActivate = new System.Windows.Forms.OpenFileDialog();
             this.cmdFindActivate = new System.Windows.Forms.Button();
@@ -429,8 +430,10 @@ namespace SteerLoggerUser
             this.Controls.Add(this.lblUnits);
             this.Controls.Add(this.cmdFindActivate);
             this.Controls.Add(this.lblActivate);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MinimumSize = new System.Drawing.Size(334, 637);
             this.Name = "SettingsForm";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "SettingsForm";
             this.Load += new System.EventHandler(this.SettingsForm_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dgvPresets)).EndInit();

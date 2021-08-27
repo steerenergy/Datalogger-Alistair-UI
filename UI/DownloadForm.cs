@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Text;
 using System.Windows.Forms;
 
 namespace SteerLoggerUser
@@ -32,35 +33,63 @@ namespace SteerLoggerUser
             this.TCPSend = TCPSend;
         }
 
+
         // Show logs to user and allow them to select which ones to download
-        // Objectives 4, 8.3 and 13.2
         private void DownloadForm_Load(object sender, EventArgs e)
         {
+            // Setup labels
             lblDownload.Text = "Select " + item + " to Download";
             cmdDownload.Text = "Download " + item;
-
-            // Add available logs to list
-
+            // Add logs to data grid view
             for (int i = 0; i < numLogs; i++)
             {
                 string[] response = TCPReceive().Split('\u001f');
                 object[] rowData = new object[]
                 {
                     false,
-                    Convert.ToUInt16(response[0]),
+                    Convert.ToUInt32(response[0]),
                     response[1],
-                    Convert.ToUInt16(response[2]),
-                    response[3],
-                    Convert.ToUInt16(response[4]),
-                    Convert.ToUInt16(response[5]),
-                    Convert.ToUInt16(response[6]),
+                    Convert.ToUInt32(response[2]),
+                    ParseDateTime(response[3]),
+                    Convert.ToUInt32(response[4]),
+                    Convert.ToUInt32(response[5]),
+                    Convert.ToUInt32(response[6]),
                     response[7],
-                    (response[8] == "None") ? 0 : Convert.ToUInt16(response[8])
+                    (response[8] == "None") ? 0 : Convert.ToUInt32(response[8])
                 };
                 dgvDownload.Rows.Add(rowData);
             }
-
             cmdDownload.Width = dgvDownload.Width;
+        }
+
+
+        // Parses date string to look nice
+        private DateTime ParseDateTime(string date)
+        {
+            date = date.Replace("-", "");
+            StringBuilder dateTime = new StringBuilder();
+            // Array for number of characters in each part of the DateTime
+            int[] counters = { 4, 2, 2, 2, 2, 2 };
+            // Array for separators between each part of the DateTime
+            char[] separators = { '/', '/', ' ', ':', ':'};
+            int pos = 0;
+            int sepPos = 0;
+            // Iterate through date string and add characters and separators in order
+            foreach (int counter in counters)
+            {
+                for (int i = 0; i < counter; i++)
+                {
+                    dateTime.Append(date[pos]);
+                    pos += 1;
+                }
+
+                if (pos < date.Length - 1)
+                {
+                    dateTime.Append(separators[sepPos]);
+                    sepPos += 1;
+                }
+            }
+            return Convert.ToDateTime(dateTime.ToString());
         }
 
         // Sends the selected log ids to the logger
@@ -69,7 +98,7 @@ namespace SteerLoggerUser
             this.cancelled = false;
             string logNames = "";
             int num = 0;
-
+            // Add selected log id's to a string of logNames
             foreach (DataGridViewRow row in dgvDownload.Rows)
             {
                 if (Convert.ToBoolean(row.Cells[0].Value) == true)
@@ -87,7 +116,8 @@ namespace SteerLoggerUser
             // If more than one log selected when only one can be downloaded, alert user
             else if (this.one == true && num > 1)
             {
-                MessageBox.Show("Please only select one item as only one can be downloaded in this instance.");
+                MessageBox.Show("Please only select one item as only one can be downloaded in this instance.",
+                                "Only Select One",MessageBoxButtons.OK,MessageBoxIcon.Warning);
                 return;
             }
             else

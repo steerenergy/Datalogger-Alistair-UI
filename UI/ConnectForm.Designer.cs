@@ -122,6 +122,7 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MinimumSize = new System.Drawing.Size(229, 244);
             this.Name = "ConnectForm";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Logger Login";
             this.Load += new System.EventHandler(this.Form1_Load);
             this.ResumeLayout(false);
