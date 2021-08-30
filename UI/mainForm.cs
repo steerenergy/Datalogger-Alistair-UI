@@ -40,6 +40,8 @@ namespace SteerLoggerUser
         // Initialises the form
         public mainForm()
         {
+            // Add custom function to check all data is saved when form is closing
+            this.FormClosing += new FormClosingEventHandler(MainFormClosing);
             // Add custom function that is run when the form is closed to close TCP connection
             this.FormClosed += new FormClosedEventHandler(MainFormClosed);
             InitializeComponent();
@@ -1220,7 +1222,7 @@ namespace SteerLoggerUser
             {
                 return;
             }
-            // Check if data in dgvDataProc has been save or not
+            // Check if data in dgvDataProc has been saved or not
             if (DAP.saved == false)
             {
                 // If the data hasn't been saved, ask user if they want to save before clearing
@@ -1238,18 +1240,19 @@ namespace SteerLoggerUser
                 }
             }
             // Delete temporary files from appData directory
+            string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger\";
             foreach (LogMeta log in DAP.logsProcessing)
             {
-                if (File.Exists(log.raw))
+                if (log.raw != null && File.Exists(appData + log.raw.Split('\\').Last()))
                 {
                     File.Delete(log.raw);
                 }
-                if (File.Exists(log.conv))
+                if (log.conv != null && File.Exists(appData + log.conv.Split('\\').Last()))
                 {
                     File.Delete(log.conv);
                 }                
             }
-            DAP.saved = false;
+            DAP.saved = true;
             DAP.processing = false;
             bool valid = false;
             while (!valid)
@@ -1975,6 +1978,38 @@ namespace SteerLoggerUser
         }
 
 
+        // Check if there is unsaved data, if yes give user option to stop form closing
+        void MainFormClosing(object sender, FormClosingEventArgs e) 
+        {
+            if (DAP.saved == false)
+            {
+                DialogResult close = MessageBox.Show("Not all data has been saved, are you sure you want to quit?",
+                    "Unsaved Data", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                if (close == DialogResult.No)
+                {
+                    e.Cancel = true;
+                }
+                else
+                {
+                    e.Cancel = false;
+                }
+            }
+            else if (DAP.logsToProc.Count > 0)
+            {
+                DialogResult close = MessageBox.Show("There are still logs in the processing queue, are you sure you want to quit?",
+                    "Unsaved Data", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                if (close == DialogResult.No)
+                {
+                    e.Cancel = true;
+                }
+                else
+                {
+                    e.Cancel = false;
+                }
+            }
+        }
+
+
         // Close TCP connection when mainForm is closed
         void MainFormClosed(object sender, FormClosedEventArgs e)
         {
@@ -2447,6 +2482,11 @@ namespace SteerLoggerUser
             // Check if there is data to export
             if (dgvDataProc.DataSource != null)
             {
+                // Create a new instance of the Excel Application if it doesn't exist
+                if (excel == null)
+                {
+                    excel = new Excel.Application();
+                }
                 // Create new excelForm to allow user to select how to export data
                 ExcelForm excelForm = new ExcelForm(DAP.logProc, excel);
                 try

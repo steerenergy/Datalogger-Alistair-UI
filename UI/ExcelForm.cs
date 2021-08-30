@@ -34,16 +34,13 @@ namespace SteerLoggerUser
         // Populate graph drop down menus with column headers
         private void ExcelForm_Load(object sender, EventArgs e)
         {
-            // Create a new instance of the Excel Application if it doesn't exist
-            if (excel == null)
-            {
-                excel = new Excel.Application();
-            }
             // Setuo form event handlers
             dgvTemplate.SelectionChanged += new EventHandler(dgvTemplate_SelectionChanged);
             // Start with export new shown
             pnlTemplate.Hide();
+            cmdCreateWb.Enabled = false;
             pnlExportNew.Show();
+            cmdUseTemplate.Enabled = true;
             template = false;
             ofdTemplate.Filter = "Excel files (*.xlsx)|*.xlsx|All files (*.*)|*.*";
             // Setup controls on the form
@@ -270,7 +267,9 @@ namespace SteerLoggerUser
         private void cmdCreateWb_Click(object sender, EventArgs e)
         {
             pnlTemplate.Hide();
+            cmdCreateWb.Enabled = false;
             pnlExportNew.Show();
+            cmdUseTemplate.Enabled = true;
             template = false;
         }
 
@@ -278,7 +277,9 @@ namespace SteerLoggerUser
         private void cmdUseTemplate_Click(object sender, EventArgs e)
         {
             pnlExportNew.Hide();
+            cmdUseTemplate.Enabled = false;
             pnlTemplate.Show();
+            cmdCreateWb.Enabled = true;
             template = true;
         }
 
@@ -314,6 +315,10 @@ namespace SteerLoggerUser
                     cmbTemplate.Items.Add(worksheet.Name);
                 }
                 cmbTemplate.SelectedIndex = 0;
+
+                // Close workbook and release resources
+                workbook.Close();
+                System.Runtime.InteropServices.Marshal.FinalReleaseComObject(workbook);
             }
             // Catch any exceptions and display to user
             catch (Exception theException)
@@ -507,6 +512,15 @@ namespace SteerLoggerUser
                 Excel.Range excelRange = template.UsedRange;
                 object[,] valueArray = excelRange.get_Value(Excel.XlRangeValueDataType.xlRangeValueDefault);
                 
+                if (valueArray == null)
+                {
+                    MessageBox.Show(String.Format("{0} is blank. Please check workbook and import a non-blank sheet.", template.Name),
+                        "Blank Sheet", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    // Close workbook and release resources
+                    workbook.Close();
+                    System.Runtime.InteropServices.Marshal.FinalReleaseComObject(workbook);
+                    return;
+                }
                 // Clear dgvTemplate
                 dgvTemplate.Rows.Clear();
                 dgvTemplate.Columns.Clear();
@@ -533,9 +547,6 @@ namespace SteerLoggerUser
                     dgvTemplate.Rows.Add(rowData.ToArray());
                     dgvTemplate.Rows[i - 1].HeaderCell.Value = i.ToString();
                 }
-                // Close workbook and release resources
-                workbook.Close();
-                System.Runtime.InteropServices.Marshal.FinalReleaseComObject(workbook);
             }
             // Catch any exceptions and report to user
             catch (Exception theException)
@@ -550,6 +561,9 @@ namespace SteerLoggerUser
                 MessageBox.Show(String.Format("Full Error: {0}",theException.ToString()),"Full Error",
                                 MessageBoxButtons.OK,MessageBoxIcon.Error);
             }
+            // Close workbook and release resources
+            workbook.Close();
+            System.Runtime.InteropServices.Marshal.FinalReleaseComObject(workbook);
         }
     }
 }
