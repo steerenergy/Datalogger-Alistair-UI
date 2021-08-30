@@ -36,13 +36,14 @@ namespace SteerLoggerUser
             this.lnkIssues = new System.Windows.Forms.LinkLabel();
             this.label1 = new System.Windows.Forms.Label();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
+            this.lblVersion = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
             // lnkManual
             // 
             this.lnkManual.AutoEllipsis = true;
-            this.lnkManual.Location = new System.Drawing.Point(12, 34);
+            this.lnkManual.Location = new System.Drawing.Point(12, 51);
             this.lnkManual.Name = "lnkManual";
             this.lnkManual.Size = new System.Drawing.Size(352, 23);
             this.lnkManual.TabIndex = 0;
@@ -54,7 +55,7 @@ namespace SteerLoggerUser
             // lblManual
             // 
             this.lblManual.AutoSize = true;
-            this.lblManual.Location = new System.Drawing.Point(12, 9);
+            this.lblManual.Location = new System.Drawing.Point(12, 29);
             this.lblManual.Name = "lblManual";
             this.lblManual.Size = new System.Drawing.Size(244, 13);
             this.lblManual.TabIndex = 1;
@@ -63,7 +64,7 @@ namespace SteerLoggerUser
             // lblIssues
             // 
             this.lblIssues.AutoSize = true;
-            this.lblIssues.Location = new System.Drawing.Point(12, 57);
+            this.lblIssues.Location = new System.Drawing.Point(12, 74);
             this.lblIssues.Name = "lblIssues";
             this.lblIssues.Size = new System.Drawing.Size(205, 13);
             this.lblIssues.TabIndex = 2;
@@ -72,7 +73,7 @@ namespace SteerLoggerUser
             // lnkIssues
             // 
             this.lnkIssues.AutoSize = true;
-            this.lnkIssues.Location = new System.Drawing.Point(12, 80);
+            this.lnkIssues.Location = new System.Drawing.Point(12, 100);
             this.lnkIssues.Name = "lnkIssues";
             this.lnkIssues.Size = new System.Drawing.Size(293, 13);
             this.lnkIssues.TabIndex = 3;
@@ -83,7 +84,7 @@ namespace SteerLoggerUser
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(148, 294);
+            this.label1.Location = new System.Drawing.Point(149, 314);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(82, 13);
             this.label1.TabIndex = 4;
@@ -92,18 +93,28 @@ namespace SteerLoggerUser
             // pictureBox1
             // 
             this.pictureBox1.Image = global::SteerLoggerUser.Properties.Resources.steer;
-            this.pictureBox1.Location = new System.Drawing.Point(12, 96);
+            this.pictureBox1.Location = new System.Drawing.Point(15, 116);
             this.pictureBox1.Name = "pictureBox1";
             this.pictureBox1.Size = new System.Drawing.Size(352, 195);
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pictureBox1.TabIndex = 5;
             this.pictureBox1.TabStop = false;
             // 
+            // lblVersion
+            // 
+            this.lblVersion.AutoSize = true;
+            this.lblVersion.Location = new System.Drawing.Point(12, 9);
+            this.lblVersion.Name = "lblVersion";
+            this.lblVersion.Size = new System.Drawing.Size(107, 13);
+            this.lblVersion.TabIndex = 6;
+            this.lblVersion.Text = "Logger version: 2.1.1";
+            // 
             // AboutForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(376, 316);
+            this.ClientSize = new System.Drawing.Size(376, 336);
+            this.Controls.Add(this.lblVersion);
             this.Controls.Add(this.pictureBox1);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.lnkIssues);
@@ -127,5 +138,6 @@ namespace SteerLoggerUser
         private System.Windows.Forms.LinkLabel lnkIssues;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.PictureBox pictureBox1;
+        private System.Windows.Forms.Label lblVersion;
     }
 }

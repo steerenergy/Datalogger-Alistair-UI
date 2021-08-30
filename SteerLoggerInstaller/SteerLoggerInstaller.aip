@@ -14,6 +14,7 @@
     <ROW Property="AI_PROPPATH_DIR_PERBUILD_progConf.ini" Value="..\UI\bin\Debug"/>
     <ROW Property="AI_PROPPATH_DIR_PERBUILD_steer.ico" Value="..\UI\bin\Debug"/>
     <ROW Property="AI_PROPPATH_DIR_PERBUILD_steer.png" Value="..\UI\bin\Debug"/>
+    <ROW Property="AI_PROPPATH_DIR_PERBUILD_template.py" Value="..\UI\bin\Debug\pythonScripts"/>
     <ROW Property="AI_PROPPATH_FILENAME_PERBUILD_Renci.SshNet.dll" Value="Renci.SshNet.dll"/>
     <ROW Property="AI_PROPPATH_FILENAME_PERBUILD_SteerLoggerUser.exe" Value="SteerLoggerUser.exe"/>
     <ROW Property="AI_PROPPATH_FILENAME_PERBUILD_SteerLoggerUser.exe.config" Value="SteerLoggerUser.exe.config"/>
@@ -25,6 +26,7 @@
     <ROW Property="AI_PROPPATH_FILENAME_PERBUILD_progConf.ini" Value="progConf.ini"/>
     <ROW Property="AI_PROPPATH_FILENAME_PERBUILD_steer.ico" Value="steer.ico"/>
     <ROW Property="AI_PROPPATH_FILENAME_PERBUILD_steer.png" Value="steer.png"/>
+    <ROW Property="AI_PROPPATH_FILENAME_PERBUILD_template.py" Value="template.py"/>
     <ROW Property="ALLUSERS" Value="1"/>
     <ROW Property="ARPCOMMENTS" Value="Run this installer to install the UI for the new datalogger program." ValueLocId="*"/>
     <ROW Property="ARPCONTACT" Value="a.ryan@steerenergy.com"/>
@@ -32,10 +34,10 @@
     <ROW Property="ARPPRODUCTICON" Value="steer.exe" Type="8"/>
     <ROW Property="ARPURLINFOABOUT" Value="https://github.com/steerenergy/Datalogger-Alistair-UI"/>
     <ROW Property="Manufacturer" Value="Steer Energy"/>
-    <ROW Property="ProductCode" Value="1033:{F51F4296-E6A6-45B6-9EE2-5927D0AB3AA4} " Type="16"/>
+    <ROW Property="ProductCode" Value="1033:{F4D96C4E-2336-4FEF-84CA-0E8AF97C97E3} " Type="16"/>
     <ROW Property="ProductLanguage" Value="1033"/>
     <ROW Property="ProductName" Value="SteerLogger"/>
-    <ROW Property="ProductVersion" Value="1.0.5" Type="32"/>
+    <ROW Property="ProductVersion" Value="2.1.1" Type="32"/>
     <ROW Property="SecureCustomProperties" Value="OLDPRODUCTS;AI_NEWERPRODUCTFOUND"/>
     <ROW Property="UpgradeCode" Value="{48445A51-402A-4B7F-9B83-C233C41D0FBE}"/>
     <ROW Property="WindowsType9X" MultiBuildValue="DefaultBuild:Windows 9x/ME" ValueLocId="-"/>
@@ -57,10 +59,10 @@
   <COMPONENT cid="caphyon.advinst.msicomp.MsiCompsComponent">
     <ROW Component="APPDIR" ComponentId="{47B8B400-2DFC-4E07-B10A-D90E619F54A8}" Directory_="APPDIR" Attributes="0"/>
     <ROW Component="ProductInformation" ComponentId="{7C6230CF-FF86-4E22-BCC6-F518910CEF5E}" Directory_="APPDIR" Attributes="4" KeyPath="Version"/>
-    <ROW Component="SHORTCUTDIR" ComponentId="{9EE8A2E2-B7D1-4DB8-AA4D-E408854662FB}" Directory_="SHORTCUTDIR" Attributes="0"/>
+    <ROW Component="SHORTCUTDIR" ComponentId="{C62B4B83-5A61-44F1-8BF4-533D8C9C2969}" Directory_="SHORTCUTDIR" Attributes="0"/>
     <ROW Component="SteerLoggerUser_ContentOutput" ComponentId="{8801C8F9-8544-4EAF-908B-1BA5A90062AA}" Directory_="SteerLoggerUser_Dir" Attributes="0" KeyPath="steer.ico" Type="0"/>
     <ROW Component="SteerLoggerUser_ContentOutput_pythonScripts" ComponentId="{C9E5D472-1304-46E0-9FDA-633E3EB66B57}" Directory_="pythonScripts_Dir" Attributes="0" KeyPath="compression.py" Type="0"/>
-    <ROW Component="SteerLoggerUser_PrimaryOutput" ComponentId="{587A3DA2-FE69-4D50-90C0-4E15F66F7509}" Directory_="SteerLoggerUser_Dir" Attributes="0" KeyPath="SteerLoggerUser.exe"/>
+    <ROW Component="SteerLoggerUser_PrimaryOutput" ComponentId="{5C8F32E8-3F56-48B7-A1DC-973C442ACAF0}" Directory_="SteerLoggerUser_Dir" Attributes="0" KeyPath="SteerLoggerUser.exe"/>
     <ROW Component="SteerLoggerUser_References" ComponentId="{73C9E25A-5ABD-4C6C-A12D-7A3013123692}" Directory_="SteerLoggerUser_Dir" Attributes="0" KeyPath="Renci.SshNet.dll"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFeatsComponent">
@@ -77,6 +79,7 @@
     <ROW File="progConf.ini" Component_="SteerLoggerUser_ContentOutput" FileName="[|AI_PROPPATH_FILENAME_PERBUILD_progConf.ini]" Attributes="0" SourcePath="&lt;AI_APPPATH_PERBUILD_progConf.ini&gt;" SelfReg="false"/>
     <ROW File="configPresets.csv" Component_="SteerLoggerUser_ContentOutput" FileName="CONFIG~2.CSV|[|AI_PROPPATH_FILENAME_PERBUILD_configPresets.csv]" Attributes="0" SourcePath="&lt;AI_APPPATH_PERBUILD_configPresets.csv&gt;" SelfReg="false"/>
     <ROW File="steer.png" Component_="SteerLoggerUser_ContentOutput" FileName="[|AI_PROPPATH_FILENAME_PERBUILD_steer.png]" Attributes="0" SourcePath="&lt;AI_APPPATH_PERBUILD_steer.png&gt;" SelfReg="false"/>
+    <ROW File="template.py" Component_="SteerLoggerUser_ContentOutput_pythonScripts" FileName="[|AI_PROPPATH_FILENAME_PERBUILD_template.py]" Attributes="0" SourcePath="&lt;AI_APPPATH_PERBUILD_template.py&gt;" SelfReg="false"/>
     <ROW File="SteerLoggerUser.exe" Component_="SteerLoggerUser_PrimaryOutput" FileName="STEERL~2.EXE|[|AI_PROPPATH_FILENAME_PERBUILD_SteerLoggerUser.exe]" Attributes="0" SourcePath="&lt;AI_APPPATH_PERBUILD_SteerLoggerUser.exe&gt;" SelfReg="false" DigSign="true"/>
     <ROW File="SteerLoggerUser.exe.config" Component_="SteerLoggerUser_PrimaryOutput" FileName="STEERL~2.CON|[|AI_PROPPATH_FILENAME_PERBUILD_SteerLoggerUser.exe.config]" Attributes="0" SourcePath="&lt;AI_APPPATH_PERBUILD_SteerLoggerUser.exe.config&gt;" SelfReg="false"/>
   </COMPONENT>
@@ -92,6 +95,7 @@
     <ROW Name="AI_APPPATH_PERBUILD_progConf.ini" Path="[|AI_PROPPATH_DIR_PERBUILD_progConf.ini]\[|AI_PROPPATH_FILENAME_PERBUILD_progConf.ini]" Type="2" Content="0"/>
     <ROW Name="AI_APPPATH_PERBUILD_steer.ico" Path="[|AI_PROPPATH_DIR_PERBUILD_steer.ico]\[|AI_PROPPATH_FILENAME_PERBUILD_steer.ico]" Type="2" Content="0"/>
     <ROW Name="AI_APPPATH_PERBUILD_steer.png" Path="[|AI_PROPPATH_DIR_PERBUILD_steer.png]\[|AI_PROPPATH_FILENAME_PERBUILD_steer.png]" Type="2" Content="0"/>
+    <ROW Name="AI_APPPATH_PERBUILD_template.py" Path="[|AI_PROPPATH_DIR_PERBUILD_template.py]\[|AI_PROPPATH_FILENAME_PERBUILD_template.py]" Type="2" Content="0"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.BootstrOptComponent">
     <ROW BootstrOptKey="GlobalOptions" DownloadFolder="[AppDataFolder][|Manufacturer]\[|ProductName]\prerequisites" Options="2"/>
@@ -158,7 +162,7 @@
     <ROW Action="AI_ResolveKnownFolders" Type="1" Source="aicustact.dll" Target="AI_ResolveKnownFolders"/>
     <ROW Action="AI_SHOW_LOG" Type="65" Source="aicustact.dll" Target="LaunchLogFile" WithoutSeq="true"/>
     <ROW Action="AI_STORE_LOCATION" Type="51" Source="ARPINSTALLLOCATION" Target="[APPDIR]"/>
-    <ROW Action="SET_APPDIR" Type="307" Source="APPDIR" Target="[ProgramFilesFolder][Manufacturer]\[ProductName]"/>
+    <ROW Action="SET_APPDIR" Type="307" Source="APPDIR" Target="[ProgramFilesFolder][Manufacturer]\[ProductName]" MultiBuildTarget="DefaultBuild:[ProgramFilesFolder]\[ProductName]"/>
     <ROW Action="SET_SHORTCUTDIR" Type="307" Source="SHORTCUTDIR" Target="[ProgramMenuFolder][ProductName]"/>
     <ROW Action="SET_TARGETDIR_TO_APPDIR" Type="51" Source="TARGETDIR" Target="[APPDIR]"/>
   </COMPONENT>
@@ -218,6 +222,7 @@
     <ROW ProjectId="{8a887a5e-fce9-492a-9dcf-ea0e3e73657a}" ProjectName="SteerLoggerUser" OutputGroup="ContentOutput" OutputFile="progConf.ini"/>
     <ROW ProjectId="{8a887a5e-fce9-492a-9dcf-ea0e3e73657a}" ProjectName="SteerLoggerUser" OutputGroup="ContentOutput" OutputFile="configPresets.csv"/>
     <ROW ProjectId="{8a887a5e-fce9-492a-9dcf-ea0e3e73657a}" ProjectName="SteerLoggerUser" OutputGroup="ContentOutput" OutputFile="steer.png"/>
+    <ROW ProjectId="{8a887a5e-fce9-492a-9dcf-ea0e3e73657a}" ProjectName="SteerLoggerUser" OutputGroup="ContentOutput" OutputFile="template.py"/>
     <ROW ProjectId="{8a887a5e-fce9-492a-9dcf-ea0e3e73657a}" ProjectName="SteerLoggerUser" OutputGroup="PrimaryOutput" OutputFile="SteerLoggerUser.exe" OutputFileShortcut="SteerLoggerUser"/>
     <ROW ProjectId="{8a887a5e-fce9-492a-9dcf-ea0e3e73657a}" ProjectName="SteerLoggerUser" OutputGroup="PrimaryOutput" OutputFile="SteerLoggerUser.exe.config"/>
   </COMPONENT>

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
+using System.Net.Sockets;
 using System.Text;
 using System.Windows.Forms;
 
@@ -17,12 +19,14 @@ namespace SteerLoggerUser
         private Func<string> TCPReceive;
         // Stores TCPSend function from mainForm
         private Action<string> TCPSend;
+        // Stores TCP TearDown function from mainForm
+        private Action TCPTearDown;
         // Stores number of logs that matched criteria
         private int numLogs;
         // Used to tell mainForm if user exits without selecting anything
         private bool cancelled = true;
 
-        public DownloadForm(string item, bool one, Func<string> TCPReceive, int numLogs, Action<string> TCPSend)
+        public DownloadForm(string item, bool one, Func<string> TCPReceive, int numLogs, Action<string> TCPSend, Action TCPTearDown)
         {
             InitializeComponent();
             this.FormClosed += new FormClosedEventHandler(DownloadFormClosed);
@@ -31,6 +35,7 @@ namespace SteerLoggerUser
             this.TCPReceive = TCPReceive;
             this.numLogs = numLogs;
             this.TCPSend = TCPSend;
+            this.TCPTearDown = TCPTearDown;
         }
 
 
@@ -43,21 +48,51 @@ namespace SteerLoggerUser
             // Add logs to data grid view
             for (int i = 0; i < numLogs; i++)
             {
-                string[] response = TCPReceive().Split('\u001f');
-                object[] rowData = new object[]
+                try
                 {
-                    false,
-                    Convert.ToUInt32(response[0]),
-                    response[1],
-                    Convert.ToUInt32(response[2]),
-                    ParseDateTime(response[3]),
-                    Convert.ToUInt32(response[4]),
-                    Convert.ToUInt32(response[5]),
-                    Convert.ToUInt32(response[6]),
-                    response[7],
-                    (response[8] == "None") ? 0 : Convert.ToUInt32(response[8])
-                };
-                dgvDownload.Rows.Add(rowData);
+                    string[] response = TCPReceive().Split('\u001f');
+                    try
+                    {
+                        object[] rowData = new object[]
+                        {
+                        false,
+                        Convert.ToUInt32(response[0]),
+                        response[1],
+                        Convert.ToUInt32(response[2]),
+                        ParseDateTime(response[3]),
+                        Convert.ToUInt32(response[4]),
+                        Convert.ToUInt32(response[5]),
+                        Convert.ToUInt32(response[6]),
+                        response[7],
+                        (response[8] == "None") ? 0 : Convert.ToUInt32(response[8])
+                        };
+                        dgvDownload.Rows.Add(rowData);
+                    }
+                    // Catch errors from invalid/corrupt data
+                    catch (FormatException)
+                    {
+                        MessageBox.Show("Received unexcepted data, make sure both programs are up to date and try again.",
+                            "Incorrect Data", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        TCPTearDown();
+                        Close();
+                        return;
+                    }
+                }
+                // Catch connection errors
+                catch (SocketException)
+                {
+                    MessageBox.Show("An error occured in the connection, please reconnect.", "Connection Error",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Close();
+                    return;
+                }
+                catch (TimeoutException)
+                {
+                    MessageBox.Show("Connection timed out, please reconnect.", "Timeout Error",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Close();
+                    return;
+                }
             }
             cmdDownload.Width = dgvDownload.Width;
         }
@@ -95,38 +130,55 @@ namespace SteerLoggerUser
         // Sends the selected log ids to the logger
         private void cmdDownload_Click(object sender, EventArgs e)
         {
-            this.cancelled = false;
-            string logNames = "";
-            int num = 0;
-            // Add selected log id's to a string of logNames
-            foreach (DataGridViewRow row in dgvDownload.Rows)
+            try
             {
-                if (Convert.ToBoolean(row.Cells[0].Value) == true)
+                this.cancelled = false;
+                string logNames = "";
+                int num = 0;
+                // Add selected log id's to a string of logNames
+                foreach (DataGridViewRow row in dgvDownload.Rows)
                 {
-                    logNames += row.Cells[1].Value + "\u001f";
-                    num += 1;
+                    if (Convert.ToBoolean(row.Cells[0].Value) == true)
+                    {
+                        logNames += row.Cells[1].Value + "\u001f";
+                        num += 1;
+                    }
                 }
+                // If no logs selected, let logger know
+                if (logNames == "")
+                {
+                    TCPSend(item);
+                    TCPSend("No_Logs_Requested");
+                }
+                // If more than one log selected when only one can be downloaded, alert user
+                else if (this.one == true && num > 1)
+                {
+                    MessageBox.Show("Please only select one item as only one can be downloaded in this instance.",
+                                    "Only Select One", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+                else
+                {
+                    // Send the item being downloaded to the logger and then the IDs of the logs
+                    TCPSend(item);
+                    TCPSend(logNames.Substring(0, logNames.Length - 1));
+                }
+                this.Close();
             }
-            // If no logs selected, let logger know
-            if (logNames == "")
+            catch (SocketException)
             {
-                TCPSend(item);
-                TCPSend("No_Logs_Requested");
+                MessageBox.Show("An error occured in the connection, please reconnect.", "Connection Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                cancelled = true;
+                Close();
             }
-            // If more than one log selected when only one can be downloaded, alert user
-            else if (this.one == true && num > 1)
+            catch (InvalidDataException)
             {
-                MessageBox.Show("Please only select one item as only one can be downloaded in this instance.",
-                                "Only Select One",MessageBoxButtons.OK,MessageBoxIcon.Warning);
-                return;
+                MessageBox.Show("You need to be connected to a logger to do that!",
+                                "Connect to a Logger", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                cancelled = true;
+                Close();
             }
-            else
-            {
-                // Send the item being downloaded to the logger and then the IDs of the logs
-                TCPSend(item);
-                TCPSend(logNames.Substring(0, logNames.Length - 1));
-            }
-            this.Close();
         }
 
         void DownloadFormClosed(object sender, FormClosedEventArgs e)
@@ -134,8 +186,15 @@ namespace SteerLoggerUser
             // If form is closed without select being pressed, act as if nothing was selected
             if (cancelled == true)
             {
-                TCPSend(item);
-                TCPSend("No_Logs_Requested");
+                try
+                {
+                    TCPSend(item);
+                    TCPSend("No_Logs_Requested");
+                }
+                catch (InvalidDataException)
+                {
+                    return;
+                }
             }
         }
     }

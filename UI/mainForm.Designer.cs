@@ -831,6 +831,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
+            this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(855, 450);
             this.Controls.Add(this.cmdChangeUser);
             this.Controls.Add(this.cmdConnect);
@@ -841,10 +842,11 @@
             this.Controls.Add(this.cmdCtrlConf);
             this.Controls.Add(this.pnlCtrlConf);
             this.Controls.Add(this.pnlDataProc);
+            this.DoubleBuffered = true;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MinimumSize = new System.Drawing.Size(871, 489);
             this.Name = "mainForm";
-            this.Text = "Steer Logger v1.0.4";
+            this.Text = "Steer Logger v2.1.1";
             this.Load += new System.EventHandler(this.mainForm_Load);
             this.SizeChanged += new System.EventHandler(this.mainForm_SizeChanged);
             this.pnlCtrlConf.ResumeLayout(false);
