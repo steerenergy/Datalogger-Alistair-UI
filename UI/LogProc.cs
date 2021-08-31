@@ -60,6 +60,10 @@ namespace SteerLoggerUser
             {
                 throw new InvalidDataException();
             }
+            catch (FormatException)
+            {
+                throw new InvalidDataException();
+            }
         }
 
         // Initalises the procData list by populating with correct number of empty lists

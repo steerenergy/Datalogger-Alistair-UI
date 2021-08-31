@@ -40,6 +40,8 @@ namespace SteerLoggerUser
         // Initialises the form
         public mainForm()
         {
+            // Add custom function to check all data is saved when form is closing
+            this.FormClosing += new FormClosingEventHandler(MainFormClosing);
             // Add custom function that is run when the form is closed to close TCP connection
             this.FormClosed += new FormClosedEventHandler(MainFormClosed);
             InitializeComponent();
@@ -259,7 +261,7 @@ namespace SteerLoggerUser
                 while (tcpQueue.TryDequeue(out response) == false)
                 {
                     // Timeout set to 30 seconds
-                    if (DateTime.Now.Subtract(start).TotalSeconds > 30)
+                    if (DateTime.Now.Subtract(start).TotalSeconds > 20)
                     {
                         // If no response in 30 seconds, close connection
                         TCPTearDown();
@@ -496,16 +498,23 @@ namespace SteerLoggerUser
             }
 
             // If progConf.ini and configPresets.csv are not in the appData directory, copy them from program files directory
+            // Also copy if the file in the program files directory is newer than the files in the appData directory
             string[] files = { "progConf.ini", "configPresets.csv" };
             foreach (string filename in files)
             {
                 string output = dirPath + @"\" + filename;
                 string file = Application.StartupPath + @"\" + filename;
+                FileInfo fileInfo = new FileInfo(file);
+                FileInfo outputInfo = new FileInfo(output);
                 try
                 {
                     if (!File.Exists(output))
                     {
                         File.Copy(file, output);
+                    }
+                    else if (File.Exists(output) && fileInfo.LastWriteTime > outputInfo.LastWriteTime)
+                    {
+                        File.Copy(file, output, true);
                     }
                 }
                 catch (FileNotFoundException exp)
@@ -533,9 +542,15 @@ namespace SteerLoggerUser
             {
                 string file = filename.ToString();
                 string output = dirPath + file.ToString().Replace(Application.StartupPath + @"\pythonScripts", "");
+                FileInfo fileInfo = new FileInfo(file);
+                FileInfo outputInfo = new FileInfo(output);
                 if (!File.Exists(output))
                 {
                     File.Copy(file, output);
+                }
+                else if (File.Exists(output) && fileInfo.LastWriteTime > outputInfo.LastWriteTime)
+                {
+                    File.Copy(file, output, true);
                 }
             }
         }
@@ -609,6 +624,14 @@ namespace SteerLoggerUser
                     LoadDefaultConfig();
                     return;
                 }
+                catch (InvalidDataException)
+                {
+                    TCPTearDown();
+                    MessageBox.Show("You need to be connected to a logger to do that.", "Not Connected",
+                                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    LoadDefaultConfig();
+                    return;
+                }
             }
             else
             {
@@ -623,6 +646,8 @@ namespace SteerLoggerUser
             {
                 pnlDataProc.Hide();
                 pnlCtrlConf.Show();
+                cmdCtrlConf.Enabled = false;
+                cmdDataProc.Enabled = true;
 
                 // Automatically adjust height of rows to fit nicely
                 int height = dgvInputSetup.Height - dgvInputSetup.ColumnHeadersHeight - 1;
@@ -652,10 +677,15 @@ namespace SteerLoggerUser
             // Get number of logs which match criteria
             int numLogs = Convert.ToInt16(response);
             // Show DownloadForm which allows user to select which logs to download
-            DownloadForm download = new DownloadForm("Logs", false, TCPReceive, numLogs, TCPSend);
+            DownloadForm download = new DownloadForm("Logs", false, TCPReceive, numLogs, TCPSend, TCPTearDown);
             download.ShowDialog();
             // Clear up resources
             download.Dispose();
+            // Return if any errors occured whilst DownloadForm was open
+            if (!IsConnected)
+            {
+                return;
+            }
 
             // Create BackgroundWorker to download logs in background
             BackgroundWorker worker = new BackgroundWorker
@@ -702,6 +732,13 @@ namespace SteerLoggerUser
                     worker.ReportProgress(current, "Receiving metadata...");
                     // Receive meta data of log and set LogMeta variables
                     string[] metaData = received.Split('\u001f');
+                    if (metaData[0] == "Config_Not_Found")
+                    {
+                        MessageBox.Show(TCPReceive(), "Config Not Found", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        current = CalcPercent(80, numLogs, current);
+                        worker.ReportProgress(current, "Config not found, skipping log...");
+                        continue;
+                    }
                     tempLog = new LogMeta
                     {
                         id = int.Parse(metaData[0]),
@@ -920,6 +957,8 @@ namespace SteerLoggerUser
                             // Show DataProc panel
                             this.Invoke(new Action(() => { pnlCtrlConf.Hide(); }));
                             this.Invoke(new Action(() => { pnlDataProc.Show(); }));
+                            this.Invoke(new Action(() => { cmdDataProc.Enabled = false; }));
+                            this.Invoke(new Action(() => { cmdCtrlConf.Enabled = true; }));
                             // Dequeue and display next log
                             DAP.logsProcessing.Clear();
                             DAP.logsProcessing.Add(DAP.logsToProc.Dequeue());
@@ -967,13 +1006,19 @@ namespace SteerLoggerUser
             {
                 TCPTearDown();
                 worker.ReportProgress(100, "Error occurred, aborting!");
-                String errorMessage;
-                errorMessage = "Error: ";
-                errorMessage = String.Concat(errorMessage, exp.Message);
-                errorMessage = String.Concat(errorMessage, " Line: ");
-                errorMessage = String.Concat(errorMessage, exp.Source);
-                MessageBox.Show(errorMessage, "Error", MessageBoxButtons.OK,MessageBoxIcon.Error);
-                MessageBox.Show(String.Format("Full error: {0}",exp.ToString()),"Full Error", MessageBoxButtons.OK,MessageBoxIcon.Error);
+                if (exp.Message == "No such file")
+                {
+                    MessageBox.Show("Cannot find raw data file on Pi, please check Pi for missing files.",
+                        "Cannot Find Data", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                else
+                {
+                    String errorMessage;
+                    errorMessage = "Error: ";
+                    errorMessage = String.Concat(errorMessage, exp.Message);
+                    MessageBox.Show(errorMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(String.Format("Full error: {0}", exp.ToString()), "Full Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
                 return;
             }  
         }
@@ -1150,6 +1195,7 @@ namespace SteerLoggerUser
                     number += 1;
                 }
             }
+            SetupSimpleConf();
         }
 
 
@@ -1159,6 +1205,8 @@ namespace SteerLoggerUser
             // Hide data processing panel and show control/config panel
             pnlDataProc.Hide();
             pnlCtrlConf.Show();
+            cmdCtrlConf.Enabled = false;
+            cmdDataProc.Enabled = true;
             // Automatically adjust height of InputSetup rows to fit nicely
             int height = dgvInputSetup.Height - dgvInputSetup.ColumnHeadersHeight - 1;
             foreach (DataGridViewRow row in dgvInputSetup.Rows)
@@ -1174,6 +1222,8 @@ namespace SteerLoggerUser
             // Show control/config panel and hide data processing panel
             pnlCtrlConf.Hide();
             pnlDataProc.Show();
+            cmdDataProc.Enabled = false;
+            cmdCtrlConf.Enabled = true;
         }
 
 
@@ -1185,7 +1235,7 @@ namespace SteerLoggerUser
             {
                 return;
             }
-            // Check if data in dgvDataProc has been save or not
+            // Check if data in dgvDataProc has been saved or not
             if (DAP.saved == false)
             {
                 // If the data hasn't been saved, ask user if they want to save before clearing
@@ -1203,18 +1253,19 @@ namespace SteerLoggerUser
                 }
             }
             // Delete temporary files from appData directory
+            string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger\";
             foreach (LogMeta log in DAP.logsProcessing)
             {
-                if (File.Exists(log.raw))
+                if (log.raw != null && File.Exists(appData + log.raw.Split('\\').Last()))
                 {
                     File.Delete(log.raw);
                 }
-                if (File.Exists(log.conv))
+                if (log.conv != null && File.Exists(appData + log.conv.Split('\\').Last()))
                 {
                     File.Delete(log.conv);
                 }                
             }
-            DAP.saved = false;
+            DAP.saved = true;
             DAP.processing = false;
             bool valid = false;
             while (!valid)
@@ -1266,7 +1317,7 @@ namespace SteerLoggerUser
             try
             {
                 // Open new DatabaseSearchForm to allow user to search for logs
-                DatabaseSearchForm databaseSearch = new DatabaseSearchForm(this);
+                DatabaseSearchForm databaseSearch = new DatabaseSearchForm(TCPSend, user);
                 databaseSearch.ShowDialog();
                 if (databaseSearch.cancelled)
                 {
@@ -1280,41 +1331,67 @@ namespace SteerLoggerUser
                                     "No Logs Match Criteria",MessageBoxButtons.OK,MessageBoxIcon.Warning);
                     return;
                 }
-                // Receive number of logs that match criteria
-                int numLogs = Convert.ToInt16(response);
+                int numLogs = 0;
+                try
+                {
+                    // Receive number of logs that match criteria
+                    numLogs = Convert.ToInt16(response);
+                }
+                // Catch exception is data sent cannot be converted to an integer
+                catch (FormatException)
+                {
+                    MessageBox.Show("Received unexcepted data, make sure both programs are up to date and try again.",
+                        "Incorrect Data", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    TCPTearDown();
+                    throw new SocketException();
+                }
                 // Open new DownloadForm to allow user to download config from available logs
-                DownloadForm download = new DownloadForm("Config", true, TCPReceive, numLogs, TCPSend);
+                DownloadForm download = new DownloadForm("Config", true, TCPReceive, numLogs, TCPSend, TCPTearDown);
                 download.ShowDialog();
                 download.Dispose();
+                // Return if any errors occured whilst DownloadForm was open
+                if (!IsConnected)
+                {
+                    return;
+                }
                 // If no logs selected to downloaded, return
                 response = TCPReceive();
                 if (response == "Config_Sent")
                 {
                     return;
                 }
+                else if (response == "No_Config_Found")
+                {
+                    MessageBox.Show("Cannot find a config file for that log on the logger.", "No Config Found",
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    LoadDefaultConfig();
+                    return;
+                }
 
                 // Clear InputSetup grid
                 dgvInputSetup.Rows.Clear();
-                // Receive config metadata
-                nudInterval.Value = Convert.ToDecimal(response);
-                response = TCPReceive();
-                txtDescription.Text = response.Replace(";", "\r\n");
-                response = TCPReceive();
-                txtLogName.Text = response;
-                response = TCPReceive();
-                nudProject.Value = Convert.ToInt32(response);
-                response = TCPReceive();
-                nudWorkPack.Value = Convert.ToInt32(response);
-                response = TCPReceive();
-                nudJobSheet.Value = Convert.ToInt32(response);
-                // Receive data for all 16 pins
-                for (int i = 0; i < 16; i++)
+                try
                 {
+                    // Receive config metadata
+                    nudInterval.Value = Convert.ToDecimal(response);
                     response = TCPReceive();
-                    string[] pinData = response.Split('\u001f');
-                    // Create row from pin data and add to InputSetup grid
-                    object[] rowData = new object[]
+                    txtDescription.Text = response.Replace(";", "\r\n");
+                    response = TCPReceive();
+                    txtLogName.Text = response;
+                    response = TCPReceive();
+                    nudProject.Value = Convert.ToInt32(response);
+                    response = TCPReceive();
+                    nudWorkPack.Value = Convert.ToInt32(response);
+                    response = TCPReceive();
+                    nudJobSheet.Value = Convert.ToInt32(response);
+                    // Receive data for all 16 pins
+                    for (int i = 0; i < 16; i++)
                     {
+                        response = TCPReceive();
+                        string[] pinData = response.Split('\u001f');
+                        // Create row from pin data and add to InputSetup grid
+                        object[] rowData = new object[]
+                        {
                         pinData[0],
                         pinData[1],
                         (pinData[2] == "True" ) ? true : false,
@@ -1324,12 +1401,20 @@ namespace SteerLoggerUser
                         pinData[6],
                         pinData[7],
                         pinData[8]
-                    };
-                    if (!((DataGridViewComboBoxColumn)dgvInputSetup.Columns["units"]).Items.Contains(pinData[8]))
-                    {
-                        ((DataGridViewComboBoxColumn)dgvInputSetup.Columns["units"]).Items.Add(pinData[8]);
+                        };
+                        if (!((DataGridViewComboBoxColumn)dgvInputSetup.Columns["units"]).Items.Contains(pinData[8]))
+                        {
+                            ((DataGridViewComboBoxColumn)dgvInputSetup.Columns["units"]).Items.Add(pinData[8]);
+                        }
+                        dgvInputSetup.Rows.Add(rowData);
                     }
-                    dgvInputSetup.Rows.Add(rowData);
+                }
+                catch (FormatException)
+                {
+                    MessageBox.Show("Received unexcepted data, make sure both programs are up to date and try again.",
+                        "Incorrect Data", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    TCPTearDown();
+                    LoadDefaultConfig();
                 }
                 // Setup simple config menu to reflect pins enabled
                 SetupSimpleConf();
@@ -1760,6 +1845,14 @@ namespace SteerLoggerUser
         {
             // Send command to logger so it can receive the config
             TCPSend("Upload_Config");
+
+            // If logger is running, stop upload
+            if (TCPReceive() == "LoggerRunning")
+            {
+                MessageBox.Show("Cannot upload config whilst the logger is running.\n" +
+                    "Stop the log and try again.", "Cannot Upload", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                return;
+            }
             // Send metadata to the logger
             StringBuilder metadata = new StringBuilder();
             metadata.Append(newLog.project + "\u001f");
@@ -1902,6 +1995,38 @@ namespace SteerLoggerUser
                 // If logger is null, set logger to ""
                 logger = "";
                 //lblConnection will have already been set to Not Connected in TCPTearDown
+            }
+        }
+
+
+        // Check if there is unsaved data, if yes give user option to stop form closing
+        void MainFormClosing(object sender, FormClosingEventArgs e) 
+        {
+            if (DAP.saved == false)
+            {
+                DialogResult close = MessageBox.Show("Not all data has been saved, are you sure you want to quit?",
+                    "Unsaved Data", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                if (close == DialogResult.No)
+                {
+                    e.Cancel = true;
+                }
+                else
+                {
+                    e.Cancel = false;
+                }
+            }
+            else if (DAP.logsToProc.Count > 0)
+            {
+                DialogResult close = MessageBox.Show("There are still logs in the processing queue, are you sure you want to quit?",
+                    "Unsaved Data", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                if (close == DialogResult.No)
+                {
+                    e.Cancel = true;
+                }
+                else
+                {
+                    e.Cancel = false;
+                }
             }
         }
 
@@ -2056,7 +2181,7 @@ namespace SteerLoggerUser
             try
             {
                 // Create new DatabaseSearchForm so user can search for logs
-                DatabaseSearchForm databaseSearch = new DatabaseSearchForm(this);
+                DatabaseSearchForm databaseSearch = new DatabaseSearchForm(TCPSend, user);
                 databaseSearch.ShowDialog();
                 if (databaseSearch.cancelled)
                 {
@@ -2073,9 +2198,14 @@ namespace SteerLoggerUser
                 // Get number of logs which match criteria
                 int numLogs = Convert.ToUInt16(response);
                 // Create new DownloadForm so user can select logs to download
-                DownloadForm download = new DownloadForm("Logs", false, TCPReceive, numLogs, TCPSend);
+                DownloadForm download = new DownloadForm("Logs", false, TCPReceive, numLogs, TCPSend, TCPTearDown);
                 download.ShowDialog();
                 download.Dispose();
+                // Return if any errors occured whilst DownloadForm was open
+                if (!IsConnected)
+                {
+                    return;
+                }
                 // Create new BackgroundWorker to download logs in the background
                 BackgroundWorker worker = new BackgroundWorker
                 {
@@ -2373,16 +2503,23 @@ namespace SteerLoggerUser
             // Check if there is data to export
             if (dgvDataProc.DataSource != null)
             {
+                // Create a new instance of the Excel Application if it doesn't exist
+                if (excel == null)
+                {
+                    excel = new Excel.Application();
+                }
                 // Create new excelForm to allow user to select how to export data
                 ExcelForm excelForm = new ExcelForm(DAP.logProc, excel);
                 try
                 {
                     excelForm.ShowDialog();
+                    excel = excelForm.excel;
                 }
                 catch (System.Runtime.InteropServices.COMException)
                 {
                     // Excel closed before form closed
                     // Not a fatal error and doesn't need an alert
+                    excel = new Excel.Application();
                 }
             }
             // If there is no data to export, tell user
@@ -2988,9 +3125,10 @@ namespace SteerLoggerUser
         // This code controls reformatting the main UI when resized beyond a certain limit
         // This means the font and subsequently all controls can be made bigger and fit together in the same way
         // This can probably be done better
+        bool large = false;
         private void mainForm_SizeChanged(object sender, EventArgs e)
         {
-            if (this.Size.Width > 1425 && this.Size.Height > 800)
+            if (large == false && this.Size.Width > 1425 && this.Size.Height > 800)
             {
                 Font = new Font(FontFamily.GenericSansSerif, 12, FontStyle.Regular, GraphicsUnit.Point, 0, false);
                 cmdCtrlConf.Location = new Point(13, 12);
@@ -3097,8 +3235,9 @@ namespace SteerLoggerUser
                 cmdImportLogFile.Size = new Size(cmdRename.Width, cmdRename.Height);
                 cmdImportLogPi.Location = new Point(cmdRename.Location.X, cmdImportLogFile.Location.Y - 36);
                 cmdImportLogPi.Size = new Size(cmdRename.Width, cmdRename.Height);
+                large = true;
             }
-            else
+            else if (large == true && this.Size.Width < 1425 && this.Size.Height < 800)
             {
                 this.Font = new Font(FontFamily.GenericSansSerif, 8.25f, FontStyle.Regular, GraphicsUnit.Point, 0, false);
                 cmdCtrlConf.Location = new Point(13, 12);
@@ -3204,6 +3343,7 @@ namespace SteerLoggerUser
                 cmdImportLogFile.Size = new Size(cmdRename.Width, cmdRename.Height);
                 cmdImportLogPi.Location = new Point(cmdRename.Location.X, cmdImportLogFile.Location.Y - 31);
                 cmdImportLogPi.Size = new Size(cmdRename.Width, cmdRename.Height);
+                large = false;
             }
         }
     }

@@ -16,7 +16,7 @@ namespace SteerLoggerUser
         // Stores whether a log is being processed or not
         public bool processing = false;
         // Stores whether a log has been saved or not
-        public bool saved = false;
+        public bool saved = true;
 
 
         // Used to merge two logs together
@@ -104,6 +104,7 @@ namespace SteerLoggerUser
                     {
                         // Calute time between start timestamp and largest timestamp
                         timeDifference = Convert.ToDouble((largest - tempProcessLog.timestamp[0]).TotalSeconds);
+                        timeDifference = Math.Round(timeDifference, 2);
                     }
                     // Add timestamp and time to merged log
                     tempProcessLog.timestamp.Add(largest);

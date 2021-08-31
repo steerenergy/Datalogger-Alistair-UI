@@ -5,13 +5,17 @@ namespace SteerLoggerUser
 {
     public partial class DatabaseSearchForm : Form
     {
-        // Store mainForm to use TCPSend and TCPReceive
-        private mainForm main;
+        // Store TCPSend to send data to logger
+        private Action<string> TCPSend;
+        // Store user for not downloaded
+        private string user;
+        // Store whether search has been cancelled or not
         public bool cancelled = true;
-        public DatabaseSearchForm(mainForm mainForm)
+        public DatabaseSearchForm(Action<string> TCPSend, string user)
         {
             InitializeComponent();
-            main = mainForm;
+            this.TCPSend = TCPSend;
+            this.user = user;
         }
 
         // Sends search criteria to logger so database can be searched
@@ -21,7 +25,7 @@ namespace SteerLoggerUser
             {
                 cancelled = false;
                 // Send command to logger
-                main.TCPSend("Search_Log");
+                TCPSend("Search_Log");
 
                 // Get variables from Form controls
                 // If variable hasn't been set, set to ""
@@ -57,7 +61,7 @@ namespace SteerLoggerUser
                                 project + '\u001f' + workPack + '\u001f' + jobSheet + 
                                 '\u001f' + description + '\u001f' + notDownloaded;
                 // Send values to logger
-                main.TCPSend(values);
+                TCPSend(values);
             }
             catch (Exception exp)
             {
@@ -127,7 +131,7 @@ namespace SteerLoggerUser
             nudProject.Enabled = false;
             nudWorkPack.Enabled = false;
             nudJobSheet.Enabled = false;
-            ckbNotDownloaded.Text = String.Format("Not Downloaded by {0}", main.user);
+            ckbNotDownloaded.Text = String.Format("Not Downloaded by {0}", user);
         }
     }
 }

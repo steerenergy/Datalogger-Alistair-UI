@@ -28,5 +28,11 @@ namespace SteerLoggerUser
             lnkIssues.LinkVisited = true;
             System.Diagnostics.Process.Start(lnkIssues.Text);
         }
+
+        private void lnkTechDoc_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            lnkTechDoc.LinkVisited = true;
+            System.Diagnostics.Process.Start(lnkTechDoc.Text);
+        }
     }
 }

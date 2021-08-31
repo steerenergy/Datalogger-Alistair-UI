@@ -32,7 +32,7 @@
             this.cmbLogger = new System.Windows.Forms.ComboBox();
             this.cmdSelect = new System.Windows.Forms.Button();
             this.txtUser = new System.Windows.Forms.TextBox();
-            this.label1 = new System.Windows.Forms.Label();
+            this.lblLogger = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.cmdScan = new System.Windows.Forms.Button();
             this.pbScan = new System.Windows.Forms.ProgressBar();
@@ -68,14 +68,14 @@
             this.txtUser.Size = new System.Drawing.Size(109, 20);
             this.txtUser.TabIndex = 2;
             // 
-            // label1
+            // lblLogger
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(12, 44);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(76, 13);
-            this.label1.TabIndex = 3;
-            this.label1.Text = "Select Logger:";
+            this.lblLogger.AutoSize = true;
+            this.lblLogger.Location = new System.Drawing.Point(12, 47);
+            this.lblLogger.Name = "lblLogger";
+            this.lblLogger.Size = new System.Drawing.Size(43, 13);
+            this.lblLogger.TabIndex = 3;
+            this.lblLogger.Text = "Logger:";
             // 
             // label2
             // 
@@ -115,7 +115,7 @@
             this.Controls.Add(this.pbScan);
             this.Controls.Add(this.cmdScan);
             this.Controls.Add(this.label2);
-            this.Controls.Add(this.label1);
+            this.Controls.Add(this.lblLogger);
             this.Controls.Add(this.txtUser);
             this.Controls.Add(this.cmdSelect);
             this.Controls.Add(this.cmbLogger);
@@ -135,7 +135,7 @@
         private System.Windows.Forms.ComboBox cmbLogger;
         private System.Windows.Forms.Button cmdSelect;
         private System.Windows.Forms.TextBox txtUser;
-        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label lblLogger;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Button cmdScan;
         private System.Windows.Forms.ProgressBar pbScan;

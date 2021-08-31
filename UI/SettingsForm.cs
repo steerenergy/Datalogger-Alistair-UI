@@ -404,6 +404,12 @@ namespace SteerLoggerUser
                 MessageBox.Show("Error saving database csv file. Make sure the file is not being used by another application and try again.",
                 "Error Saving File", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+            // Catch invalid format errors for the conversion
+            catch (FormatException)
+            {
+                MessageBox.Show("Received unexcepted data, make sure both programs are up to date and try again.",
+                    "Incorrect Data", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
             // Catch connection errors
             catch (SocketException)
             {
@@ -529,8 +535,6 @@ namespace SteerLoggerUser
                 String errorMessage;
                 errorMessage = "Error: ";
                 errorMessage = String.Concat(errorMessage, exp.Message);
-                errorMessage = String.Concat(errorMessage, " Line: ");
-                errorMessage = String.Concat(errorMessage, exp.Source);
                 MessageBox.Show(errorMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 MessageBox.Show(String.Format("Full error: {0}", exp.ToString()), "Full Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
