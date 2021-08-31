@@ -64,7 +64,5 @@ ax.set(xlabel=x_col,ylabel=y_col,title=title)
 ax.grid()
 
 # Show the graph to user
-# Objectives 16.2 and 21
 plt.show()
 # User can save graph using Matplotlib display window
-# Objective 16.3

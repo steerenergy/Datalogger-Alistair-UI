@@ -25,7 +25,7 @@ for column in current_data.columns[2:]:
 
 """ 
 ! If the function requires input, e.g. a variable such as m or c, take input here
-! Example: m = input("Please input a value for m")
+! Example: m = Decimal(input("Please input a value for m"))
 """
 
 # Create DataFrame for processed data
@@ -36,7 +36,7 @@ for i in range(0,len(current_data.index)):
     temp_row = []
     temp_row.append(current_data['Date/Time'][i])
     temp_row.append(current_data['Time (seconds)'][i])
-    # Apply linear function to data in selected columns
+    # Apply mathematical function to data in selected columns
     for column in proc_columns[2:]:
         """
         ! Apply mathematical function here

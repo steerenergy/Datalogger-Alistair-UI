@@ -261,7 +261,7 @@ namespace SteerLoggerUser
                 while (tcpQueue.TryDequeue(out response) == false)
                 {
                     // Timeout set to 30 seconds
-                    if (DateTime.Now.Subtract(start).TotalSeconds > 30)
+                    if (DateTime.Now.Subtract(start).TotalSeconds > 20)
                     {
                         // If no response in 30 seconds, close connection
                         TCPTearDown();
@@ -498,16 +498,23 @@ namespace SteerLoggerUser
             }
 
             // If progConf.ini and configPresets.csv are not in the appData directory, copy them from program files directory
+            // Also copy if the file in the program files directory is newer than the files in the appData directory
             string[] files = { "progConf.ini", "configPresets.csv" };
             foreach (string filename in files)
             {
                 string output = dirPath + @"\" + filename;
                 string file = Application.StartupPath + @"\" + filename;
+                FileInfo fileInfo = new FileInfo(file);
+                FileInfo outputInfo = new FileInfo(output);
                 try
                 {
                     if (!File.Exists(output))
                     {
                         File.Copy(file, output);
+                    }
+                    else if (File.Exists(output) && fileInfo.LastWriteTime > outputInfo.LastWriteTime)
+                    {
+                        File.Copy(file, output, true);
                     }
                 }
                 catch (FileNotFoundException exp)
@@ -535,9 +542,15 @@ namespace SteerLoggerUser
             {
                 string file = filename.ToString();
                 string output = dirPath + file.ToString().Replace(Application.StartupPath + @"\pythonScripts", "");
+                FileInfo fileInfo = new FileInfo(file);
+                FileInfo outputInfo = new FileInfo(output);
                 if (!File.Exists(output))
                 {
                     File.Copy(file, output);
+                }
+                else if (File.Exists(output) && fileInfo.LastWriteTime > outputInfo.LastWriteTime)
+                {
+                    File.Copy(file, output, true);
                 }
             }
         }
@@ -1832,6 +1845,14 @@ namespace SteerLoggerUser
         {
             // Send command to logger so it can receive the config
             TCPSend("Upload_Config");
+
+            // If logger is running, stop upload
+            if (TCPReceive() == "LoggerRunning")
+            {
+                MessageBox.Show("Cannot upload config whilst the logger is running.\n" +
+                    "Stop the log and try again.", "Cannot Upload", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                return;
+            }
             // Send metadata to the logger
             StringBuilder metadata = new StringBuilder();
             metadata.Append(newLog.project + "\u001f");
@@ -2492,11 +2513,13 @@ namespace SteerLoggerUser
                 try
                 {
                     excelForm.ShowDialog();
+                    excel = excelForm.excel;
                 }
                 catch (System.Runtime.InteropServices.COMException)
                 {
                     // Excel closed before form closed
                     // Not a fatal error and doesn't need an alert
+                    excel = new Excel.Application();
                 }
             }
             // If there is no data to export, tell user

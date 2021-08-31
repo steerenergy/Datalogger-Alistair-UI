@@ -37,25 +37,27 @@ namespace SteerLoggerUser
             this.label1 = new System.Windows.Forms.Label();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.lblVersion = new System.Windows.Forms.Label();
+            this.label2 = new System.Windows.Forms.Label();
+            this.lnkTechDoc = new System.Windows.Forms.LinkLabel();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
             // lnkManual
             // 
             this.lnkManual.AutoEllipsis = true;
-            this.lnkManual.Location = new System.Drawing.Point(12, 51);
+            this.lnkManual.Location = new System.Drawing.Point(12, 44);
             this.lnkManual.Name = "lnkManual";
             this.lnkManual.Size = new System.Drawing.Size(352, 23);
             this.lnkManual.TabIndex = 0;
             this.lnkManual.TabStop = true;
-            this.lnkManual.Text = "https://tresor.it/p#0032n8slgqchec1tbqa1vlej/Live%20Projects/X01%20-%20Logging/Al" +
-    "istair/Documentation/New%20Datalogger%20User%20Manual.docx";
+            this.lnkManual.Text = "https://tresor.it/p#0032n8slgqchec1tbqa1vlej/Live%20Projects/X01%20-%20Logging/Do" +
+    "cumentation/Version%202.1.X/Datalogger%20User%20Manual%20v2.1.X.docx";
             this.lnkManual.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkManual_LinkClicked);
             // 
             // lblManual
             // 
             this.lblManual.AutoSize = true;
-            this.lblManual.Location = new System.Drawing.Point(12, 29);
+            this.lblManual.Location = new System.Drawing.Point(12, 31);
             this.lblManual.Name = "lblManual";
             this.lblManual.Size = new System.Drawing.Size(244, 13);
             this.lblManual.TabIndex = 1;
@@ -64,7 +66,7 @@ namespace SteerLoggerUser
             // lblIssues
             // 
             this.lblIssues.AutoSize = true;
-            this.lblIssues.Location = new System.Drawing.Point(12, 74);
+            this.lblIssues.Location = new System.Drawing.Point(12, 107);
             this.lblIssues.Name = "lblIssues";
             this.lblIssues.Size = new System.Drawing.Size(205, 13);
             this.lblIssues.TabIndex = 2;
@@ -73,7 +75,7 @@ namespace SteerLoggerUser
             // lnkIssues
             // 
             this.lnkIssues.AutoSize = true;
-            this.lnkIssues.Location = new System.Drawing.Point(12, 100);
+            this.lnkIssues.Location = new System.Drawing.Point(12, 120);
             this.lnkIssues.Name = "lnkIssues";
             this.lnkIssues.Size = new System.Drawing.Size(293, 13);
             this.lnkIssues.TabIndex = 3;
@@ -84,7 +86,7 @@ namespace SteerLoggerUser
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(149, 314);
+            this.label1.Location = new System.Drawing.Point(149, 334);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(82, 13);
             this.label1.TabIndex = 4;
@@ -93,7 +95,7 @@ namespace SteerLoggerUser
             // pictureBox1
             // 
             this.pictureBox1.Image = global::SteerLoggerUser.Properties.Resources.steer;
-            this.pictureBox1.Location = new System.Drawing.Point(15, 116);
+            this.pictureBox1.Location = new System.Drawing.Point(12, 136);
             this.pictureBox1.Name = "pictureBox1";
             this.pictureBox1.Size = new System.Drawing.Size(352, 195);
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -107,13 +109,36 @@ namespace SteerLoggerUser
             this.lblVersion.Name = "lblVersion";
             this.lblVersion.Size = new System.Drawing.Size(107, 13);
             this.lblVersion.TabIndex = 6;
-            this.lblVersion.Text = "Logger version: 2.1.1";
+            this.lblVersion.Text = "Logger version: 2.1.3";
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(12, 67);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(303, 13);
+            this.label2.TabIndex = 7;
+            this.label2.Text = "The technical documentation for the logger can be found here:";
+            // 
+            // lnkTechDoc
+            // 
+            this.lnkTechDoc.AutoEllipsis = true;
+            this.lnkTechDoc.Location = new System.Drawing.Point(12, 80);
+            this.lnkTechDoc.Name = "lnkTechDoc";
+            this.lnkTechDoc.Size = new System.Drawing.Size(352, 16);
+            this.lnkTechDoc.TabIndex = 8;
+            this.lnkTechDoc.TabStop = true;
+            this.lnkTechDoc.Text = "https://tresor.it/p#0032n8slgqchec1tbqa1vlej/Live%20Projects/X01%20-%20Logging/Do" +
+    "cumentation/Version%202.1.X/Logger%20Technical%20Documentation%20v2.1.X.docx";
+            this.lnkTechDoc.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkTechDoc_LinkClicked);
             // 
             // AboutForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(376, 336);
+            this.ClientSize = new System.Drawing.Size(376, 360);
+            this.Controls.Add(this.lnkTechDoc);
+            this.Controls.Add(this.label2);
             this.Controls.Add(this.lblVersion);
             this.Controls.Add(this.pictureBox1);
             this.Controls.Add(this.label1);
@@ -139,5 +164,7 @@ namespace SteerLoggerUser
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.PictureBox pictureBox1;
         private System.Windows.Forms.Label lblVersion;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.LinkLabel lnkTechDoc;
     }
 }

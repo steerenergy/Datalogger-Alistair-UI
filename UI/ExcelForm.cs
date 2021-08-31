@@ -11,7 +11,7 @@ namespace SteerLoggerUser
     public partial class ExcelForm : Form
     {
         // Global variables used to interface with Excel
-        private Excel.Application excel;
+        public Excel.Application excel;
         private Excel._Workbook workbook;
         // Stores data to export to Excel
         private LogProc logProc;
@@ -139,6 +139,14 @@ namespace SteerLoggerUser
 
                 MessageBox.Show("Exported Successfully!","Export Successful",
                                 MessageBoxButtons.OK,MessageBoxIcon.Information);
+                this.Close();
+            }
+            // Catch errors if instance of Excel is closed (e.g. by closing in task manager
+            catch (InvalidCastException)
+            {
+                MessageBox.Show("UI lost communication with Excel, please close and reopen the ExcelForm to restart communnication.",
+                    "Excel Communication Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                excel = null;
                 this.Close();
             }
             // Catch any exceptions and report to user
@@ -320,6 +328,14 @@ namespace SteerLoggerUser
                 workbook.Close();
                 System.Runtime.InteropServices.Marshal.FinalReleaseComObject(workbook);
             }
+            // Catch errors if instance of Excel is closed (e.g. by closing in task manager
+            catch (InvalidCastException)
+            {
+                MessageBox.Show("UI lost communication with Excel, please close and reopen the ExcelForm to restart communnication.",
+                    "Excel Communication Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                excel = null;
+                this.Close();
+            }
             // Catch any exceptions and display to user
             catch (Exception theException)
             {
@@ -469,6 +485,14 @@ namespace SteerLoggerUser
                 MessageBox.Show("Exported Successfully!", "Export Successful", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 this.Close();
             }
+            // Catch errors if instance of Excel is closed (e.g. by closing in task manager
+            catch (InvalidCastException)
+            {
+                MessageBox.Show("UI lost communication with Excel, please close and reopen the ExcelForm to restart communnication.",
+                    "Excel Communication Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                excel = null;
+                this.Close();
+            }
             // Catch any exceptions and report to user
             catch (Exception theException)
             {
@@ -547,6 +571,14 @@ namespace SteerLoggerUser
                     dgvTemplate.Rows.Add(rowData.ToArray());
                     dgvTemplate.Rows[i - 1].HeaderCell.Value = i.ToString();
                 }
+            }
+            // Catch errors if instance of Excel is closed (e.g. by closing in task manager
+            catch (InvalidCastException)
+            {
+                MessageBox.Show("UI lost communication with Excel, please close and reopen the ExcelForm to restart communnication.",
+                    "Excel Communication Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                excel = null;
+                this.Close();
             }
             // Catch any exceptions and report to user
             catch (Exception theException)
