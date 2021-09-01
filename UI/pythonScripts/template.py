@@ -19,7 +19,7 @@ current_data = pd.read_csv(path / "temp.csv")
 proc_columns = []
 drop_columns = []
 # Enumerate through data columns and allow user to select whether to apply the mathematical function
-for column in list(current_data):
+for column in list(current_data)[2:]:
     apply = input("Apply mathematical function to " + column + "?\n[y\\n]:")
     if apply.lower() == "y":
         proc_columns.append(column)

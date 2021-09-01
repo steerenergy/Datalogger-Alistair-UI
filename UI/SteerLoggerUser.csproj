@@ -82,6 +82,12 @@
     <Compile Include="ChangeUserForm.Designer.cs">
       <DependentUpon>ChangeUserForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="ColumnTextForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ColumnTextForm.Designer.cs">
+      <DependentUpon>ColumnTextForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="DatabaseSearchForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -142,6 +148,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="ChangeUserForm.resx">
       <DependentUpon>ChangeUserForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ColumnTextForm.resx">
+      <DependentUpon>ColumnTextForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="DatabaseSearchForm.resx">
       <DependentUpon>DatabaseSearchForm.cs</DependentUpon>

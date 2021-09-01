@@ -40,7 +40,7 @@ namespace SteerLoggerUser
                 }
             }
             // Create headers from current log and imported log
-            tempProcessLog.procheaders = logProc.procheaders;
+            tempProcessLog.procheaders.AddRange(logProc.procheaders);
             tempProcessLog.procheaders.AddRange(logToMerge.procheaders.Skip(2));
             // Initialise the procData using the number of columns of logs being merged
             int columnNum = logProc.procData.Count();

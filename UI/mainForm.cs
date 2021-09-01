@@ -1100,6 +1100,11 @@ namespace SteerLoggerUser
             // Populating the grid this way is a lot more efficient
             dgvDataProc.DataSource = table;
             dgvDataProc.Columns[0].DefaultCellStyle.Format = "yyyy/MM/dd HH:mm:ss.fff";
+            // Disable sorting on columns
+            foreach (DataGridViewColumn column in dgvDataProc.Columns)
+            {
+                column.SortMode = DataGridViewColumnSortMode.NotSortable;
+            }
             // Set saved to false as new data is in grid
             DAP.saved = false;
         }
@@ -1323,6 +1328,7 @@ namespace SteerLoggerUser
                 {
                     return;
                 }
+                databaseSearch.Dispose();
                 string response = TCPReceive();
                 // If no logs match search criteria, alert user
                 if (response == "No Logs Match Criteria")
@@ -1429,7 +1435,7 @@ namespace SteerLoggerUser
             catch (InvalidDataException)
             {
                 MessageBox.Show("You need to be connected to a logger to do that!",
-                                "Connect to a Logger",MessageBoxButtons.OK,MessageBoxIcon.Stop);
+                                "Connect to a Logger",MessageBoxButtons.OK,MessageBoxIcon.Warning);
             }
             catch (TimeoutException)
             {
@@ -1640,6 +1646,12 @@ namespace SteerLoggerUser
                     MessageBox.Show("You need to be connected to a logger to do that!", "Connect to a Logger",
                                     MessageBoxButtons.OK, MessageBoxIcon.Stop);
                 }
+                return;
+            }
+            catch (TimeoutException)
+            {
+                MessageBox.Show("Connection timed out, please reconnect.",
+                                "Timeout Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
         }
@@ -2049,21 +2061,25 @@ namespace SteerLoggerUser
                 TCPTearDown();
             }
 
-            // Delete any temporary raw/converted data files from SteerLogger appData directory
-            if (Directory.Exists(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger"))
+            // Check that this is the only instance of the application running
+            if (Process.GetProcessesByName(Path.GetFileNameWithoutExtension(System.Reflection.Assembly.GetEntryAssembly().Location)).Count() == 1)
             {
-                string[] filePaths = Directory.GetFiles(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger");
-                foreach (string filename in filePaths)
+                // Delete any temporary raw/converted data files from SteerLogger appData directory
+                if (Directory.Exists(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger"))
                 {
-                    if (filename.Contains("raw") || filename.Contains("converted"))
+                    string[] filePaths = Directory.GetFiles(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SteerLogger");
+                    foreach (string filename in filePaths)
                     {
-                        try
+                        if (filename.Contains("raw") || filename.Contains("converted"))
                         {
-                            File.Delete(filename);
-                        }
-                        catch
-                        {
-                            // Ignore errors as Form closing and this operation is non essential
+                            try
+                            {
+                                File.Delete(filename);
+                            }
+                            catch
+                            {
+                                // Ignore errors as Form closing and this operation is non essential
+                            }
                         }
                     }
                 }
@@ -2324,7 +2340,7 @@ namespace SteerLoggerUser
                         }
                         catch (FileNotFoundException)
                         {
-                            MessageBox.Show("Raw csv file does not exist in appData folder. Redownload log and try again.",
+                            MessageBox.Show("Converted csv file does not exist in appData folder. Redownload log and try again.",
                                             "Error Saving File", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         }
                         // Catch any input/output errors
@@ -2434,13 +2450,17 @@ namespace SteerLoggerUser
                 // If config file exists for log, add to zipDir in appData
                 if (log.config != null)
                 {
-                    string confPath = dirPath + @"\logConf-" + log.name + ".ini";
+                    string confPath = dirPath + @"\logConf-" + log.name +
+                                      (log.testNumber == 0 ? "" : String.Format("-{0}", log.testNumber)) +
+                                      (log.date == null ? "" : String.Format("-{0}", log.date)) + ".csv";
                     SaveConfig(log, confPath);
                 }
                 // If raw file exists, add to zipDir
                 if (log.raw != null && log.raw != "")
                 {
-                    string rawPath = dirPath + @"\raw-" + log.name + ".csv";
+                    string rawPath = dirPath + @"\raw-" + log.name +
+                                      (log.testNumber == 0 ? "" : String.Format("-{0}", log.testNumber)) +
+                                      (log.date == null ? "" : String.Format("-{0}", log.date)) + ".csv";
                     try
                     {
                         SaveCsv(log.raw, rawPath);
@@ -2454,7 +2474,9 @@ namespace SteerLoggerUser
                 // If conv file exists, add to zipDir
                 if (log.conv != null && log.conv != "")
                 {
-                    string convPath = dirPath + @"\converted-" + log.name + ".csv";
+                    string convPath = dirPath + @"\converted-" + log.name +
+                                      (log.testNumber == 0 ? "" : String.Format("-{0}", log.testNumber)) +
+                                      (log.date == null ? "" : String.Format("-{0}", log.date)) + ".csv";
                     try
                     {
                         SaveCsv(log.conv, convPath);
@@ -2469,7 +2491,9 @@ namespace SteerLoggerUser
             // Write processed data csv to zipDir if data has been processed
             if (DAP.processing == true)
             {
-                string procPath = dirPath + @"\processed-" + DAP.logsProcessing[0].name + ".csv";
+                string procPath = dirPath + @"\processed-" + DAP.logsProcessing[0].name +
+                                    (DAP.logsProcessing[0].testNumber == 0 ? "" : String.Format("-{0}", DAP.logsProcessing[0].testNumber)) +
+                                    (DAP.logsProcessing[0].date == null ? "" : String.Format("-{0}", DAP.logsProcessing[0].date)) + ".csv";
                 SaveProcCsv(DAP.logProc, procPath);
             }
             // Set zip filename based on log name and setup sfdLog settings for zip files
@@ -3122,6 +3146,18 @@ namespace SteerLoggerUser
         }
 
 
+        // Occurs when a column header is double clicked
+        // Allows user to change titles of columns
+        private void dgvDataProc_ColumnHeaderMouseDoubleClick(object sender, DataGridViewCellMouseEventArgs e)
+        {
+            ColumnTextForm columnTextForm = new ColumnTextForm(DAP.logProc.procheaders);
+            columnTextForm.ShowDialog();
+            DAP.logProc.procheaders = columnTextForm.headers;
+            columnTextForm.Dispose();
+            PopulateDataViewProc(DAP.logProc);
+        }
+
+
         // This code controls reformatting the main UI when resized beyond a certain limit
         // This means the font and subsequently all controls can be made bigger and fit together in the same way
         // This can probably be done better
@@ -3223,7 +3259,7 @@ namespace SteerLoggerUser
                 cmdPythonGraph.Size = new Size(cmdRename.Width, cmdRename.Height);
                 cmdReconvert.Location = new Point(cmdPythonGraph.Location.X, cmdPythonGraph.Location.Y + cmdPythonGraph.Height + 6);
                 cmdReconvert.Size = new Size(cmdRename.Width, cmdRename.Height);
-                cmdClearData.Location = new Point(cmdRename.Location.X, dgvDataProc.Location.Y + dgvDataProc.Height - 36);
+                cmdClearData.Location = new Point(cmdRename.Location.X, dgvDataProc.Location.Y + dgvDataProc.Height - 31);
                 cmdClearData.Size = new Size(cmdRename.Width, cmdRename.Height);
                 cmdExpExcel.Location = new Point(cmdRename.Location.X, cmdClearData.Location.Y - 36);
                 cmdExpExcel.Size = new Size(cmdRename.Width, cmdRename.Height);
@@ -3331,7 +3367,7 @@ namespace SteerLoggerUser
                 cmdPythonGraph.Size = new Size(186,25);
                 cmdReconvert.Location = new Point(17, 130);
                 cmdReconvert.Size = new Size(186,25);
-                cmdClearData.Location = new Point(cmdRename.Location.X, dgvDataProc.Location.Y + dgvDataProc.Height - 31);
+                cmdClearData.Location = new Point(cmdRename.Location.X, dgvDataProc.Location.Y + dgvDataProc.Height - 26);
                 cmdClearData.Size = new Size(cmdRename.Width, cmdRename.Height);
                 cmdExpExcel.Location = new Point(cmdRename.Location.X, cmdClearData.Location.Y - 31);
                 cmdExpExcel.Size = new Size(cmdRename.Width, cmdRename.Height);

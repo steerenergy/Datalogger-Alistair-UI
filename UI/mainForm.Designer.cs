@@ -670,7 +670,7 @@
             // cmdClearData
             // 
             this.cmdClearData.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.cmdClearData.Location = new System.Drawing.Point(18, 340);
+            this.cmdClearData.Location = new System.Drawing.Point(18, 351);
             this.cmdClearData.Name = "cmdClearData";
             this.cmdClearData.Size = new System.Drawing.Size(186, 25);
             this.cmdClearData.TabIndex = 4;
@@ -681,7 +681,7 @@
             // cmdDwnldCsv
             // 
             this.cmdDwnldCsv.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.cmdDwnldCsv.Location = new System.Drawing.Point(18, 247);
+            this.cmdDwnldCsv.Location = new System.Drawing.Point(18, 258);
             this.cmdDwnldCsv.Name = "cmdDwnldCsv";
             this.cmdDwnldCsv.Size = new System.Drawing.Size(186, 25);
             this.cmdDwnldCsv.TabIndex = 0;
@@ -692,7 +692,7 @@
             // cmdExpExcel
             // 
             this.cmdExpExcel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.cmdExpExcel.Location = new System.Drawing.Point(18, 309);
+            this.cmdExpExcel.Location = new System.Drawing.Point(18, 320);
             this.cmdExpExcel.Name = "cmdExpExcel";
             this.cmdExpExcel.Size = new System.Drawing.Size(186, 25);
             this.cmdExpExcel.TabIndex = 2;
@@ -703,7 +703,7 @@
             // cmdDwnldZip
             // 
             this.cmdDwnldZip.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.cmdDwnldZip.Location = new System.Drawing.Point(18, 278);
+            this.cmdDwnldZip.Location = new System.Drawing.Point(18, 289);
             this.cmdDwnldZip.Name = "cmdDwnldZip";
             this.cmdDwnldZip.Size = new System.Drawing.Size(186, 25);
             this.cmdDwnldZip.TabIndex = 1;
@@ -714,7 +714,7 @@
             // cmdImportLogFile
             // 
             this.cmdImportLogFile.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.cmdImportLogFile.Location = new System.Drawing.Point(18, 216);
+            this.cmdImportLogFile.Location = new System.Drawing.Point(18, 227);
             this.cmdImportLogFile.Name = "cmdImportLogFile";
             this.cmdImportLogFile.Size = new System.Drawing.Size(186, 25);
             this.cmdImportLogFile.TabIndex = 5;
@@ -725,7 +725,7 @@
             // cmdImportLogPi
             // 
             this.cmdImportLogPi.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.cmdImportLogPi.Location = new System.Drawing.Point(18, 185);
+            this.cmdImportLogPi.Location = new System.Drawing.Point(18, 196);
             this.cmdImportLogPi.Name = "cmdImportLogPi";
             this.cmdImportLogPi.Size = new System.Drawing.Size(186, 25);
             this.cmdImportLogPi.TabIndex = 6;
@@ -768,6 +768,7 @@
             this.dgvDataProc.RowHeadersWidth = 51;
             this.dgvDataProc.Size = new System.Drawing.Size(607, 373);
             this.dgvDataProc.TabIndex = 3;
+            this.dgvDataProc.ColumnHeaderMouseDoubleClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.dgvDataProc_ColumnHeaderMouseDoubleClick);
             // 
             // sfdConfig
             // 
