@@ -14,7 +14,7 @@ print("Columns: ")
 # Store columns in a dictionary with a number to reference each column
 col_dict = dict()
 i = 0
-for column in current_data.columns:
+for column in list(current_data):
     col_dict[i] = column
     print(str(i) + ": " + column)
     i += 1
