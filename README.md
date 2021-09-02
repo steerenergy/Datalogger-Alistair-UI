@@ -16,6 +16,7 @@ This project was written mainly in C# (with the exception of the python processi
 * Visual Studio Community 2019 Version 16.10.4
 * PyCharm 2021.2 (Communnity Edition)
 * Advanced Installer Version 18.5
+
 and is designed to run on any Windows PC running Windows Vista or higher
 
 ## Installation
