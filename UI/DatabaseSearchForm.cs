@@ -138,7 +138,7 @@ namespace SteerLoggerUser
         // When form loads, set controls to disabled and set ckbNotDownloaded text to reflect user
         private void DatabaseSearchForm_Load(object sender, EventArgs e)
         {
-            dtpDate.Enabled = false;
+            dtpDate.Enabled = true;
             nudProject.Enabled = false;
             nudWorkPack.Enabled = false;
             nudJobSheet.Enabled = false;
