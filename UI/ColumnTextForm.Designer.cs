@@ -81,6 +81,7 @@ namespace SteerLoggerUser
             this.Controls.Add(this.cmdChangeHeaders);
             this.Controls.Add(this.dgvHeaders);
             this.Name = "ColumnTextForm";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "ColumnTextForm";
             this.Load += new System.EventHandler(this.ColumnTextForm_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dgvHeaders)).EndInit();

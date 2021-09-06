@@ -2452,7 +2452,7 @@ namespace SteerLoggerUser
                 {
                     string confPath = dirPath + @"\logConf-" + log.name +
                                       (log.testNumber == 0 ? "" : String.Format("-{0}", log.testNumber)) +
-                                      (log.date == null ? "" : String.Format("-{0}", log.date)) + ".csv";
+                                      (log.date == null ? "" : String.Format("-{0}", log.date)) + ".ini";
                     SaveConfig(log, confPath);
                 }
                 // If raw file exists, add to zipDir

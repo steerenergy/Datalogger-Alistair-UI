@@ -139,6 +139,7 @@ namespace SteerLoggerUser
         private void DatabaseSearchForm_Load(object sender, EventArgs e)
         {
             dtpDate.Enabled = true;
+            ckbDate.Checked = true;
             nudProject.Enabled = false;
             nudWorkPack.Enabled = false;
             nudJobSheet.Enabled = false;

@@ -31,6 +31,7 @@ namespace SteerLoggerUser
             }
             dgvHeaders.DataSource = table;
             dgvHeaders.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvHeaders.Columns[0].ReadOnly = true;
         }
 
         private void button1_Click(object sender, EventArgs e)
