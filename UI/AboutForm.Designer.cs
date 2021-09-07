@@ -109,7 +109,7 @@ namespace SteerLoggerUser
             this.lblVersion.Name = "lblVersion";
             this.lblVersion.Size = new System.Drawing.Size(107, 13);
             this.lblVersion.TabIndex = 6;
-            this.lblVersion.Text = "Logger version: 2.1.3";
+            this.lblVersion.Text = "Logger version: 2.1.4";
             // 
             // label2
             // 
