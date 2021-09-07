@@ -174,11 +174,11 @@ namespace SteerLoggerUser
                         }
                         else if (line == "Command not recognised")
                         {
+                            listenerExit = true;
                             MessageBox.Show("The logger didn't recognise that command.\n" +
                                             "Please make sure that both the user program and logger program are up to date.\n" +
                                             "If this error occurs repeatedly, notify Alistair Ryan.\n",
                                             "Command Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            listenerExit = true;
                             throw new IOException();
                         }
                         tcpQueue.Enqueue(line);
@@ -210,8 +210,11 @@ namespace SteerLoggerUser
                 if (listenerExit == false)
                 {
                     this.BeginInvoke(new Action(() => { lblConnection.Text = "You're not connected to a logger."; }));
-                    MessageBox.Show("An error occured in the connection, please reconnect.","Connection Error",
-                                    MessageBoxButtons.OK,MessageBoxIcon.Error);
+                    this.BeginInvoke(new Action(() =>
+                    {
+                        MessageBox.Show("An error occured in the connection, please reconnect.", "Connection Error",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }));
                 }
             }
             catch (SocketException)
@@ -234,8 +237,11 @@ namespace SteerLoggerUser
                 if (listenerExit == false)
                 {
                     this.BeginInvoke(new Action(() => { lblConnection.Text = "You're not connected to a logger."; }));
-                    MessageBox.Show("An error occured in the connection, please reconnect.","Connection Error",
-                                    MessageBoxButtons.OK,MessageBoxIcon.Error);
+                    this.BeginInvoke(new Action(() =>
+                    {
+                        MessageBox.Show("An error occured in the connection, please reconnect.", "Connection Error",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }));
                 }
             }
             return;
@@ -392,10 +398,10 @@ namespace SteerLoggerUser
                                                 // If no in usual location, alert user and continue
                                                 else
                                                 {
+                                                    progConfig.activatePath = "";
                                                     MessageBox.Show("Cannot find activate.bat for Anaconda,"
                                                                     + "please edit settings and give the location of activate.bat.", "Cannot Find activate.bat",
                                                                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                                                    progConfig.activatePath = "";
                                                 }
                                             }
                                             // If there is set anaconda path, check that activate.bat exists there
@@ -408,9 +414,9 @@ namespace SteerLoggerUser
                                                 // If activate.bat not in set location, alert user and continue
                                                 else
                                                 {
+                                                    progConfig.activatePath = "";
                                                     MessageBox.Show("Cannot find activate.bat for Anaconda, please edit settings and give the location of activate.bat.",
                                                                     "Cannot Find activate.bat", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                                                    progConfig.activatePath = "";
                                                 }
                                             }
                                             break;
@@ -1055,7 +1061,7 @@ namespace SteerLoggerUser
         DataTable table;
         private void PopulateDataViewProc(LogProc logToShow)
         {
-            // If table is already got data, dispose before recreation
+            // If table has already got data, dispose before recreation
             if (table != null)
             {
                 table.Dispose();
@@ -2632,10 +2638,10 @@ namespace SteerLoggerUser
             // Catch exception if proc.csv cannot be found, usually means script failed
             catch (FileNotFoundException)
             {
+                File.Delete(dirPath + @"\temp.csv");
                 MessageBox.Show("Processing failed. Make sure your Python script outputs a proc.csv file.\n" +
                                 "Also make sure that activate.bat is stored at C:\\Users\\<Your_User>\\anaconda3\\Scripts\\activate.bat", 
                                 "Processing Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                File.Delete(dirPath + @"\temp.csv");
             }
         }
 
@@ -3112,10 +3118,10 @@ namespace SteerLoggerUser
                     }
                     catch (InvalidDataException)
                     {
+                        DAP.logsProcessing.Remove(DAP.logsProcessing[0]);
                         MessageBox.Show(String.Format("Error parsing data from data file {0}.\n" +
                             "Check imported files and redownload if necessary.", DAP.logsProcessing[0].conv), 
                             "Error Parsing Data",MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        DAP.logsProcessing.Remove(DAP.logsProcessing[0]);
                         return;
                     }
                     lblLogDisplay.Text = "Displaying: " + DAP.logsProcessing[0].name + " " + DAP.logsProcessing[0].testNumber;
