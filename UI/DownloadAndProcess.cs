@@ -163,12 +163,20 @@ namespace SteerLoggerUser
         // Test if a merge is possible
         public bool TestMerge(DateTime start, DateTime end)
         {
-            // See if earliest timestamp of first log is before the last timestamp of the other and vice versa
-            if (this.logProc.timestamp.First() < end && start < this.logProc.timestamp.Last())
+            try
             {
-                return true;
+                // See if earliest timestamp of first log is before the last timestamp of the other and vice versa
+                if (this.logProc.timestamp.First() < end && start < this.logProc.timestamp.Last())
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
-            else
+            // Occurs if start and end are equal, just say logs cannot be merged
+            catch (InvalidOperationException)
             {
                 return false;
             }

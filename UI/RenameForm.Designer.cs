@@ -32,16 +32,18 @@ namespace SteerLoggerUser
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(RenameForm));
             this.cmdRename = new System.Windows.Forms.Button();
             this.dgvRename = new System.Windows.Forms.DataGridView();
-            this.oldName = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.newName = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.lblRename = new System.Windows.Forms.Label();
+            this.oldName = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.oldTestNum = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.newName = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.newTestNum = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.dgvRename)).BeginInit();
             this.SuspendLayout();
             // 
             // cmdRename
             // 
             this.cmdRename.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
-            this.cmdRename.Location = new System.Drawing.Point(13, 177);
+            this.cmdRename.Location = new System.Drawing.Point(13, 195);
             this.cmdRename.Name = "cmdRename";
             this.cmdRename.Size = new System.Drawing.Size(276, 23);
             this.cmdRename.TabIndex = 0;
@@ -60,23 +62,14 @@ namespace SteerLoggerUser
             this.dgvRename.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgvRename.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.oldName,
-            this.newName});
+            this.oldTestNum,
+            this.newName,
+            this.newTestNum});
             this.dgvRename.Location = new System.Drawing.Point(13, 30);
             this.dgvRename.Name = "dgvRename";
             this.dgvRename.RowHeadersVisible = false;
-            this.dgvRename.Size = new System.Drawing.Size(276, 141);
+            this.dgvRename.Size = new System.Drawing.Size(276, 159);
             this.dgvRename.TabIndex = 1;
-            // 
-            // oldName
-            // 
-            this.oldName.HeaderText = "Old Name";
-            this.oldName.Name = "oldName";
-            this.oldName.ReadOnly = true;
-            // 
-            // newName
-            // 
-            this.newName.HeaderText = "New Name";
-            this.newName.Name = "newName";
             // 
             // lblRename
             // 
@@ -87,11 +80,33 @@ namespace SteerLoggerUser
             this.lblRename.TabIndex = 2;
             this.lblRename.Text = "Input new name in column, leave blank to keep old name.";
             // 
+            // oldName
+            // 
+            this.oldName.HeaderText = "Old Name";
+            this.oldName.Name = "oldName";
+            this.oldName.ReadOnly = true;
+            // 
+            // oldTestNum
+            // 
+            this.oldTestNum.HeaderText = "Old Test Number";
+            this.oldTestNum.Name = "oldTestNum";
+            this.oldTestNum.ReadOnly = true;
+            // 
+            // newName
+            // 
+            this.newName.HeaderText = "New Name";
+            this.newName.Name = "newName";
+            // 
+            // newTestNum
+            // 
+            this.newTestNum.HeaderText = "New Test Number";
+            this.newTestNum.Name = "newTestNum";
+            // 
             // RenameForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(304, 212);
+            this.ClientSize = new System.Drawing.Size(304, 230);
             this.Controls.Add(this.lblRename);
             this.Controls.Add(this.dgvRename);
             this.Controls.Add(this.cmdRename);
@@ -110,8 +125,10 @@ namespace SteerLoggerUser
 
         private System.Windows.Forms.Button cmdRename;
         private System.Windows.Forms.DataGridView dgvRename;
-        private System.Windows.Forms.DataGridViewTextBoxColumn oldName;
-        private System.Windows.Forms.DataGridViewTextBoxColumn newName;
         private System.Windows.Forms.Label lblRename;
+        private System.Windows.Forms.DataGridViewTextBoxColumn oldName;
+        private System.Windows.Forms.DataGridViewTextBoxColumn oldTestNum;
+        private System.Windows.Forms.DataGridViewTextBoxColumn newName;
+        private System.Windows.Forms.DataGridViewTextBoxColumn newTestNum;
     }
 }

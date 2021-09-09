@@ -724,7 +724,6 @@ namespace SteerLoggerUser
                 for (int i = 0; i < numLogs; i ++)
                 {
                     string received = TCPReceive();
-                    prev = 0;
                     // Create a tempoary LogMeta to store log while its being received
                     LogMeta tempLog;
                     // Check for pending cancellation
@@ -799,7 +798,7 @@ namespace SteerLoggerUser
                         return;
                     }
                     // Calculate progress percentage and report progress
-                    current = CalcPercent(20, numLogs, current);
+                    current = CalcPercent(15, numLogs, current);
                     worker.ReportProgress(current, "Receiving log data...");
                     // Set up convheaders for converted file
                     List<string> convHeaders = new List<string> { "Date/Time", "Time (seconds)" };
@@ -848,7 +847,7 @@ namespace SteerLoggerUser
                         worker.Dispose();
                         return;
                     }
-                    current = CalcPercent(40, numLogs, current);
+                    current = CalcPercent(20, numLogs, current);
                     worker.ReportProgress(current, "Downloading raw data...");
                     // Create file stream and stream raw data file
                     using (FileStream stream = new FileStream(temp, FileMode.Create))
@@ -865,7 +864,7 @@ namespace SteerLoggerUser
                         worker.Dispose();
                         return;
                     }
-                    current = CalcPercent(60, numLogs, current);
+                    current = CalcPercent(20, numLogs, current);
                     worker.ReportProgress(current, "Converting data...");
                     // min and max used for calculating whether logs can be merged or not
                     DateTime min;
@@ -908,7 +907,7 @@ namespace SteerLoggerUser
                         worker.Dispose();
                         return;
                     }
-                    current = CalcPercent(80, numLogs, current);
+                    current = CalcPercent(20, numLogs, current);
                     worker.ReportProgress(current, "Finalising download...");
                     // If there is already a log being processed, check if logs can be merged
                     if (dgvDataProc.DataSource != null)
@@ -985,6 +984,8 @@ namespace SteerLoggerUser
                             this.Invoke(new Action(() => { PopulateDataViewProc(DAP.logProc); }));
                         }
                     }
+                    current = CalcPercent(10, numLogs, current);
+                    worker.ReportProgress(current, "Download of log finished...");
                 }
                 // Check for cancellation and report progress percentage
                 if (worker.CancellationPending)
@@ -992,7 +993,7 @@ namespace SteerLoggerUser
                     worker.Dispose();
                     return;
                 }
-                worker.ReportProgress(100, "Download finished...");
+                worker.ReportProgress(100, "Full download finished...");
                 worker.Dispose();
             }
             // If there is a connection error, alert user
@@ -1047,12 +1048,15 @@ namespace SteerLoggerUser
 
 
         // Calculates percentage of work done
-        private int prev = 0;
         private int CalcPercent(int value, int div, int current)
         {
             // Add percentage of work done since previous calculation to current percentage
-            int percent = Convert.ToInt32(Convert.ToDouble(current) + Convert.ToDouble(value - prev) * (1d / Convert.ToDouble(div)));
-            prev = value;
+            int percent = Convert.ToInt32(Convert.ToDouble(current) + Convert.ToDouble(value) * (1d / Convert.ToDouble(div)));
+            // Stops propgress bar hitting 100 too soon (occurs due to rounding in above)
+            if (percent >= 100)
+            {
+                percent = 99;
+            }
             return percent;
         }
 

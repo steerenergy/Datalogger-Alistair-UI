@@ -154,6 +154,7 @@ namespace SteerLoggerUser
             // 
             this.description.HeaderText = "Description";
             this.description.Name = "description";
+            this.description.ReadOnly = true;
             // 
             // LogSize
             // 
