@@ -62,15 +62,6 @@
             this.cmbPin = new System.Windows.Forms.ComboBox();
             this.txtLogPins = new System.Windows.Forms.TextBox();
             this.dgvInputSetup = new System.Windows.Forms.DataGridView();
-            this.id = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.name = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.enabled = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-            this.fName = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.inputType = new System.Windows.Forms.DataGridViewComboBoxColumn();
-            this.gain = new System.Windows.Forms.DataGridViewComboBoxColumn();
-            this.scaleMin = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.scaleMax = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.units = new System.Windows.Forms.DataGridViewComboBoxColumn();
             this.cmdCtrlConf = new System.Windows.Forms.Button();
             this.cmdDataProc = new System.Windows.Forms.Button();
             this.cmdSettings = new System.Windows.Forms.Button();
@@ -96,6 +87,15 @@
             this.sfdLog = new System.Windows.Forms.SaveFileDialog();
             this.ofdPythonScript = new System.Windows.Forms.OpenFileDialog();
             this.cmdChangeUser = new System.Windows.Forms.Button();
+            this.id = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.name = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.enabled = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+            this.fName = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.inputType = new System.Windows.Forms.DataGridViewComboBoxColumn();
+            this.gain = new System.Windows.Forms.DataGridViewComboBoxColumn();
+            this.scaleMin = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.scaleMax = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.units = new System.Windows.Forms.DataGridViewComboBoxColumn();
             this.pnlCtrlConf.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.nudProject)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudWorkPack)).BeginInit();
@@ -133,8 +133,8 @@
             this.pnlCtrlConf.Controls.Add(this.nudInterval);
             this.pnlCtrlConf.Controls.Add(this.label1);
             this.pnlCtrlConf.Controls.Add(this.txtLogName);
-            this.pnlCtrlConf.Controls.Add(this.pnlSimpleConfig);
             this.pnlCtrlConf.Controls.Add(this.dgvInputSetup);
+            this.pnlCtrlConf.Controls.Add(this.pnlSimpleConfig);
             this.pnlCtrlConf.Location = new System.Drawing.Point(13, 40);
             this.pnlCtrlConf.Name = "pnlCtrlConf";
             this.pnlCtrlConf.Size = new System.Drawing.Size(821, 379);
@@ -510,70 +510,6 @@
             this.dgvInputSetup.Visible = false;
             this.dgvInputSetup.SizeChanged += new System.EventHandler(this.dgvInputSetup_SizeChanged);
             // 
-            // id
-            // 
-            this.id.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-            this.id.HeaderText = "Number";
-            this.id.MinimumWidth = 6;
-            this.id.Name = "id";
-            this.id.Width = 85;
-            // 
-            // name
-            // 
-            this.name.HeaderText = "Name";
-            this.name.MinimumWidth = 6;
-            this.name.Name = "name";
-            // 
-            // enabled
-            // 
-            this.enabled.HeaderText = "Enabled";
-            this.enabled.MinimumWidth = 6;
-            this.enabled.Name = "enabled";
-            this.enabled.Resizable = System.Windows.Forms.DataGridViewTriState.True;
-            this.enabled.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
-            // 
-            // fName
-            // 
-            this.fName.HeaderText = "Friendly Name";
-            this.fName.MinimumWidth = 6;
-            this.fName.Name = "fName";
-            // 
-            // inputType
-            // 
-            this.inputType.HeaderText = "Input Type";
-            this.inputType.MinimumWidth = 6;
-            this.inputType.Name = "inputType";
-            this.inputType.Resizable = System.Windows.Forms.DataGridViewTriState.True;
-            this.inputType.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
-            // 
-            // gain
-            // 
-            this.gain.HeaderText = "Gain";
-            this.gain.MinimumWidth = 6;
-            this.gain.Name = "gain";
-            this.gain.Resizable = System.Windows.Forms.DataGridViewTriState.True;
-            this.gain.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
-            // 
-            // scaleMin
-            // 
-            this.scaleMin.HeaderText = "Scale Minimum";
-            this.scaleMin.MinimumWidth = 6;
-            this.scaleMin.Name = "scaleMin";
-            // 
-            // scaleMax
-            // 
-            this.scaleMax.HeaderText = "Scale Maximum";
-            this.scaleMax.MinimumWidth = 6;
-            this.scaleMax.Name = "scaleMax";
-            // 
-            // units
-            // 
-            this.units.HeaderText = "Units";
-            this.units.MinimumWidth = 6;
-            this.units.Name = "units";
-            this.units.Resizable = System.Windows.Forms.DataGridViewTriState.True;
-            this.units.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
-            // 
             // cmdCtrlConf
             // 
             this.cmdCtrlConf.Location = new System.Drawing.Point(13, 12);
@@ -828,6 +764,72 @@
             this.cmdChangeUser.LocationChanged += new System.EventHandler(this.lblConnection_TextChanged);
             this.cmdChangeUser.Click += new System.EventHandler(this.cmdChangeUser_Click);
             // 
+            // id
+            // 
+            this.id.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+            this.id.HeaderText = "Number";
+            this.id.MinimumWidth = 6;
+            this.id.Name = "id";
+            this.id.ReadOnly = true;
+            this.id.Width = 85;
+            // 
+            // name
+            // 
+            this.name.HeaderText = "Name";
+            this.name.MinimumWidth = 6;
+            this.name.Name = "name";
+            this.name.ReadOnly = true;
+            // 
+            // enabled
+            // 
+            this.enabled.HeaderText = "Enabled";
+            this.enabled.MinimumWidth = 6;
+            this.enabled.Name = "enabled";
+            this.enabled.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+            this.enabled.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
+            // 
+            // fName
+            // 
+            this.fName.HeaderText = "Friendly Name";
+            this.fName.MinimumWidth = 6;
+            this.fName.Name = "fName";
+            // 
+            // inputType
+            // 
+            this.inputType.HeaderText = "Input Type";
+            this.inputType.MinimumWidth = 6;
+            this.inputType.Name = "inputType";
+            this.inputType.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+            this.inputType.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
+            // 
+            // gain
+            // 
+            this.gain.HeaderText = "Gain";
+            this.gain.MinimumWidth = 6;
+            this.gain.Name = "gain";
+            this.gain.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+            this.gain.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
+            // 
+            // scaleMin
+            // 
+            this.scaleMin.HeaderText = "Scale Minimum";
+            this.scaleMin.MinimumWidth = 6;
+            this.scaleMin.Name = "scaleMin";
+            // 
+            // scaleMax
+            // 
+            this.scaleMax.HeaderText = "Scale Maximum";
+            this.scaleMax.MinimumWidth = 6;
+            this.scaleMax.Name = "scaleMax";
+            // 
+            // units
+            // 
+            this.units.HeaderText = "Units";
+            this.units.MinimumWidth = 6;
+            this.units.Name = "units";
+            this.units.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+            this.units.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
+            // 
             // mainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
@@ -901,15 +903,6 @@
         private System.Windows.Forms.Button cmdImportLogPi;
         private System.Windows.Forms.Button cmdPythonGraph;
         private System.Windows.Forms.Button cmdPythonScript;
-        private System.Windows.Forms.DataGridViewTextBoxColumn id;
-        private System.Windows.Forms.DataGridViewTextBoxColumn name;
-        private System.Windows.Forms.DataGridViewCheckBoxColumn enabled;
-        private System.Windows.Forms.DataGridViewTextBoxColumn fName;
-        private System.Windows.Forms.DataGridViewComboBoxColumn inputType;
-        private System.Windows.Forms.DataGridViewComboBoxColumn gain;
-        private System.Windows.Forms.DataGridViewTextBoxColumn scaleMin;
-        private System.Windows.Forms.DataGridViewTextBoxColumn scaleMax;
-        private System.Windows.Forms.DataGridViewComboBoxColumn units;
         private System.Windows.Forms.Button cmdConfigSwitch;
         private System.Windows.Forms.Button cmdAddPin;
         private System.Windows.Forms.ComboBox cmbVar;
@@ -934,5 +927,14 @@
         private System.Windows.Forms.Button cmdChangeUser;
         private System.Windows.Forms.Button cmdReconvert;
         private System.Windows.Forms.Button cmdRename;
+        private System.Windows.Forms.DataGridViewTextBoxColumn id;
+        private System.Windows.Forms.DataGridViewTextBoxColumn name;
+        private System.Windows.Forms.DataGridViewCheckBoxColumn enabled;
+        private System.Windows.Forms.DataGridViewTextBoxColumn fName;
+        private System.Windows.Forms.DataGridViewComboBoxColumn inputType;
+        private System.Windows.Forms.DataGridViewComboBoxColumn gain;
+        private System.Windows.Forms.DataGridViewTextBoxColumn scaleMin;
+        private System.Windows.Forms.DataGridViewTextBoxColumn scaleMax;
+        private System.Windows.Forms.DataGridViewComboBoxColumn units;
     }
 }

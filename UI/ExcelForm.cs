@@ -306,11 +306,15 @@ namespace SteerLoggerUser
                 {
                     // Alert user if they don't import an Excel file
                     MessageBox.Show("File input isn't an Excel file ( *.xlsx)!", "Not Excel File", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    cmdOpenTemplate.Text = "Find Template Workbook";
+                    cmdOpenTemplate.Enabled = true;
                     return;
                 }
             }
             else
             {
+                cmdOpenTemplate.Text = "Find Template Workbook";
+                cmdOpenTemplate.Enabled = true;
                 return;
             }
 
