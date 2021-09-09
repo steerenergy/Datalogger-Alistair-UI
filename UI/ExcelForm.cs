@@ -5,6 +5,7 @@ using System.Reflection;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using System.Data;
 
 namespace SteerLoggerUser
 {
@@ -295,6 +296,8 @@ namespace SteerLoggerUser
         // Allows user to select template to use 
         private void cmdOpenTemplate_Click(object sender, EventArgs e)
         {
+            cmdOpenTemplate.Enabled = false;
+            cmdOpenTemplate.Text = "Finding Workbook...";
             if (ofdTemplate.ShowDialog() == DialogResult.OK)
             {
                 // Get the path to workbook
@@ -348,6 +351,8 @@ namespace SteerLoggerUser
                 MessageBox.Show(String.Format("Full error: {0}",theException.ToString()),"Full Error",
                                 MessageBoxButtons.OK,MessageBoxIcon.Error);
             }
+            cmdOpenTemplate.Text = "Find Template Workbook";
+            cmdOpenTemplate.Enabled = true;
         }
 
 
@@ -387,7 +392,7 @@ namespace SteerLoggerUser
                 i++;
             }
             // Set header for column
-            dgvTemplate.Rows[row].Cells[col].Value = logProc.procheaders[logCol];
+            table.Rows[row][col] = logProc.procheaders[logCol];
             // Gets array of data depending on column selected
             string[] data;
             if (logCol == 0)
@@ -403,23 +408,22 @@ namespace SteerLoggerUser
                 data = Array.ConvertAll(logProc.procData[logCol - 2].ToArray(), x => x.ToString());
             }
             // Add column to arrays being exported to excel
-            int[] cell = { dgvTemplate.SelectedCells[0].ColumnIndex, dgvTemplate.SelectedCells[0].RowIndex };
+            int[] cell = { col, row };
             string[] name = { logProc.procheaders[logCol] };
             exportingArrays.Add(cell, name.Concat(data).ToArray());
             
             row++;
             // Adds extra rows if needed
-            while (data.Length > dgvTemplate.Rows.Count - row)
+            while (data.Length > table.Rows.Count - row)
             {
-                i = dgvTemplate.Rows.Count;
-                dgvTemplate.Rows.Add(new DataGridViewRow());
-                dgvTemplate.Rows[i].HeaderCell.Value = i.ToString();
+                i = table.Rows.Count;
+                table.Rows.Add();
             }
 
             // Writes data to dgvTemplate
             for (i = row; i < logProc.timestamp.Count + row; i++)
             {
-                dgvTemplate.Rows[i].Cells[col].Value = data[i - row];
+                table.Rows[i][col] = data[i - row];
             }
         }
 
@@ -460,7 +464,6 @@ namespace SteerLoggerUser
                 }
 
                 // Create copy of template sheet
-                Excel.Range excelRange = template.UsedRange;
                 template.Copy(template);
 
                 // Rename template sheet to user defined name
@@ -509,6 +512,7 @@ namespace SteerLoggerUser
 
 
         // Loads template in dgvTemplate
+        DataTable table;
         private void cmdLoadTemplate_Click(object sender, EventArgs e)
         {
             // Read data into dgvtemplate
@@ -545,32 +549,41 @@ namespace SteerLoggerUser
                     System.Runtime.InteropServices.Marshal.FinalReleaseComObject(workbook);
                     return;
                 }
+
                 // Clear dgvTemplate
+                dgvTemplate.DataSource = null;
                 dgvTemplate.Rows.Clear();
                 dgvTemplate.Columns.Clear();
+                // Clear table before repopulating
+                if (table != null)
+                {
+                    table.Dispose();
+                }
+
+                // Create new DataTable
+                table = new DataTable();
                 // Reset exportingArrays
                 exportingArrays = new Dictionary<int[], string[]>();
-                // Add columns to dgvTemplate
+                // Add columns to Datatable
                 for (int i = 1; i <= valueArray.GetLength(1); i++)
                 {
-                    DataGridViewColumn tempColumn = new DataGridViewColumn();
-                    tempColumn.Name = GetColumn(i - 1);
-                    tempColumn.HeaderText = GetColumn(i - 1);
-                    tempColumn.CellTemplate = new DataGridViewTextBoxCell();
-                    dgvTemplate.Columns.Add(tempColumn);
+                    table.Columns.Add(GetColumn(i - 1).ToString());
                 }
 
                 for (int i = 1; i <= valueArray.GetLength(0); i++)
                 {
-                    // Write template data to dgvTemplate one row at a time
+                    // Write template data to datatable one row at a time
                     List<string> rowData = new List<string>();
                     for (int j = 1; j <= valueArray.GetLength(1); j++)
                     {
                         rowData.Add((valueArray[i, j] == null) ? "" : valueArray[i, j].ToString());
                     }
-                    dgvTemplate.Rows.Add(rowData.ToArray());
-                    dgvTemplate.Rows[i - 1].HeaderCell.Value = i.ToString();
+                    table.Rows.Add(rowData.ToArray());
                 }
+                dgvTemplate.DataSource = table;
+                // Reset variables to save memory
+                excelRange = null;
+                valueArray = null;
             }
             // Catch errors if instance of Excel is closed (e.g. by closing in task manager
             catch (InvalidCastException)

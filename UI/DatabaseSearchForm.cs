@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using System.Net.Sockets;
 using System.Windows.Forms;
 
 namespace SteerLoggerUser
@@ -63,10 +65,19 @@ namespace SteerLoggerUser
                 // Send values to logger
                 TCPSend(values);
             }
-            catch (Exception exp)
+            catch (SocketException)
             {
                 cancelled = true;
-                throw exp;
+                MessageBox.Show("An error occured in the connection, please reconnect.",
+                    "Connection Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                this.Close();
+            }
+            catch (InvalidDataException)
+            {
+                cancelled = true;
+                MessageBox.Show("You need to be connected to a logger to do that!",
+                    "Connect to a Logger", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                this.Close();
             }
             this.Close();
         }
@@ -127,7 +138,8 @@ namespace SteerLoggerUser
         // When form loads, set controls to disabled and set ckbNotDownloaded text to reflect user
         private void DatabaseSearchForm_Load(object sender, EventArgs e)
         {
-            dtpDate.Enabled = false;
+            dtpDate.Enabled = true;
+            ckbDate.Checked = true;
             nudProject.Enabled = false;
             nudWorkPack.Enabled = false;
             nudJobSheet.Enabled = false;

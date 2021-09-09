@@ -109,7 +109,7 @@ namespace SteerLoggerUser
             this.lblVersion.Name = "lblVersion";
             this.lblVersion.Size = new System.Drawing.Size(107, 13);
             this.lblVersion.TabIndex = 6;
-            this.lblVersion.Text = "Logger version: 2.1.3";
+            this.lblVersion.Text = "Logger version: 2.1.4";
             // 
             // label2
             // 
@@ -148,6 +148,7 @@ namespace SteerLoggerUser
             this.Controls.Add(this.lnkManual);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "AboutForm";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "AboutForm";
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);

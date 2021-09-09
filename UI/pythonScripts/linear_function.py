@@ -5,19 +5,20 @@ import sys
 from pathlib import Path
 
 # Get path of appData folder from argument
-path = Path(sys.argv[1])#
+path = Path(sys.argv[1])
 
 # Read data in from csv file
 current_data = pd.read_csv(path / "temp.csv")
 
-
-proc_columns = current_data.columns[0:2]
+proc_columns = []
+drop_columns = []
 # Enumerate through data columns and allow user to select whether to apply the linear function
-for column in current_data.columns[2:]:
+for column in list(current_data)[2:]:
     apply = input("Apply linear function to " + column + "?\n[y\\n]:")
     if apply.lower() == "y":
-        proc_columns = proc_columns.append(pd.Index([column]))
-
+        proc_columns.append(column)
+    else:
+        drop_columns.append(column)
 
 # Get m value of y = mx + c function
 m = input("Please enter the m value.\n>")
@@ -43,21 +44,11 @@ while (type(c) != Decimal):
         c = input("Please enter the c value.\n>")
         c = Decimal(c)
 
+# Create DataFrame for processed data, drop columns that won't be processed
+proc_data = current_data.drop(columns=drop_columns,axis=1)
 
-# Create DataFrame for processed data
-proc_data = pd.DataFrame(columns=proc_columns)
-
-for i in range(0,len(current_data.index)):
-    temp_row = []
-    temp_row.append(current_data['Date/Time'][i])
-    temp_row.append(current_data['Time (seconds)'][i])
-    # Apply linear function to data in selected columns
-    for column in proc_columns[2:]:
-        value = (Decimal(current_data[column][i]) * m) + c
-        temp_row.append(f"{value:.14f}")
-    # Append new row to processed data
-    temp_row = pd.Series(temp_row, index=proc_columns,name=str(i))
-    proc_data = proc_data.append(temp_row)
-
-# Write processed data to csv
+# Apply linear function to each column selected to be processed
+for column in proc_columns:
+    proc_data[column] = proc_data[column].apply(lambda x : Decimal(x) * m + c)
+# Write data to csv
 proc_data.to_csv("proc.csv",index=False)

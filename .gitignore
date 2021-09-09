@@ -18,3 +18,5 @@ UI/obj/Debug/DesignTimeResolveAssemblyReferences.cache
 SteerLoggerInstaller/SteerLoggerInstaller-cache/
 UI/.vs/
 UI/pythonScripts/.idea/
+/UI/pythonScripts/temp.csv
+/UI/pythonScripts/proc.csv

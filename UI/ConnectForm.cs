@@ -151,7 +151,7 @@ namespace SteerLoggerUser
             }
             else
             {
-                this.Invoke(new Action(() => { cmbLogger.SelectedIndex = 0; }));
+                cmbLogger.SelectedIndex = 0;
             }
             // Stop progress bar
             pbScan.Enabled = false;
