@@ -2760,6 +2760,19 @@ namespace SteerLoggerUser
             // Re-read settings files to make sure new changes are reflected
             ReadProgConfig();
             SetupSimpleConf();
+
+            ((DataGridViewComboBoxColumn)dgvInputSetup.Columns["inputType"]).Items.Clear();
+            ((DataGridViewComboBoxColumn)dgvInputSetup.Columns["units"]).Items.Clear();
+
+            // Use progConfig to populate the InputSetup grid view dropdown menus correctly
+            foreach (string key in progConfig.inputTypes.Keys)
+            {
+                ((DataGridViewComboBoxColumn)dgvInputSetup.Columns["inputType"]).Items.Add(key);
+            }
+            foreach (string value in progConfig.units)
+            {
+                ((DataGridViewComboBoxColumn)dgvInputSetup.Columns["units"]).Items.Add(value);
+            }
         }
 
 
